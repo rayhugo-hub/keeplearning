@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 18：答案 — T-BOX 硬件架构——拆开T-BOX，里面有什么？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson17-域控制器与区域架构--2026-07-05--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson19-座舱--2026-07-11--0900/课程.html">下一课 →</a>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 18 — 答案</div>
+  <h1>T-BOX 硬件架构——拆开T-BOX，里面有什么？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（"T-BOX 不就是带天线的手机主板吗？"——用"邮局 vs 手机"类比）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"邮局工作间 vs 手机"类比）：</strong></p>
+<p><strong>你的手机像一个"随身听"：</strong>只有一个主芯片（SoC）集成 CPU/GPU/Modem/GPS，只有 USB-C 接口，电池供电、没电就关机，0~35°C 室内使用，2~3 年寿命。</p>
+<p><strong>T-BOX 更像一个"自动化邮局工作间"：</strong></p>
+<ol>
+  <li><strong>多芯片各司其职：</strong>MCU 是"邮局局长"（总控），Modem 是"电话员"（4G/5G 通信），GNSS 是"地图员"（定位），HSM 是"保险柜管理员"（加密安全）——每个芯片做自己最擅长的事</li>
+  <li><strong>多种接口：</strong>以太网（宽带专线）连接 HPC/网关、CAN 总线（内部对讲机）连接车身电子、LIN（电话线）连接简单传感器</li>
+  <li><strong>常电设计：</strong>一直挂在蓄电池上（KL30），熄火后深休眠待机 &lt; 1mA——像邮局关门但留了值班室灯，收到电话立刻开灯干活</li>
+</ol>
+<p><strong>车规要求加码：</strong>手机芯片 0~35°C → T-BOX 车规 -40~85°C；手机 2~3 年寿命 → T-BOX 10~15 年；手机摔了换屏 → T-BOX 颠簸路面 20 万公里不能出故障。</p>
+<p><strong>一句话：</strong>手机是"消费级一体化设备"，T-BOX 是"多个车规级专业芯片组成、有常电保障、能全天候值守的汽车通信中枢"。</p>
+</div>
+
+<h3>Q2（远程 App 开锁——从手机到车门经历了哪些环节？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<ol>
+  <li><strong>手机→云端：</strong>手机 App 通过 4G/5G 发送"开锁"请求到 TSP 云平台</li>
+  <li><strong>云平台验证：</strong>验证用户 ID + 密码 + 设备认证</li>
+  <li><strong>云端→T-BOX：</strong>云平台通过 MQTT 协议（加密 JSON）向目标 T-BOX 下发开锁指令</li>
+  <li><strong>Modem 接收：</strong>T-BOX 的 5G Modem 收到 MQTT 消息</li>
+  <li><strong>Modem→MCU（UART+AT 指令）：</strong>Modem 通过 UART 串口用 AT 指令通知 MCU 有数据到达。MCU 读取 Modem 缓冲区拿到原始 MQTT 数据</li>
+  <li><strong>MCU→HSM（SPI 解密）：</strong>MCU 通过 SPI 总线调用 HSM 硬件解密 MQTT 数据包</li>
+  <li><strong>MCU 解析指令：</strong>MCU 解密后解析 JSON：<code>{command: "unlock", door: "driver"}</code>，验证时间戳和序列号防止重放攻击</li>
+  <li><strong>MCU→CAN 总线：</strong>MCU 构造 CAN 报文（CAN ID: 0x1A3, Data: [解锁指令]），通过 CAN-FD 总线发送到车身域</li>
+  <li><strong>BCM 执行：</strong>BCM（车身控制模块）收到 CAN 报文 → 驱动门锁电机 → 门锁咔嗒一声开了 ✅</li>
+  <li><strong>状态回传：</strong>BCM 通过 CAN 回传状态 → MCU 打包 MQTT → 通过 Modem 发给云端 → 推送到手机 App</li>
+</ol>
+<p><strong>关键要点：</strong>全程涉及 3 段网络（手机↔云、云↔T-BOX、T-BOX↔车门），T-BOX 内部 3 次"翻译"（Modem→UART→MCU、MCU→CAN→BCM、BCM→电机），安全层层把关（MQTT over TLS 传输加密、HSM 硬件解密、防重放验证）。</p>
+</div>
+
+<h3>Q3（eSIM 和普通 SIM 卡的区别？为什么车上用 eSIM 更合适？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p><strong>eSIM 是直接焊在主板上的嵌入式 SIM 芯片，不可拆卸。</strong></p>
+
+<table>
+<tr><th>对比</th><th>普通 SIM 卡</th><th>eSIM</th></tr>
+<tr><td>物理形态</td><td>可插拔塑料卡</td><td>焊接在主板上的芯片</td></tr>
+<tr><td>耐振动</td><td>差——接触不良风险</td><td>优秀——无物理触点</td></tr>
+<tr><td>耐温范围</td><td>0~70°C</td><td>-40~105°C</td></tr>
+<tr><td>换运营商</td><td>必须换卡</td><td>远程 OTA 下发配置即可</td></tr>
+<tr><td>可物理拔出</td><td>✅ 可以</td><td>❌ 不可能</td></tr>
+<tr><td>防盗安全性</td><td>❌ 可被拔掉切断通信</td><td>✅ 无法拔除，始终在线</td></tr>
+</table>
+
+<p><strong>车上用 eSIM 更合适的 4 个原因：</strong></p>
+<ol>
+  <li><strong>抗震：</strong>车在颠簸路面上跑 10 年，eSIM 没有卡槽接触不良问题——普通 SIM 卡在振动中可能瞬间断连</li>
+  <li><strong>耐温：</strong>夏天车内暴晒 80°C+，普通 SIM 塑料卡可能变形失效——车规 eSIM 可承受 -40~105°C</li>
+  <li><strong>远程切换运营商：</strong>车企跟多家运营商签约——某个区域信号不好，云端远程下发新 profile 自动切换到另一家运营商，用户完全无感（换普通 SIM 卡需要去营业厅或寄卡）</li>
+  <li><strong>防盗：</strong>偷车贼无法拔掉 eSIM 切断车辆远程通信——警察可以持续追踪车辆位置</li>
+</ol>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>T-BOX 主控 MCU 和 5G Modem 之间通过 <strong>UART 串口</strong>通信，MCU 发送 <strong>AT 指令</strong>（如 AT+CGATT、AT+QIOPEN）来控制 Modem 进行拨号、建连和数据收发。A❌ SPI 是 MCU 与 HSM 之间的总线，不是与 Modem 的；C❌ 以太网和 SOME/IP 是 T-BOX 与车内 HPC/网关之间的协议，不是内部 MCU↔Modem 的；D❌ CAN-FD 是 T-BOX 与车身域之间的总线，不是内部通信。</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>B</strong></td>
+  <td>T-BOX 接入汽车<strong>常电（KL30）</strong>，车辆熄火后蓄电池仍然供电。PMIC 在深休眠模式下只给 RTC 和唤醒电路供电，关掉其他所有电源轨，待机电流控制在 <strong>1mA 以下</strong>，保证停放 30 天不亏电。收到远程唤醒（Modem 检测到 SMS/数据包）或 CAN 唤醒信号后，PMIC 立即开启所有电源轨恢复全功能运行。A❌ 熄火后 T-BOX 不能断电——否则远程控制（开空调、解锁）和紧急呼叫（eCall）都无法工作；C❌ 通常没有内置锂电池（会额外增加成本和安全风险）；D❌ 车底没有太阳能板。</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>B</strong></td>
+  <td>eSIM 的关键优势是：①<strong>嵌入式焊接</strong>——无物理触点，耐振动；②<strong>车规级温度范围</strong>（-40~105°C）；③<strong>远程配置</strong>——通过 OTA 下发运营商 profile，无需换卡即可切换运营商（对车企运营和多运营商策略非常关键）；④<strong>不可物理拔出</strong>——防盗安全（偷车贼不能拔 SIM 卡切断远程通信）。A❌ eSIM 和普通 SIM 的上网速度取决于调制解调器和运营商网络，eSIM 本身不增加速度；C❌ eSIM 仍然需要运营商签约；D❌ eSIM 支持 4G/5G 以及未来的网络制式。</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 09：答案 — 以太和CAN通信知识</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson08-音频通信协议--2026-06-27--2300/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson10-T-BOX知识--2026-06-28--1800/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 09 — 答案</div>
+  <h1>以太和CAN通信知识——参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<div class="q-label">Q1（CAN 总线优先级裁定机制）</div>
+<div class="ref-box">想象一群人同时在一间房间里喊话。谁嗓门大谁先被听到。CAN 总线上也一样——每个消息自带一个"编号"（ID），编号越小嗓门越大（优先级越高）。<br><br>当两个 ECU 同时发消息时，它们一边发一边听总线上的信号。如果有一个 ECU 想发"1"（隐性位），但听到总线上实际是"0"（显性位），它就立刻闭嘴退让——因为它知道有更紧急的消息在同时发送了。<br><br>这就像在会议室里，CEO 说"停！"（显性=0），所有人听到就安静下来。谁先抢到"0"谁就是老大。<strong>这个过程不需要裁判（主节点），也不需要事先排队（时分复用）——全凭"谁的数字小"自然胜出。</strong><br><br>核心要点：<br>• 不需要中央协调器（多主总线）<br>• 优先级由消息本身携带的 ID 决定<br>• 发隐性位（1）的检测到显性位（0）就自动退让<br>• 高优先级消息永远零延迟等待</div>
+
+<div class="q-label">Q2（城市交通系统比喻）</div>
+<div class="ref-box"><strong>比喻对应关系：</strong><br>
+• <strong>CAN</strong> = 城市主干道——四通八达、可靠、中速。所有关键子系统（发动机、刹车、安全气囊）都走 CAN。就像城市的主干路——所有车辆都能走，但车道有限、不能太快（~1 Mbps）。<br>
+• <strong>CAN-FD</strong> = 主干道的快速公交车道——同样的路基，但特定路段可以提速、一次拉更多乘客（64 字节 vs 8 字节）。适合电池管理（BMS）、ADAS 传感器摘要信息等需要传输更多数据的场景。<br>
+• <strong>LIN</strong> = 小区内部路——很窄（单线）、很慢（20 kbps），但够用还便宜。只跑"短途"——车窗升降、门锁、座椅调节。没必要修一条八车道高速公路到每个门锁上。<br>
+• <strong>车载以太网</strong> = 高铁/高速公路——超宽车道（100 Mbps~1 Gbps）、远距离，专治摄像头海量视频流（ADAS）和整车 OTA 升级。<br><br>
+<strong>为什么不能只用一种？</strong><br>
+• 全用以太网 → 成本爆炸：每个门锁模块配以太网收发器比 LIN 贵 10 倍<br>
+• 全用 CAN → 摄像头视频流完全传不动（1 Mbps 带不动 2 Gbps 的摄像头）<br>
+• 全用 LIN → 连刹车消息都来不及传（20 kbps 延迟 > 50 ms，不安全）<br><br>
+<strong>结论：通信分层 = 成本与性能的最佳平衡。</strong></div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th style="width:60px">题号</th><th>答案</th><th>解析</th></tr>
+<tr><td>1</td><td><strong>C</strong></td><td>CAN 的核心机制是非破坏性位仲裁（Non-destructive Bit Arbitration）。多个节点同时发送时，发隐性位（1）的节点检测到总线上出现显性位（0）就立即退出，ID 最小的消息无延迟通过。A❌ CAN 是多主总线，没有中心主节点轮询；B❌ CSMA/CD 是以太网早期用的冲突检测（碰撞后退避重发），CAN 是 CSMA/CR（碰撞解决），本质不同；D❌ CAN 不是时分复用，不分配时隙。</td></tr>
+<tr><td>2</td><td><strong>B</strong></td><td>CAN-FD 的最大改进是：(1) 数据段速率可提升到 2~8 Mbps（仲裁段仍保持 500 kbps/1 Mbps 保证兼容）；(2) 每帧数据段从 8 字节扩展到 64 字节。A❌ 高速率下传输距离反而略短；C❌ 物理层仍用差分双绞线；D❌ 远程控制是应用层功能，与总线本身无关。</td></tr>
+<tr><td>3</td><td><strong>B</strong></td><td>一路 8MP 摄像头原始数据约 2 Gbps，即使压缩后也需要数百 Mbps 带宽，只有车载以太网（100/1000BASE-T1）能胜任。A❌ 车窗升降用 LIN 即可；C❌ 安全气囊触发走 CAN（确定性延迟）；D❌ 氛围灯用 LIN 甚至 PWM 即可。</td></tr>
+</table>
+
+<hr>
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

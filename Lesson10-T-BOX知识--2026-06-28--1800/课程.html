@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 10（18:00）：T-BOX的通信协议</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{text-align:center;margin:.8rem 0}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 10（18:00）— 2026-06-28 | 🚗 T-BOX通信协议</div>
+  <h1>T-BOX的通信协议——车是怎么和云端"聊天"的？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson09-以太和CAN通信知识--2026-06-28--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson11-座舱--2026-06-28--2100/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你在手机 App 上点了一下"远程开空调"。</p>
+
+<p><strong>问题：从你点下按钮到车里空调真的吹出冷风，这一路上数据经历了什么？</strong></p>
+
+<p>你很可能已经知道 T-BOX 是中间的桥梁（Lesson 04 讲过）。但今天我们要深入一层——</p>
+
+<div class="callout">
+<strong>T-BOX 和云端之间到底说了什么"语言"？这种"语言"和我们平时上网有什么区别？</strong>
+</div>
+
+<p>一辆车每天产生 <strong>几百 MB 到几个 GB</strong> 的数据，而 T-BOX 的 4G/5G 流量不是无限的。它不能像手机浏览器那样每打开一个页面就重新请求——它需要用一种<strong>更轻量、更省流量、更实时</strong>的方式来通信。</p>
+
+<p>这就是本节课的核心：<strong>T-BOX 与云端通信的协议和机制。</strong></p>
+
+<hr>
+
+<h2>二、车联网通信的三个核心问题</h2>
+
+<p>在设计 T-BOX 与云端的通信方式时，工程师需要解决三个问题：</p>
+
+<table>
+<tr><th>#</th><th>问题</th><th>不解决会怎样</th></tr>
+<tr><td>①</td><td><strong>实时性</strong>——状态需要随时上报</td><td>你查车辆位置时看到的是 10 分钟前的老数据</td></tr>
+<tr><td>②</td><td><strong>双向性</strong>——云端能主动下发指令</td><td>你按了"开空调"却无法通知到车</td></tr>
+<tr><td>③</td><td><strong>可靠性</strong>——信号中断后消息不能丢</td><td>远程控车指令在半路丢失</td></tr>
+</table>
+
+<p>传统上网方式用的 <strong>HTTP 协议</strong> 在解决①③时效率很低——每次请求都要建立连接、发 HTTP 头、等待响应，流量开销大、延迟高。</p>
+
+<p>因此，T-BOX 和云端之间主要用一种更轻量的协议——<strong>MQTT</strong>。</p>
+
+<hr>
+
+<h2>三、MQTT——车联网的"群聊"</h2>
+
+<h3>3.1 什么是 MQTT？</h3>
+
+<p>MQTT（Message Queuing Telemetry Transport）是一种<strong>发布/订阅</strong>模式的轻量级消息协议，专为 IoT（物联网）和车联网设计。</p>
+
+<div class="callout">
+<strong>简单的比喻：MQTT 就像一个微信群聊。</strong><br><br>
+• 车（T-BOX）是群成员，随时在群里发消息<br>
+• 云端平台（你的手机 App）也是群成员，接收群消息<br>
+• 有一个群主叫 <strong>Broker（代理服务器）</strong>，负责转发消息<br>
+• 任何成员都可以<strong>发布</strong>消息到某个"话题"，其他订阅了该话题的成员就会收到
+</div>
+
+<div class="mermaid">
+flowchart TB
+    subgraph MQTT["MQTT 架构"]
+        direction TB
+        B["🔄 MQTT Broker&lt;br&gt;（代理服务器）"]
+        T["🚗 T-BOX&lt;br&gt;发布者：上报车辆状态"]
+        C["☁️ 云端服务&lt;br&gt;订阅者：接收车辆数据"]
+        A["📱 手机 App&lt;br&gt;订阅者：接收推送"]
+        T --"发布 topic: car/123/status"--> B
+        B --"转发给已订阅的"--> C
+        B --"转发给已订阅的"--> A
+    end
+</div>
+
+<h3>3.2 三个关键概念</h3>
+
+<table>
+<tr><th>概念</th><th>含义</th><th>在车联网中的例子</th></tr>
+<tr><td><strong>Topic（话题）</strong></td><td>消息的"标签"，用斜杠分层</td><td><code>car/VIN123456/status/position</code></td></tr>
+<tr><td><strong>Publish（发布）</strong></td><td>发送一条带话题的消息</td><td>T-BOX 每 10 秒发布一次位置到 <code>car/XXX/position</code></td></tr>
+<tr><td><strong>Subscribe（订阅）</strong></td><td>声明对某个话题感兴趣</td><td>云端订阅 <code>car/XXX/#</code>（#表示所有子话题）</td></tr>
+</table>
+
+<h3>3.3 MQTT 适合车联网的三大原因</h3>
+
+<ol class="ol-decimal">
+  <li><strong>极轻量</strong>——协议头最小仅 2 字节，而 HTTP 头有几百字节。一个月跑 5 GB 流量的 T-BOX，用 MQTT 可以省掉 30%~50% 的带宽浪费</li>
+  <li><strong>支持三档 QoS（服务质量）</strong>——你可以选择"发一次就行"（适合定期上报）或"确认收到才放心"（适合远程控车指令）</li>
+  <li><strong>持久会话</strong>——车进隧道掉线了，Broker 会暂存未送达的消息，等车连回来再发。消息不会丢</li>
+</ol>
+
+<p><strong>QoS 三档选择：</strong></p>
+
+<table>
+<tr><th>QoS 等级</th><th>意义</th><th>适用场景</th></tr>
+<tr><td><strong>0</strong> — 最多发一次</td><td>发完就不管了，不关心收没收到</td><td>车辆位置定时上报（丢了下一帧还有）</td></tr>
+<tr><td><strong>1</strong> — 至少一次</td><td>保证对方收到，但可能重复</td><td>充电状态上报（重复也没事）</td></tr>
+<tr><td><strong>2</strong> — 恰好一次</td><td>保证唯一收到，不丢不重</td><td>远程锁车/解锁指令（不能丢、不能重复）</td></tr>
+</table>
+
+<hr>
+
+<h2>四、HTTP/HTTPS——T-BOX 的另一种"语言"</h2>
+
+<p>MQTT 不是 T-BOX 唯一的通信方式。某些场景下，T-BOX 也会用 <strong>HTTP/HTTPS</strong>：</p>
+
+<table>
+<tr><th>场景</th><th>为什么用 HTTP 而不是 MQTT</th></tr>
+<tr><td>OTA 升级包下载</td><td>HTTP 支持断点续传、大文件分片下载，MQTT 不适合传大文件</td></tr>
+<tr><td>上传日志/诊断数据</td><td>一次性大批量上传，用 HTTP POST 更简单</td></tr>
+<tr><td>获取配置参数</td><td>T-BOX 启动时向云端请求最新配置，请求-响应模式更自然</td></tr>
+</table>
+
+<div class="callout">
+<strong>一句话总结：</strong>MQTT 用于"持续的实时数据流"，HTTP 用于"一次性的大数据交换"。
+</div>
+
+<hr>
+
+<h2>五、安全第一——TLS 加密</h2>
+
+<p>车联网通信必须加密。想象一下：</p>
+
+<div class="callout-warn">
+如果你在 App 上按"解锁车门"，这个指令在空中被黑客截获并重放了一遍……
+</div>
+
+<p>T-BOX 和云端之间的所有通信（无论 MQTT 还是 HTTP）都跑在 <strong>TLS（传输层安全协议）</strong> 之上：</p>
+
+<div class="mermaid">
+sequenceDiagram
+    participant TBOX as 🚗 T-BOX
+    participant NET as 🌐 互联网
+    participant CLOUD as ☁️ 云端
+    Note over TBOX,CLOUD: 第一步：TLS 握手（建立安全通道）
+    TBOX->>CLOUD: ClientHello（支持哪些加密算法？）
+    CLOUD-->>TBOX: ServerHello（选一个算法）+ 数字证书
+    TBOX->>TBOX: 验证证书签名（确认云端身份真实）
+    TBOX->>CLOUD: 交换密钥（用证书公钥加密）
+    Note over TBOX,CLOUD: 此后所有数据都是加密的
+    TBOX->>CLOUD: MQTT 加密数据（远程控车指令）
+    CLOUD-->>TBOX: MQTT 加密确认
+</div>
+
+<p><strong>TLS 解决了三个安全问题：</strong></p>
+
+<ol class="ol-decimal">
+  <li><strong>身份验证</strong>——T-BOX 验证云端证书，确认自己连的真是自家的服务器，不是冒充的</li>
+  <li><strong>加密传输</strong>——所有数据用对称密钥加密，即使被截获也看不懂</li>
+  <li><strong>完整性校验</strong>——数据在传输中被篡改，接收方会立刻发现</li>
+</ol>
+
+<div class="callout">
+现实中的 T-BOX 还使用<strong>双向 TLS（mTLS）</strong>——不仅是云端验证 T-BOX 的身份，T-BOX 也会出示自己的客户端证书，证明自己是合法的车载终端。
+</div>
+
+<hr>
+
+<h2>六、T-BOX 通信的典型数据流</h2>
+
+<p>把今天学的内容串起来，一个完整的"远程开空调"流程：</p>
+
+<div class="mermaid">
+sequenceDiagram
+    participant APP as 📱 手机 App
+    participant CLOUD as ☁️ 云端平台
+    participant BROKER as 🔄 MQTT Broker
+    participant TBOX as 🚗 T-BOX
+    participant CAN as 🚌 CAN 总线
+    APP->>CLOUD: HTTPS（TLS加密）：开空调指令
+    CLOUD->>BROKER: 发布到 topic: cmd/VIN123/ac_on
+    BROKER->>TBOX: MQTT（QoS=2）推送开空调指令
+    TBOX->>TBOX: 验证指令来源（客户端证书）
+    TBOX->>CAN: 通过 CAN 总线发送"开启空调"信号
+    CAN-->>TBOX: 空调已启动（状态反馈）
+    TBOX->>BROKER: MQTT 发布状态更新
+    BROKER->>CLOUD: 转发状态
+    CLOUD-->>APP: 推送通知"空调已开启 ✅"
+</div>
+
+<p>全程不超过 <strong>2 秒</strong>。</p>
+
+<hr>
+
+<h2>七、三条简单规则</h2>
+
+<div class="rule-box">
+<p><strong>1. MQTT 实时通信，HTTP 大文件传输</strong>——日常状态上报、远程控车用 MQTT（2 字节协议头+三档 QoS）；OTA 升级包、日志上传用 HTTP（支持断点续传）</p>
+<p><strong>2. 所有通信必须跑在 TLS 之上</strong>——没有加密的车联网就像不锁门的车。双向 TLS（mTLS）是最佳实践：不仅云端认车，车也要认云端</p>
+<p><strong>3. QoS 按需选择，不浪费流量</strong>——位置定位用 QoS 0（丢了等下一帧），远程锁车用 QoS 2（必须不丢不重）</p>
+</div>
+
+<hr>
+
+<!-- ===== 费曼简答题 ===== -->
+
+<h2>八、费曼简答题</h2>
+
+<div class="callout">请用自己的话回答，<strong>不要用任何专业术语</strong>。想象你讲给一个完全不懂技术的朋友听。</div>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>用微信群聊或对讲机等比喻解释：MQTT 的"发布/订阅"到底是什么意思？和打电话这种"点对点"方式有什么不同？</p>
+<textarea id="feynman1" placeholder="请在框中用大白话回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>假设黑客能从空中截获你手机发送的远程控车信号。TLS 加密是怎么保护你的车的？用"寄快递"或"传纸条"的比喻解释。</p>
+<textarea id="feynman2" placeholder="请在框中用大白话回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>为什么 T-BOX 上报位置用 QoS 0（发一次就行），但远程锁车必须用 QoS 2（确保收到且不重复）？如果反过来用，会出现什么问题？</p>
+<textarea id="feynman3" placeholder="请在框中用大白话回答……"></textarea>
+</div>
+
+<hr>
+
+<!-- ===== 选择题 ===== -->
+
+<h2>九、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. MQTT 协议和 HTTP 协议相比，最大的优势是什么？</div>
+<label><input type="radio" name="mc1" value="A"> A. 传输速度更快（物理层提速）</label>
+<label><input type="radio" name="mc1" value="B"> B. 协议头部非常轻量，适合带宽有限的 IoT 设备</label>
+<label><input type="radio" name="mc1" value="C"> C. 支持视频流传输</label>
+<label><input type="radio" name="mc1" value="D"> D. 不需要服务器，设备间直连</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. T-BOX 掉线进入隧道 30 秒后又连上了网络。以下哪个 MQTT 特性保证了这段时间发往该车的指令不会丢失？</div>
+<label><input type="radio" name="mc2" value="A"> A. 心跳保活</label>
+<label><input type="radio" name="mc2" value="B"> B. 遗嘱消息</label>
+<label><input type="radio" name="mc2" value="C"> C. 持久会话 + 暂存转发</label>
+<label><input type="radio" name="mc2" value="D"> D. Topic 通配符</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. 一辆 T-BOX 要从云端下载一个 1.5 GB 的 OTA 升级包。以下哪种通信方式最合适？</div>
+<label><input type="radio" name="mc3" value="A"> A. 用 MQTT 逐条发送 2 字节的小消息拼接成升级包</label>
+<label><input type="radio" name="mc3" value="B"> B. 用 HTTPS 下载，支持断点续传</label>
+<label><input type="radio" name="mc3" value="C"> C. 用未经加密的纯 HTTP 下载以节省流量</label>
+<label><input type="radio" name="mc3" value="D"> D. 通过 CAN 总线逐帧传输</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<!-- ===== 按钮组 ===== -->
+
+<div id="btn-group-container">
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+</div>
+</div>
+
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const LS_KEY = 'teachme_lesson10';
+const ANSWERS = {
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'B' },
+  feynman: [
+    { q: 1, ref: 'MQTT 的发布/订阅模式就像微信群聊：T-BOX 在群里发布消息（发布），云端在群里接收消息（订阅），群主服务器（Broker）负责转发。和打电话（点对点）不同——打电话你只能打给一个人，你必须知道对方是谁；而微信群聊你发一条消息，所有群成员都能收到，你不需要知道谁在听。MQTT 的好处：T-BOX 只需要知道"往哪个话题发"，不需要知道有多少服务在监听；可以随时加新"听众"，T-BOX 不用改；发送者和接收者解耦。' },
+    { q: 2, ref: '用"寄快递"比喻：① 加密传输 = 上锁的快递箱——黑客截获了也打不开，看到的只是乱码。② 身份验证 = 快递员的工牌——T-BOX 先检查云端的"数字证书"，确认指令是自家云端发的，不是黑客冒充的。③ 完整性校验 = 快递箱上的封条——如果数据被中间人篡改（哪怕一个比特），接收方算出的校验码对不上，直接丢弃数据。双向 TLS (mTLS) 是快递员也要查你的身份证——云端也确认 T-BOX 是真的车，不是假设备。' },
+    { q: 3, ref: '用发快递比喻：QoS 0 = 平邮（丢进邮筒不管，可能丢件但最便宜），QoS 2 = 挂号信+回执（当面签收确认，确保唯一一次送达）。位置上报用 QoS 0：每 10 秒报一次，丢了也不怕——10 秒后下一帧就来了，用 QoS 2 流量会飙 3-5 倍。远程锁车用 QoS 2：锁车指令不能丢（丢了你以为锁了实际没锁），不能重复（重复收到两次锁车可能触发异常）。反过来：用 QoS 2 上报位置浪费流量，用 QoS 0 锁车丢指令车就被人开走了。' }
+  ]
+};
+
+// Auto-save on input
+document.addEventListener('DOMContentLoaded', function() {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.feynman1) document.getElementById('feynman1').value = data.feynman1;
+      if (data.feynman2) document.getElementById('feynman2').value = data.feynman2;
+      if (data.feynman3) document.getElementById('feynman3').value = data.feynman3;
+      if (data.mc1) document.querySelector('input[name="mc1"][value="' + data.mc1 + '"]').checked = true;
+      if (data.mc2) document.querySelector('input[name="mc2"][value="' + data.mc2 + '"]').checked = true;
+      if (data.mc3) document.querySelector('input[name="mc3"][value="' + data.mc3 + '"]').checked = true;
+    } catch(e) {}
+  }
+
+  // Save on change
+  document.querySelectorAll('textarea').forEach(el => {
+    el.addEventListener('input', saveAnswers);
+  });
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    el.addEventListener('change', saveAnswers);
+  });
+});
+
+function saveAnswers() {
+  const data = {
+    feynman1: document.getElementById('feynman1').value,
+    feynman2: document.getElementById('feynman2').value,
+    feynman3: document.getElementById('feynman3').value,
+    mc1: document.querySelector('input[name="mc1"]:checked')?.value || '',
+    mc2: document.querySelector('input[name="mc2"]:checked')?.value || '',
+    mc3: document.querySelector('input[name="mc3"]:checked')?.value || ''
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+function submitAll() {
+  // --- Grade MCQs ---
+  const correct = ANSWERS.mcq;
+  let score = 0, total = Object.keys(correct).length;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === ans) {
+      resultDiv.className = 'mcq-result correct';
+      resultDiv.textContent = '✅ 正确！';
+      score++;
+    } else {
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '❌ 不正确。正确答案是：' + ans;
+    }
+  }
+
+  // --- Show MCQ Score ---
+  let scoreDiv = document.getElementById('mcq-score');
+  if (!scoreDiv) {
+    scoreDiv = document.createElement('div');
+    scoreDiv.id = 'mcq-score';
+    scoreDiv.style.cssText = 'margin:.8rem 0;padding:.6rem 1rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;border-left:4px solid #4caf50;';
+    document.getElementById('btn-group-container').before(scoreDiv);
+  }
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+
+  // --- Copy Feynman answers for AI grading ---
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  const f3 = document.getElementById('feynman3').value.trim();
+
+  let copyBlock = document.getElementById('copy-block');
+  if (!copyBlock) {
+    copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.5;display:none';
+    document.getElementById('btn-group-container').before(copyBlock);
+  }
+  copyBlock.style.display = 'block';
+  copyBlock.textContent = '【费曼题 Q1】\n' + (f1 || '（未作答）') + '\n\n【费曼题 Q2】\n' + (f2 || '（未作答）') + '\n\n【费曼题 Q3】\n' + (f3 || '（未作答）');
+
+  // Show hint about grading
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 10 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson10',
+  title: 'Lesson 10（18:00）：T-BOX的通信协议',
+  feynman: [
+    { q: 1, ref: 'MQTT 的发布/订阅模式就像微信群聊：T-BOX 在群里发布消息（发布），云端在群里接收消息（订阅），群主服务器（Broker）负责转发。和打电话（点对点）不同——打电话你只能打给一个人，你必须知道对方是谁；而微信群聊你发一条消息，所有群成员都能收到，你不需要知道谁在听。MQTT 的好处：T-BOX 只需要知道"往哪个话题发"，不需要知道有多少服务在监听；可以随时加新"听众"，T-BOX 不用改；发送者和接收者解耦。' },
+    { q: 2, ref: '用"寄快递"比喻：① 加密传输 = 上锁的快递箱——黑客截获了也打不开，看到的只是乱码。② 身份验证 = 快递员的工牌——T-BOX 先检查云端的"数字证书"，确认指令是自家云端发的，不是黑客冒充的。③ 完整性校验 = 快递箱上的封条——如果数据被中间人篡改（哪怕一个比特），接收方算出的校验码对不上，直接丢弃数据。双向 TLS (mTLS) 是快递员也要查你的身份证——云端也确认 T-BOX 是真的车，不是假设备。' },
+    { q: 3, ref: '用发快递比喻：QoS 0 = 平邮（丢进邮筒不管，可能丢件但最便宜），QoS 2 = 挂号信+回执（当面签收确认，确保唯一一次送达）。位置上报用 QoS 0：每 10 秒报一次，丢了也不怕——10 秒后下一帧就来了，用 QoS 2 流量会飙 3-5 倍。远程锁车用 QoS 2：锁车指令不能丢（丢了你以为锁了实际没锁），不能重复（重复收到两次锁车可能触发异常）。反过来：用 QoS 2 上报位置浪费流量，用 QoS 0 锁车丢指令车就被人开走了。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 19（09:00）：智能座舱的多模态交互——触控、语音、手势，座舱怎么"懂"你？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 19（09:00）— 2026-07-11 | 🚗 座舱（进阶篇）：多模态人机交互技术</div>
+  <h1>智能座舱的多模态交互——触控、语音、手势，座舱怎么"懂"你？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson18-T-BOX知识--2026-07-10--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson20-数字车钥匙通信--2026-07-11--1200/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>你有没有遇到过这些场景——</p>
+
+<ul>
+  <li>你一边开车一边说"导航到公司"，车机回了句"正在为您搜索附近的<strong>公事包</strong>"</li>
+  <li>你伸手去够中控屏调空调，手指在屏幕上戳了好几下没点到——因为路面颠簸</li>
+  <li>副驾说"把音量调大"，主驾却以为是<strong>调大空调</strong>——系统该听谁的？</li>
+</ul>
+
+<p><strong>这些问题的本质是：车里只有一种交互方式时，总会在某些场景下"不好用"。</strong></p>
+
+<p>智能座舱的解决方案是——<strong>多模态交互（Multimodal Interaction）</strong>：让触控、语音、手势、视线、物理按键等多种输入方式协同工作。系统根据场景自动选择最合适的交互通道，或者把多路输入融合成一条指令。</p>
+
+<table>
+<tr><th>模态</th><th>优点</th><th>缺点</th><th>典型场景</th></tr>
+<tr><td><strong>触控</strong></td><td>精准、直接</td><td>需视线确认、颠簸时误触</td><td>导航输入、应用选择</td></tr>
+<tr><td><strong>语音</strong></td><td>手眼不离开路</td><td>噪声干扰、隐私、口音</td><td>拨号、设置导航目的地、调空调</td></tr>
+<tr><td><strong>手势</strong></td><td>快速、直观</td><td>易误识别、学习成本</td><td>切歌、接电话手势、音量调节</td></tr>
+<tr><td><strong>视线/头部</strong></td><td>无接触</td><td>精度低</td><td>HUD 信息跟随、安全警告</td></tr>
+<tr><td><strong>物理按键</strong></td><td>盲操可靠</td><td>功能固定</td><td>音量旋钮、双闪灯</td></tr>
+</table>
+
+<div class="callout">
+  <p><strong>关键问题：</strong>多种输入方式同时工作时，谁的指令优先？如何避免"争抢"和"误解"？这就是多模态交互的<strong>仲裁（Arbitration）与融合（Fusion）</strong>机制要解决的问题。</p>
+</div>
+
+<hr>
+
+<h2>二、多模态交互架构——座舱的"中央裁判"</h2>
+
+<h3>图 1 — 多模态交互系统架构</h3>
+<p>所有输入信号汇总到一个<strong>交互管理器（Interaction Manager）</strong>，由它做最终决策。</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph INPUT["输入层"]
+        TOUCH["触控屏&lt;br&gt;触摸事件"]
+        VOICE["语音助手&lt;br&gt;ASR→NLP结果"]
+        GESTURE["摄像头手势&lt;br&gt;骨骼关键点"]
+        GAZE["视线追踪&lt;br&gt;注视区域"]
+        HW_BTN["物理按键&lt;br&gt;按键事件"]
+    end
+
+    subgraph FUSION["融合仲裁层"]
+        IM["交互管理器&lt;br&gt;Interaction Manager"]
+        CONTEXT["场景上下文&lt;br&gt;车速/驾驶模式/座位"]
+    end
+
+    subgraph OUTPUT["输出层"]
+        HMI["HMI 响应&lt;br&gt;界面变化"]
+        TTS["语音播报&lt;br&gt;TTS"]
+        HAPTIC["触觉反馈&lt;br&gt;振动马达"]
+    end
+
+    TOUCH --&gt; IM
+    VOICE --&gt; IM
+    GESTURE --&gt; IM
+    GAZE --&gt; IM
+    HW_BTN --&gt; IM
+    CONTEXT -.-> IM
+    IM --&gt; HMI
+    IM --&gt; TTS
+    IM --&gt; HAPTIC
+</div>
+
+<h3>仲裁与融合——两种核心策略</h3>
+
+<table>
+<tr><th>策略</th><th>原理</th><th>例子</th></tr>
+<tr><td><strong>先到先得（抢占式）</strong></td><td>哪个输入最先被确认，就执行哪个</td><td>你一边说"导航回家"一边点了导航图标——触控先被解析，执行触控指令</td></tr>
+<tr><td><strong>加权投票（融合式）</strong></td><td>多个模态输入合并成一条更精确的指令</td><td>你手指指着屏幕上的一个地方说"放大这里"——触控提供了位置，语音提供了动作，两者融合成"在坐标(x,y)处放大"</td></tr>
+</table>
+
+<h3>交互管理器的决策规则</h3>
+
+<pre class="code-block">
+IF 车速 &gt; 80 km/h:
+    触控输入权重 ↓（防止分散注意力）
+    语音输入权重 ↑（双手不离方向盘）
+ELIF 用户正在说话:
+    手势输入权重 ↓（避免语音+手势冲突）
+    接收语音指令
+ELIF 视线注视区域 == HUD:
+    手势/触控输入指向 HUD 区域
+    语音指令映射到 HUD 功能
+</pre>
+
+<hr>
+
+<h2>三、语音交互的"四步流水线"</h2>
+
+<p>语音是座舱多模态中最核心的模态之一。它背后有一条完整的处理流水线：</p>
+
+<pre class="code-block">
+用户说话 → [1] 拾音与降噪 → [2] 语音识别(ASR) → [3] 自然语言理解(NLU) → [4] 执行与反馈
+</pre>
+
+<h3>图 2 — 语音交互流水线</h3>
+
+<div class="mermaid">
+flowchart LR
+    USER["👤 用户&lt;br&gt;\"调低空调到22度\""] --&gt; MIC["麦克风阵列&lt;br&gt;波束成形+降噪"]
+    MIC --&gt; ASR["ASR 语音识别&lt;br&gt;\"调低空调到22度\""]
+    ASR --&gt; NLU["NLU 语义理解&lt;br&gt;意图: 调温&lt;br&gt;实体: 22°C"]
+    NLU --&gt; ACTION["指令执行&lt;br&gt;空调→22°C"]
+    ACTION --&gt; TTS2["TTS 语音反馈&lt;br&gt;\"已调至22度\""]
+    TTS2 --&gt; USER
+</div>
+
+<h3>关键挑战</h3>
+
+<table>
+<tr><th>挑战</th><th>问题</th><th>解决方案</th></tr>
+<tr><td><strong>车内噪声</strong></td><td>风噪、胎噪、空调声淹没人声</td><td>麦克风阵列 + 波束成形 + AI降噪</td></tr>
+<tr><td><strong>多人说话</strong></td><td>主驾和副驾同时说话</td><td>声源定位 + 语义分割（谁在说、说了什么）</td></tr>
+<tr><td><strong>唤醒可靠性</strong></td><td>车外的人喊"你好XX"也能唤醒？</td><td>声纹验证 + 近场检测</td></tr>
+<tr><td><strong>误唤醒</strong></td><td>电视里说"导航到..."车就响应了</td><td>关键词+声纹双重验证</td></tr>
+<tr><td><strong>方言/口音</strong></td><td>带口音的普通话识别率低</td><td>端侧+云端混合识别模型</td></tr>
+</table>
+
+<hr>
+
+<h2>四、一个典型的多模态场景——"帮我放大这里"</h2>
+
+<p>这是最能体现多模态融合价值的经典场景：</p>
+
+<h3>不带多模态融合</h3>
+<pre class="code-block">
+用户：把这里放大！
+系统：（不知道"这里"是哪里）"请说具体位置"
+用户：...（心里想：我就是不知道叫什么才说"这里"的）
+</pre>
+
+<h3>带多模态融合</h3>
+<pre class="code-block">
+用户手指指着地图上的某个位置，同时说："放大这里"
+↓
+触控系统：检测到手指在坐标 (342, 567) 处
+语音系统：检测到意图"放大"，实体"这里"（模糊指代）
+↓
+交互管理器：
+  1. 语音中"这里"指向不明确 → 需要补充空间信息
+  2. 触控同时检测到点击 → 融合：在坐标(342,567)处执行"放大"
+  3. 输出：地图放大 + 语音反馈"已放大"
+↓
+用户满意 ✅
+</pre>
+
+<h3>图 3 — 多模态融合时序</h3>
+
+<div class="mermaid">
+sequenceDiagram
+    participant USER as 用户
+    participant TOUCH as 触控系统
+    participant VOICE as 语音系统
+    participant IM as 交互管理器
+    participant MAP as 地图App
+
+    USER-&gt;&gt;TOUCH: 手指触摸屏幕(342,567)
+    USER-&gt;&gt;VOICE: 说"放大这里"
+    TOUCH--&gt;&gt;IM: 触摸事件: coord=(342,567)
+    VOICE--&gt;&gt;IM: ASR结果: intent=zoom, ref=这里
+    Note over IM: 时间窗内同时收到触控+语音&lt;br&gt;融合决策: 在(342,567)处放大
+    IM-&gt;&gt;MAP: zoomAt(342,567, factor=2)
+    MAP--&gt;&gt;USER: 界面放大 + 语音"已放大"
+</div>
+
+<hr>
+
+<h2>五、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>多模态 ≠ 多个通道——核心在"融合决策"</strong></td><td>不是把触控和语音都堆上去就叫多模态——关键是交互管理器如何根据场景<strong>融合</strong>多路输入、<strong>仲裁</strong>冲突指令</td></tr>
+<tr><td><strong>2</strong></td><td><strong>不同场景下不同模态优先级不同</strong></td><td>行车时语音优先（手不离方向盘），静止时触控优先（精准快速），导航时视线+语音融合（指哪里说哪里）</td></tr>
+<tr><td><strong>3</strong></td><td><strong>"帮我放大这里"是最佳示范</strong></td><td>触控提供位置、语音提供动作——两条信息互补，融合成一条比任何单一模态都更精确、更自然的指令</td></tr>
+</table>
+
+<hr>
+
+<h2>六、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你朋友第一次坐你的智能汽车，看到你对着空气比划一下手指就切歌了，很惊讶。请用"学校里的多个老师"来类比，解释座舱的<strong>多模态交互</strong>是怎么工作的——触控、语音、手势这三个"老师"分别教什么？谁最终决定听谁的？</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>有人说："既然语音助手这么好用，把所有操作都改成语音不就行了？" 请举三个场景说明为什么<strong>不能</strong>只用语音控制所有操作，并分别指出在这些场景下用什么模态更合适。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>请用自己的话描述<strong>语音交互的"四步流水线"</strong>——从你说出"导航回家"到听到"已规划回家路线"，中间经历了哪几步？重点解释为什么车内拾音降噪比在安静房间里更难。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>七、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. 在多模态交互架构中，"交互管理器（Interaction Manager）"的核心职责是什么？</div>
+<label><input type="radio" name="mc1" value="A"> A. 把触控信号转发给语音系统</label>
+<label><input type="radio" name="mc1" value="B"> B. 融合多路输入并仲裁冲突，做出最优输出决策</label>
+<label><input type="radio" name="mc1" value="C"> C. 记录所有用户操作历史，用于数据分析</label>
+<label><input type="radio" name="mc1" value="D"> D. 控制所有物理按键的背光亮度</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. 以下哪个场景最能体现"多模态融合"的价值？</div>
+<label><input type="radio" name="mc2" value="A"> A. 只用手势切歌</label>
+<label><input type="radio" name="mc2" value="B"> B. 只用语音调空调</label>
+<label><input type="radio" name="mc2" value="C"> C. 手指指着屏幕上某处说"放大这里"——触控提供位置、语音提供动作</label>
+<label><input type="radio" name="mc2" value="D"> D. 用物理旋钮调音量</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. 车内语音交互中，最难解决的技术挑战通常是什么？</div>
+<label><input type="radio" name="mc3" value="A"> A. 用户普通话不标准导致声母韵母错乱</label>
+<label><input type="radio" name="mc3" value="B"> B. 车内风噪、胎噪、空调噪声淹没人声，导致ASR识别率急剧下降</label>
+<label><input type="radio" name="mc3" value="C"> C. 语音合成（TTS）的声音不够自然</label>
+<label><input type="radio" name="mc3" value="D"> D. 用户不知道唤醒词是什么</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ====== Auto-save / Load from localStorage ======
+const LS_KEY = 'teachme_lesson19';
+function saveProgress() {
+  const data = {};
+  data.f1 = document.getElementById('feynman1').value;
+  data.f2 = document.getElementById('feynman2').value;
+  data.f3 = document.getElementById('feynman3').value;
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    if (el.checked) data[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!saved) return;
+    if (saved.f1) document.getElementById('feynman1').value = saved.f1;
+    if (saved.f2) document.getElementById('feynman2').value = saved.f2;
+    if (saved.f3) document.getElementById('feynman3').value = saved.f3;
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      if (saved[el.name] === el.value) el.checked = true;
+    });
+  } catch(e) {}
+}
+// Auto-save on input change
+document.addEventListener('input', saveProgress);
+
+// ====== Clear All: clear both inline MCQ results and ai-grader.js panel ======
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+  // Clear ai-grader.js result panel
+  const agResults = document.getElementById('agResultsPanel');
+  if (agResults) agResults.style.display = 'none';
+  const agLocal = document.getElementById('agLocalMCQ');
+  if (agLocal) agLocal.style.display = 'none';
+  const agCopy = document.getElementById('agFeynmanCopy');
+  if (agCopy) agCopy.style.display = 'none';
+  const agHint = document.getElementById('agAIHint');
+  if (agHint) agHint.style.display = 'none';
+  const agLoading = document.getElementById('agLoading');
+  if (agLoading) agLoading.style.display = 'none';
+  const agError = document.getElementById('agError');
+  if (agError) agError.style.display = 'none';
+  const agFeynman = document.getElementById('agFeynmanResults');
+  if (agFeynman) agFeynman.style.display = 'none';
+  const agSummary = document.getElementById('agSummary');
+  if (agSummary) agSummary.style.display = 'none';
+  const agTotal = document.getElementById('agTotal');
+  if (agTotal) agTotal.style.display = 'none';
+}
+
+// Load saved progress on page load
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson19',
+  title: 'Lesson 19（09:00）：智能座舱的多模态交互——触控、语音、手势，座舱怎么"懂"你？',
+  feynman: [
+    { q: 1, ref: '用"学校里多个老师"类比：触控老师=数学老师（精准但需要看着题板），语音老师=语文老师（不用动手但怕吵），手势老师=体育老师（远距离打手势快但易误解）。交互管理器=教导主任，根据当前场景（车速/驾驶模式）决定优先听哪位老师的话，或者把多位老师的信息合并成一条完整指令。' },
+    { q: 2, ref: '三个不能只用语音的场景：①高速开窗行驶（风噪大，ASR识别率低→改用触控）；②车上有同事（隐私尴尬→触控打字）；③需要精确选择地图位置（语音说路口名容易错→触控指+语音确认的融合方案）。补充：多人同时说话时语音混乱，需要座位定向拾音。' },
+    { q: 3, ref: '四步流水线：①麦克风阵列+AI降噪（滤除风噪胎噪空调声）；②ASR语音识别（声音→文字）；③NLU语义理解（提取意图+实体）；④执行+TTS反馈。车内拾音更难的原因：多源非平稳噪声（风噪宽频、胎噪低频、空调声与人声重叠），需同时压制；噪声随车速剧烈变化；TTS回声与用户说话混合（需要AEC）；多人干扰需要声源定位。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

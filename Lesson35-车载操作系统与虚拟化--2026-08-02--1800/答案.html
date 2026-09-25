@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 35：答案 — 车载操作系统与虚拟化——QNX 和 Android 如何在一颗芯片上“和平共处”？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+.ans-item{margin:.3rem 0}
+.ans-label{font-weight:600;color:#2e7d32}
+.ans-label-wrong{color:#c62828}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson34-车辆运动控制--2026-08-01--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson36-ASPICE软件开发流程--2026-08-09--0900/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 35 — 答案</div>
+  <h1>车载操作系统与虚拟化——QNX 和 Android 如何在一颗芯片上“和平共处”？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（为什么中控不能直接用“普通安卓平板”？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<table>
+<tr><th>角度</th><th>说明</th></tr>
+<tr><td><strong>操作系统（实时性）</strong></td><td>普通安卓平板是消费级 GPOS，卡顿、死机可以接受；但座舱涉及安全相关信息（车速、报警、倒车影像），需要<strong>毫秒级确定性响应</strong>——娱乐系统可以“慢半拍”，安全信息不能</td></tr>
+<tr><td><strong>安全认证</strong></td><td>车规要求功能安全认证（ASIL 等级），普通安卓没有经过认证；且开放 App 生态引入不可控的第三方代码，无法满足“代码可信、行为可预测”的要求</td></tr>
+<tr><td><strong>崩溃隔离</strong></td><td>量产座舱用 <strong>Hypervisor</strong> 把 Android 隔离在娱乐域，即使 Android 崩溃、重启、被攻击，也不影响 QNX 安全域。普通平板没有这层隔离，死机 = 全车屏幕黑掉</td></tr>
+</table>
+<p><strong>一句话：</strong> 中控不是“大号安卓平板”，而是“安全系统（QNX）+ 娱乐系统（Android）+ 隔离墙（Hypervisor）”的车规定制方案——外表像平板，内核完全不同。</p>
+</div>
+
+<h3>Q2（用生活类比解释 Hypervisor 如何让两个系统互不干扰）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（合租公寓类比）：</strong></p>
+<p>把芯片想象成一栋<strong>合租公寓</strong>，Hypervisor 就是<strong>房东</strong>：</p>
+<table>
+<tr><th>机制</th><th>类比</th></tr>
+<tr><td><strong>CPU 分配</strong></td><td>房东把房间分给住户：QNX 是“高级安保房”（独占核心，随叫随到），Android 是“普通住户”（用剩余房间/轮流使用客厅）</td></tr>
+<tr><td><strong>内存隔离</strong></td><td>每个房间有<strong>独立门锁和承重墙</strong>，谁也不能进别人的房间——一家漏水（崩溃）不会淹到隔壁</td></tr>
+<tr><td><strong>设备共享</strong></td><td>水电燃气（CPU 时间、GPU、屏幕）由房东统一分配，各家用各家的额度，互不拖欠</td></tr>
+</table>
+<p><strong>类比要点：</strong> 房东（Hypervisor）直接管理整栋楼（硬件），所以效率高；住户（虚拟机）之间物理隔离，所以一家出事不会连累整栋楼——这就是 Type-1 裸机虚拟化的精髓。</p>
+</div>
+
+<h3>Q3（为什么仪表系统要跑在 QNX 而不是 Android 上？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<table>
+<tr><th>角度</th><th>说明</th></tr>
+<tr><td><strong>实时性</strong></td><td>仪表要毫秒级<strong>确定响应</strong>（车速刷新、报警灯点亮、制动提示），QNX 是硬实时 RTOS，响应时间有保证；Android 为交互体验优化，可能出现卡顿，不满足硬实时要求</td></tr>
+<tr><td><strong>功能安全认证</strong></td><td>仪表相关功能要求 ASIL 等级认证（可达 ASIL-B/C），QNX 有完整的车规安全认证和成熟量产案例；Android 娱乐生态没有经过车规认证，代码可控性差</td></tr>
+<tr><td><strong>故障隔离</strong></td><td>通过 Hypervisor 隔离后，即使 Android 崩溃、重启，QNX 安全域也完全不受影响——仪表始终在“安全岛”里工作</td></tr>
+</table>
+<p><strong>一句话：</strong> 人命关天的系统必须跑在“经过认证的实时系统 + 隔离的安全岛”上，而娱乐系统要的是“生态丰富、体验好”——两种需求，两个系统，一堵墙。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ 1：Hypervisor 在智能座舱中的核心作用？</h3>
+<p><strong>正确答案：B. 在单一硬件上创建多个相互隔离的虚拟机，让安全系统（QNX）和娱乐系统（Android）共存</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 让 Android 系统运行得更快</td><td>❌ 让 Android 更快是“优化”不是 Hypervisor 的职责，虚拟化反而有小幅开销</td></tr>
+<tr><td>B. 创建多个隔离虚拟机，安全/娱乐共存</td><td>✅ 这是 Hypervisor 的定义：一台硬件切分成多个隔离虚拟机，实现混合关键性系统共存</td></tr>
+<tr><td>C. 替代操作系统内核，直接运行 App</td><td>❌ Hypervisor 不替代内核——它管硬件、隔离虚拟机，内核仍然是各系统自己的</td></tr>
+<tr><td>D. 把多个 ECU 用线束物理连接起来</td><td>❌ 把 ECU 用线束连接是“网关/总线”的活儿，与虚拟化无关</td></tr>
+</table>
+
+<h3>MCQ 2：关于 QNX 与 Android 的对比？</h3>
+<p><strong>正确答案：B. QNX 是硬实时微内核 RTOS，常用于仪表等安全关键域；Android 生态丰富，但实时性与车规安全认证不足</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. QNX 是通用操作系统，Android 是实时操作系统</td><td>❌ 说反了：QNX 是实时操作系统（RTOS），Android 是通用操作系统（GPOS）</td></tr>
+<tr><td>B. QNX 硬实时微内核管安全域，Android 生态丰富但认证不足</td><td>✅ QNX 微内核、硬实时、有车规认证，管安全域；Android 生态丰富但实时性和认证不足，管娱乐域——两者互补</td></tr>
+<tr><td>C. 两者都可以直接用于制动控制等安全关键功能</td><td>❌ 制动控制要求 ASIL-D 级安全与硬实时，Android 不满足，娱乐系统不能用于安全关键功能</td></tr>
+<tr><td>D. QNX 无法通过功能安全认证，所以只能用于娱乐</td><td>❌ QNX 恰恰是安全认证最完善的车载 RTOS 之一，是“安全域”的标准选择</td></tr>
+</table>
+
+<h3>MCQ 3：Android 崩溃时为什么仪表不受影响？</h3>
+<p><strong>正确答案：B. 因为 Hypervisor 提供了 CPU、内存、外设的隔离，一个虚拟机的故障不会扩散到另一个虚拟机</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 两个系统各自使用独立的物理芯片</td><td>❌ 两个系统跑在同一颗 SoC 上（这正是虚拟化的意义），不是独立芯片</td></tr>
+<tr><td>B. Hypervisor 提供 CPU/内存/外设隔离，故障不扩散</td><td>✅ 虚拟化的核心价值就是故障隔离：内存隔离 + 独占核心 + 中断隔离，崩溃不扩散</td></tr>
+<tr><td>C. Android 经过专门优化，永远不会崩溃</td><td>❌ Android 也会崩溃——虚拟化的价值恰恰是“允许它崩溃，但不连累别人”</td></tr>
+<tr><td>D. 仪表系统不依赖任何软件，纯硬件显示</td><td>❌ 仪表系统同样依赖软件（QNX + 仪表 HMI），只是它被隔离保护起来了</td></tr>
+</table>
+
+<hr>
+
+<p><a href="课程.html" class="back-link">← 返回课程</a></p>
+
+</div>
+</body>
+</html>

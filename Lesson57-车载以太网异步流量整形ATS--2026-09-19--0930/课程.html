@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 57：车载以太网 ATS 异步流量整形——不给每帧排时刻表，怎么让"忽快忽慢"的流变得可预测？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 57（09:30）：车载以太网 ATS 异步流量整形</h1>
+<p class="meta">📅 2026-09-19 | 🚗 IEEE 802.1Qcr · ATS 异步流量整形 · 每流令牌桶 · 资格时间 ET · 交错调节器 · MaxResidenceTime 丢帧 · 不需要全网时钟 · 与 CBS / Qbv / CQF 选型 | ⏰ 09:30</p>
+<div class="nav-bar">
+  <a href="../Lesson56-车载以太网CQF循环排队转发--2026-09-15--2346/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson58-车载以太网TSN配置模型Qcc--2026-09-25--1308/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景：门控太贵、信用太弱、循环排队也要同步，就没有一条"便宜的确定路"吗</h2>
+<p>前面四课把 TSN 的"整形 / 调度"家族走了一遍，每一条路都有一个"但是"：</p>
+<table>
+<tr><th>已学机制</th><th>谁在整形</th><th>要不要全网时钟</th><th>有没有硬时延上界</th><th>那个"但是"</th></tr>
+<tr><td><strong>Qbv 门控</strong>（L47）</td><td>每个出口队列</td><td><strong>要</strong>（gPTP）</td><td><strong>有</strong>，可以很紧</td><td>要<strong>逐流离线算时刻表</strong>，网络一改就得重算</td></tr>
+<tr><td><strong>CBS / Qav</strong>（L55）</td><td>每个出口队列</td><td><strong>不要</strong></td><td><strong>没有</strong></td><td>只承诺"平均速率 + 有限突发"，答不出"最晚什么时候走"</td></tr>
+<tr><td><strong>CQF / Qch</strong>（L56）</td><td>每对出口队列</td><td><strong>要</strong>（全网同周期同相位）</td><td><strong>有</strong> ≈ (H+1)·T</td><td>时延被<strong>量化到节拍的整数倍</strong>，T 不好选</td></tr>
+<tr><td><strong>PSFP</strong>（L53）/ <strong>帧抢占</strong>（L54）</td><td>入口 / MAC 内部</td><td>不要</td><td>不提供</td><td>它们只管"守门"和"让路"，不负责时延保证</td></tr>
+</table>
+<p>于是工程上冒出一个非常朴素的问题：</p>
+<blockquote><strong>"我既不想全车装一套高精度时钟、也不想为每条流算时刻表，能不能还是让每条流的时延有边界？"</strong></blockquote>
+<p><strong>IEEE 802.1Qcr</strong> 给出的答案叫 <strong>ATS（Asynchronous Traffic Shaping，异步流量整形）</strong>。它的名字里那个"<strong>Asynchronous（异步）</strong>"是关键——<strong>它不要求全网时钟对齐</strong>，用的是每一跳自己的本地时钟。</p>
+<p>它的思路是这样的：<strong>不排时刻表，改发"准行证"。给每一条流（或一组流）配一个小令牌桶当账本；每来一帧，就拿这个账本算出一个"资格时间"，写在这帧身上；出口选帧时，谁的资格时间早谁先走。</strong></p>
+
+<h2>二、一个概念：给每一帧算一张"准行证"（资格时间）</h2>
+<h3>2.1 一个整形器实例就是一本"令牌账"</h3>
+<p>ATS 的粒度是<strong>流（stream）或者流组（stream group）</strong>，不是队列。每条流配一个<strong>整形器实例</strong>，里面有：</p>
+<table>
+<tr><th>名字</th><th>含义</th><th>是参数还是状态</th></tr>
+<tr><td><strong>TokenRate（令牌速率）</strong></td><td>桶里令牌的增长速度，位/秒</td><td><strong>参数</strong>（按这条流的流量规格配）</td></tr>
+<tr><td><strong>TokenBurst（桶容量）</strong></td><td>桶最多能攒多少令牌</td><td><strong>参数</strong></td></tr>
+<tr><td><strong>BucketEmptyTime（桶空时刻）</strong></td><td>这个桶<strong>最近一次被取空</strong>的时刻</td><td><strong>状态</strong>（每发一帧就更新）</td></tr>
+<tr><td><strong>ATSGroupEligibilityTime（组资格时间）</strong></td><td><strong>同一个整形组里，上一帧算出来的资格时间</strong></td><td><strong>状态</strong></td></tr>
+<tr><td><strong>MaxResidenceTime</strong></td><td>这一跳允许一帧停留的最长时间</td><td><strong>参数</strong></td></tr>
+</table>
+
+<h3>2.2 算一张"准行证"只要三步</h3>
+<p><strong>第一步：算"桶要补多久才够这一帧"</strong></p>
+<blockquote>补满这一帧长度所需时间 = <strong>帧长 ÷ TokenRate</strong></blockquote>
+<p><strong>第二步：算出这个整形器最早什么时候能放行</strong></p>
+<blockquote><strong>整形器资格时间 = 桶空时刻 + 帧长 ÷ TokenRate</strong></blockquote>
+<p>直观理解：桶刚才被取空了，要往桶里滴满"这一帧长度"的令牌，才能放它走。<strong>这条流发得越急（刚取空），这一帧的资格时间就越晚。</strong></p>
+<p><strong>第三步：和另外两个时间取最大值</strong></p>
+<blockquote><strong>资格时间 ET = max（ 帧到达时刻 , 组资格时间 , 整形器资格时间 ）</strong></blockquote>
+<ul>
+  <li>取"<strong>帧到达时刻</strong>"：帧还没到，再早也不能走；</li>
+  <li>取"<strong>组资格时间</strong>"：同一个组里，<strong>上一帧还没轮到，这一帧不许超车</strong>（这就是"<strong>交错调节器 / interleaved regulator</strong>"的作用——它把同一组里所有实例共用的那条时间线串起来，防止乱序）；</li>
+  <li>取"<strong>整形器资格时间</strong>"：令牌账本说还不能走。</li>
+</ul>
+<div class="mermaid">
+flowchart LR
+    A["📥 帧到达&lt;br&gt;打上本地时间戳"] --&gt; B["🧮 算资格时间&lt;br&gt;ET = max(到达时刻, 组资格时间,&lt;br&gt;桶空时刻 + 帧长/令牌速率)"]
+    B --&gt; C{"ET ≤ 到达时刻 + 最大停留时间？"}
+    C --&gt;|"是 ✓"| D["🚑 进紧急队列&lt;br&gt;到点后按 ET 升序发出"]
+    C --&gt;|"否 ✗"| E["🗑️ 直接丢帧"]
+    D --&gt; F["更新桶空时刻与组资格时间&lt;br&gt;留给下一帧"]
+</div>
+
+<h3>2.3 第四步：更新账本，留给下一帧</h3>
+<p>一帧被放行之后，要把它对账本的影响记下来：</p>
+<ul>
+  <li><strong>组资格时间 ← 这一帧的 ET</strong>（这样下一帧就至少不能早于它）；</li>
+  <li><strong>桶空时刻</strong>：如果这一帧的 ET 还没到"桶满时刻"，说明桶没来得及攒满就被取用了，桶空时刻 ← 整形器资格时间；否则桶空时刻要往后顺延（顺延量 = ET − 桶满时刻）。</li>
+</ul>
+<blockquote>桶满时刻 = 桶空时刻 + <strong>TokenBurst ÷ TokenRate</strong>（把空桶重新滴满所需的时间）。</blockquote>
+
+<h3>2.4 最后一道闸：超时就丢，不陪你等</h3>
+<p><strong>如果算出来的 ET 比"到达时刻 + MaxResidenceTime"还晚，这一帧直接被丢弃</strong>，连队列都不进。</p>
+<p>这条规则看着很凶，其实正是 ATS 的承诺方式：<strong>"我保证按你的流量规格给你时延，但你要是偷偷超发，我就不给你排队，而是直接拒绝。"</strong> 这比"先无限缓存住，慢慢发"要诚实得多——缓存住只会把时延越拖越长，上界名存实亡。</p>
+<div class="mermaid">
+flowchart TB
+    subgraph INST["一个 ATS 整形器实例（一条流 / 一组流）"]
+        RATE["参数：令牌速率 TokenRate&lt;br&gt;桶容量 TokenBurst"]
+        EM["状态：桶空时刻 BucketEmptyTime"]
+        GE["状态：组资格时间 ATSGroupEligibilityTime"]
+    end
+    RATE --&gt; CALC["算整形器资格时间&lt;br&gt;= 桶空时刻 + 帧长 / 令牌速率"]
+    EM --&gt; CALC
+    CALC --&gt; MAXSEL["取三者最大&lt;br&gt;得到资格时间 ET"]
+    ARR["帧到达时刻"] --&gt; MAXSEL
+    GE --&gt; MAXSEL
+    MAXSEL --&gt; OUT["出口按 ET 升序选帧发出"]
+</div>
+
+<h2>三、为什么它叫"异步"：它从不问"现在几点"</h2>
+<p>这是全课最容易被跳过、也最重要的一点。</p>
+<p>Qbv 和 CQF 的推理链条是"<strong>从现在这个绝对时刻算起</strong>"：</p>
+<ul>
+  <li>Qbv：现在是第 3 个门控周期的第 40 µs，所以这个队列关门；</li>
+  <li>CQF：现在是第 1024 号节拍，所以等第 1025 号节拍再发。</li>
+</ul>
+<p><strong>这要求全网的"现在几点"完全一致</strong>——时钟偏一点，整个推理就塌了。</p>
+<p>ATS 的推理链条完全不同，它只用到两样东西：</p>
+<ol>
+  <li><strong>这一帧到达时，本地时钟打了多少</strong>（一个本地的相对时间戳）；</li>
+  <li><strong>同一跳里，这条流的前几帧在账本上留下了什么</strong>（桶空时刻、组资格时间）。</li>
+</ol>
+<blockquote><strong>它算的是"帧与帧之间的间隔账"，不是"绝对时刻表"。</strong><br>所以每台交换机的本地时钟只要<strong>走得够准（速率不漂）</strong>就行，<strong>不需要彼此对齐</strong>。这就是"异步"的全部含义。</blockquote>
+<p>由此还带来一个漂亮的推论——<strong>抖动不会在跳与跳之间累积</strong>：</p>
+<ul>
+  <li>第 1 跳把"忽快忽慢"的到达曲线<strong>捋顺</strong>了一次，输出的帧间隔被令牌速率约束住；</li>
+  <li>到第 2 跳，它的到达曲线本来就是被捋过的，第 2 跳<strong>再捋一次</strong>，只会更顺，不会更乱；</li>
+  <li>每一跳的资格时间，都只比"这一帧进入本跳的时刻"晚一个<strong>由这条流自己的令牌账本决定</strong>的有限量。</li>
+</ul>
+<div class="mermaid">
+flowchart LR
+    SRC["源端&lt;br&gt;一条忽快忽慢的流"] --&gt; H1["第 1 跳&lt;br&gt;令牌账本把突发摊平"]
+    H1 --&gt; H2["第 2 跳&lt;br&gt;用自己的本地时钟再摊平一次"]
+    H2 --&gt; H3["第 3 跳&lt;br&gt;再摊平一次"]
+    H3 --&gt; DST["目的端&lt;br&gt;时延有界、抖动不随跳数累积"]
+</div>
+
+<h2>四、代价在哪：账本是要占地方的</h2>
+<table>
+<tr><th>代价</th><th>说明</th></tr>
+<tr><td><strong>每流一份状态</strong></td><td>一个整形器实例要存令牌账本；一条流的个数可以很多，硬件的<strong>表项（shaper instance）数量是有限的</strong>（标准里有 MaxShaperInstances 这样的上限）</td></tr>
+<tr><td><strong>用"整形组"聚合</strong></td><td>流太多时把多条流归到一个组共用一本账，代价是<strong>组内被"交错调节器"串成一条时间线</strong>——同组流之间会互相排队，整形粒度变粗</td></tr>
+<tr><td><strong>逐帧计算</strong></td><td>每一帧都要算一次取最大值并更新状态，比"发出去就完事"的队列要贵</td></tr>
+<tr><td><strong>平均时延变大</strong></td><td>帧要等令牌，甚至等到组里前帧之后 → 这是"<strong>用一点时延换确定性</strong>"</td></tr>
+<tr><td><strong>参数必须配准</strong></td><td>TokenRate / TokenBurst 要按每条流的实际流量规格配。<strong>配小了 → 帧被丢；配大了 → 令牌账本形同虚设，失去意义</strong></td></tr>
+<tr><td><strong>超时即丢</strong></td><td>ET 超过 MaxResidenceTime 的帧被<strong>直接丢弃</strong>，不进入缓存——所以必须有明确的流量工程，否则会看到莫名其妙的丢帧计数</td></tr>
+</table>
+<blockquote>文献里还有一个值得记住的结论：在一项 IEEE Access 的仿真对比中，ATS 对<strong>偶发、突发型</strong>流量表现较好，而<strong>对中等强度的持续负载流量表现受限</strong>（TAS 反而更适合周期确定的流量）。也就是说，<strong>ATS 不是万能的替代品，它补的是"不能同步"这个位置的洞</strong>。</blockquote>
+
+<h2>五、四个整形器放一起看：一张选型表</h2>
+<table>
+<tr><th></th><th><strong>CBS / Qav</strong>（L55）</th><th><strong>Qbv / TAS</strong>（L47）</th><th><strong>CQF / Qch</strong>（L56）</th><th><strong>ATS / Qcr</strong>（本课）</th></tr>
+<tr><td>整形粒度</td><td>队列</td><td>队列（按流算表）</td><td>队列对</td><td><strong>流 / 流组</strong></td></tr>
+<tr><td>要不要全网时钟</td><td>不要</td><td><strong>要</strong></td><td><strong>要（还要同相位）</strong></td><td><strong>不要</strong></td></tr>
+<tr><td>要不要逐流离线算表</td><td>不要</td><td><strong>要</strong></td><td>不要</td><td>不要</td></tr>
+<tr><td>硬时延上界</td><td><strong>没有</strong></td><td>有，可很紧</td><td>有 ≈ (H+1)·T</td><td>有（由每跳整形 + 停留上限保证）</td></tr>
+<tr><td>没法按时发时怎么办</td><td>无所谓（只管平均速率）</td><td>延到下一个门控窗口</td><td>滚到下一个节拍（上界失效）</td><td><strong>直接丢帧</strong></td></tr>
+<tr><td>最重的成本</td><td>——</td><td>时刻表与全网时钟</td><td>全网节拍与相位</td><td><strong>每流状态与逐帧计算</strong></td></tr>
+</table>
+<div class="mermaid">
+flowchart TB
+    Q{"要不要硬时延上界？"} --&gt;|"不要，只要速率平滑"| CBS["CBS / Qav&lt;br&gt;队列信用整形：最轻"]
+    Q --&gt;|"要"| S{"能不能做到全网时钟同步？"}
+    S --&gt;|"能"| QCH{"愿不愿意为每条流离线算时刻表？"}
+    QCH --&gt;|"愿意，要最紧的界"| QBV["Qbv / TAS&lt;br&gt;门控时刻表"]
+    QCH --&gt;|"不愿意，只想统一一个节拍"| CQF["CQF / Qch&lt;br&gt;双队列交替当班"]
+    S --&gt;|"不能，或者不想付同步的代价"| ATS["ATS / Qcr&lt;br&gt;每流一本令牌账 + 每帧一张准行证"]
+</div>
+<blockquote>一帧数据从入口到链路的旅程里，ATS 和 CQF / CBS / Qbv 是<strong>同一层</strong>的竞争者（在出口整形环节四选一），而 PSFP（入口守门）、帧抢占（MAC 内部让路）、FRER（双路径冗余）、MACsec（链路加密）都是可以叠加在旁边的一层。</blockquote>
+
+<h2>六、工程要点</h2>
+<ol>
+  <li><strong>参数按 TSpec 配，不要拍脑袋</strong>：TokenRate 对应这条流的承诺速率，TokenBurst 对应它允许的最大突发。<strong>这两个数就是这条流的"信用额度"</strong>。</li>
+  <li><strong>令牌桶是"每跳都有"的账本</strong>：不是只在源端整形。每一跳都会把到达曲线重新捋一遍，这正是抖动不累积的原因，也是 ATS 敢不要全网时钟的底气。</li>
+  <li><strong>MaxResidenceTime 是丢帧线，要和端到端预算对齐</strong>：一帧允许在各跳停留的时间之和，决定了端到端上界。这一跳的停留上限配得太小，你会看到"参数明明够，却丢帧"。</li>
+  <li><strong>整形组是规模化手段，但会牺牲粒度</strong>：组内共享"组资格时间"，等于把多条流串在一条时间线上；分组的依据应该是<strong>流量特性相近、时延要求相近</strong>的流。</li>
+  <li><strong>不会超车，是因为有"组资格时间"</strong>：这一项专治乱序。它保证同一组里后到的帧不会抢在先前帧前面走。</li>
+  <li><strong>它不替你做流量工程</strong>：ATS 只负责"按规格整形 + 超规格就拒绝"。规格本身错了（配小了），你会看到丢帧；规格配大了，你会看到时延。<strong>选型时先量流量，再配参数。</strong></li>
+  <li><strong>验证看三样东西</strong>：per-shaper 的<strong>丢帧计数</strong>（超 MaxResidenceTime 的帧）、每帧的<strong>资格时间与实际的发出时刻之差</strong>（应该 ≥ 0 且不失控）、以及<strong>同一组内相邻帧的资格时间序列</strong>（应该是单调递增的，说明没有超车）。</li>
+</ol>
+
+<h2>七、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>粒度下沉到流：一本令牌账 + 一张准行证</strong>：每条流（或流组）一个令牌桶整形器实例；每来一帧算 <strong>ET = max(到达时刻, 组资格时间, 桶空时刻 + 帧长 ÷ TokenRate)</strong>，出口<strong>按 ET 升序</strong>选帧。</li>
+  <li><strong>它从不问"现在几点"，所以不用全网时钟</strong>：ATS 只用<strong>本地时间戳</strong>和<strong>本跳留下的账本状态</strong>，算的是"帧与帧之间的间隔账"。每一跳都把到达曲线<strong>重新捋一遍</strong>，所以抖动不随跳数累积——这就是"<strong>异步</strong>"两个字的全部含义。</li>
+  <li><strong>账本要占地方，超规格就丢帧</strong>：代价是<strong>每流状态 + 逐帧计算</strong>（流多时要靠整形组聚合，粒度随之变粗）、<strong>平均时延变大</strong>、以及 <strong>ET 超过 MaxResidenceTime 的帧直接被丢弃</strong>。参数必须按流的实际流量规格配准，配错就是"要么丢帧、要么时延"。</li>
+</ol>
+
+<h2>八、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <h3>Q1：用"给每帧发一张准行证"打比方，讲清 ATS 是怎么算出一帧的资格时间的（要说清它用了哪三样东西：帧自己到达的时刻、这条流的令牌账本、同一个组里上一帧的资格时间）。再说清：为什么它不需要全车时钟对齐，也能保证"后到的帧不抢在先前帧前面走"？为什么"每跳都重新捋一遍"会让时延波动越走越小、而不是越走越大？（提示：它算的是帧与帧之间的间隔账，不是绝对时刻表；组资格时间专治乱序）</h3>
+  <textarea id="feynman1" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q2：令牌账本里的 TokenRate（令牌速率）和 TokenBurst（桶容量）各管什么？为什么"一帧算出来的资格时间越晚，就说明这条流最近发得越急"？如果一帧的资格时间超过了 MaxResidenceTime，ATS 会怎么处理？为什么"直接拒绝"比"先无限缓存住、慢慢发"更诚实？（提示：桶被取空之后要重新滴满一个帧长度才放行；缓存只会把时延越拖越长）</h3>
+  <textarea id="feynman2" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q3（进阶）：把 CBS、Qbv、CQF、ATS 四个放在一起比：谁需要全网时钟、谁需要逐流离线算表、谁给硬时延上界、谁最轻、谁最重？为什么说 ATS 是把整形的颗粒度"从队列下沉到流"？既然每流一本账这么贵，为什么工程上会用"整形组"把多条流并到一本账上——这样做省下了什么、又损失了什么？如果一条流的 TokenRate 被配得比它真实的发送速率还小，你会在现场看到什么现象？（提示：偶发突发型流量 vs 中等持续负载流量；组资格时间把同组流串成一条时间线；丢帧计数）</h3>
+  <textarea id="feynman3" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+
+<h2>九、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：ATS（IEEE 802.1Qcr）的核心机制，以下哪项描述最准确？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. 每个出口队列只有一个队列，按队列的信用余额是否 ≥ 0 决定能否发送，信用以固定斜率积累</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. 每个出口端口准备成对的两个队列，按固定周期 T 交替当班，本周期到达的帧必须等到下一个周期才准转发</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. 为每条流（或流组）维护一个令牌桶整形器实例，给每个到达的帧算出一个资格时间（= max(到达时刻, 组资格时间, 桶空时刻 + 帧长 ÷ 令牌速率)），出口按资格时间升序选帧发送，不依赖全网时钟同步</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. 它要求 gPTP 全网同步，并为每条流离线计算出一张精确的发送时刻表</label>
+  <div class="mcq-result" id="mc1-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ2：某条流的流量规格是：承诺速率 20 Mbps、最大突发 4 KB。链路为 100 Mbps。某一帧长 1500 字节，到达时该流的令牌桶恰好是空的，且此前没有同组帧（组资格时间无影响）。这一跳的 MaxResidenceTime = 200 µs。这一帧会怎样？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. 立刻发出，因为 100 Mbps 的链路此刻是空闲的</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. 20 Mbps = 2.5 MB/s，桶要重新攒够一个 1500 字节帧的令牌需 1500 ÷ 2.5 MB/s = 600 µs，所以它的资格时间 = 到达时刻 + 600 µs；而这一跳最多允许停留 200 µs，资格时间超过了 MaxResidenceTime → 这一帧被直接丢弃</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 等 120 µs 就发出，因为 100 Mbps 下发 1500 字节只需要 120 µs</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 它会被缓存 1.6 ms（桶从空到满的时间）之后照常发出，不会丢</label>
+  <div class="mcq-result" id="mc2-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ3：关于 ATS 的定位与代价，以下哪项最准确？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. ATS 不需要全网时钟同步、也不需要为每条流离线算时刻表，代价是每流/每组的整形器状态与逐帧计算、参数必须按流的流量规格配准，且资格时间超过 MaxResidenceTime 的帧会被直接丢弃而不是无限缓存；文献显示它对偶发、突发型流量表现较好，对中等持续负载的流量表现受限</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. ATS 不需要配置任何参数，打开开关即可自动适配一切流量</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. ATS 的时延上界比 Qbv 时刻表更紧，因为它是逐帧计算的</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. ATS 只适合不需要时延保证的场景，因为它给不出时延上界</label>
+  <div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson57',
+    title: '车载以太网 ATS 异步流量整形',
+    feynman: [],
+    mcq: { mc1: 'C', mc2: 'B', mc3: 'A' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson57',
+  title: '车载以太网 ATS 异步流量整形——不给每帧排时刻表，怎么让忽快忽慢的流变得可预测？',
+  feynman: [
+    { q: '1', ref: '核心是三句话：一条流一本令牌账，每来一帧算一张准行证（资格时间），出口按准行证的先后顺序发；而它只算帧与帧之间的间隔，不问现在几点，所以不需要全车时钟对齐。① 打比方：把每一跳想象成一个只管发号的小窗口，每条流在这里都有一本小账本。账本上记着一件事：这个桶上回被取空是什么时候。每来一帧，窗口先算一件事——要把这一帧长度的令牌滴回桶里需要多久，也就是这一帧长度除以这条流的令牌滴速；然后把上回桶空的时刻加上这段滴满时间，就得到这本账本最早能放行这一帧的时刻。② 三样东西取最大：第一样是这一帧到达本跳的时刻，因为帧还没到就算能发也没用；第二样是同一个组里上一帧拿到的准行证时刻，这一样专治超车，同一组里的帧共用一条时间线，后到的帧的准行证绝不能早于前一帧，于是顺序被锁住了；第三样就是账本算出的最早放行时刻。三者取最大，就是这一帧的资格时间。③ 为什么不需要全车时钟对齐：因为它从来不引用现在是第几个绝对时刻。它引用的只有两个东西，一个是这一帧到达时本地时钟打的那个时间戳，另一个是本跳里前面几帧在账本上留下的痕迹。整段推理只涉及帧和帧之间的相对间隔，也就是这本账进得快不快、桶空没空。所以各跳的本地时钟只要自己走得够稳、不会忽快忽慢，彼此对不对得上完全不影响结论。④ 为什么每跳重新捋一遍会让波动越来越小：第一跳收到一条忽快忽慢的流，账本按令牌滴速把帧与帧的间隔重新拉开一次，出去的流就变得温和了；到第二跳，它的到达曲线本来就是被捋过的，第二跳再捋一次只会更顺，不会更乱。每一跳给这一帧加上的等待量，都只由这条流自己的账本决定，是一个有限的小量，既不依赖网上别的流发了多少，也不会越叠越大，所以波动不会在跳与跳之间累积。' },
+    { q: '2', ref: '核心是：令牌滴速决定这条流长期允许发多快，桶容量决定它允许一次性冲多猛；而资格时间越晚说明它最近越急；一旦急到超过了本跳允许停留的时间，帧就被直接丢掉。① 令牌滴速管长期平均速度：令牌按这个速度不停地往桶里滴，一帧要走，就得先从桶里取走相当于它长度的令牌。所以长期看，这条流能发出去的平均速率不可能超过令牌滴速，这就是它的承诺速率。桶里的令牌最多只能攒到桶容量那么多，一满就不再往里滴了，所以这条流也不能靠长时间不发来攒出一个无限大的爆发。② 桶容量管允许的突发有多猛：它相当于这条流被允许在一瞬间冲出去的额度。桶容量配成几个最大帧的大小，就允许它连着发那么几帧不停留。③ 为什么资格时间越晚说明它最近越急：账本上记的是桶上回被取空的时刻。如果这条流刚刚连着发了好几帧，把桶掏空了，那么下一帧到来时，账本要从上回桶空的那个时刻开始，加上把这一帧长度的令牌滴满所需的时间，算出来的时刻自然就比较晚。反过来，如果这条流好久没发了，桶里一直存着令牌，那么上一帧可能已经是很久以前，账本算出来的最早放行时刻早就过去了，这一帧的资格时间就等于它的到达时刻，直接就可以走。所以资格时间是一面镜子，照出这条流最近是安静还是急躁。④ 超过允许停留时间就丢帧：本跳还有一个参数叫最大停留时间，它规定一帧在本跳最多能停多久。如果算出来的资格时间比这一帧到达时刻加上这个上限还要晚，说明这条流已经急到本跳没法按承诺的时延把它送走，那么它就干脆不进队列，直接被丢弃，同时把这条流的丢帧计数加一。⑤ 为什么直接拒绝比无限缓存更诚实：如果允许帧一直堆在缓存里等着慢慢发，那么缓存越堆越深，帧的等待时间就越拖越长，前面算出来的时延上界当场变成一句空话，而且这种恶化是无声的，看监控也看不出红。直接拒绝的做法是把违约的事实暴露出来，用一个明确的丢帧计数器告诉运维这条流的规格配错了或者它自己在超发，要么改规格，要么把源头掐住，账目始终是清楚的。' },
+    { q: '3', ref: '核心是四者的承诺和成本各不相同：信用整形只管平均速度、门控要全网时钟加逐流算表、循环排队要全网统一节拍、异步整形什么都不要但每流要占一份账本。① 谁需要全网时钟：门控和循环排队都需要，门控需要在同一个绝对时刻一起开关闸门，循环排队需要全网的节拍和相位对齐，两者都依赖高精度时钟同步；信用整形和异步整形都不需要，前者只按自己的信用斜率走，后者只算帧与帧之间的间隔账。② 谁需要逐流离线算表：只有门控需要，它要为每一条流算出精确的开关时刻，网络一改就要重算，配置成本最高。循环排队不需要逐流算表，全网只要一个节拍长度，但那个节拍长度要算得对。③ 谁给硬时延上界：门控能给而且可以很紧，循环排队能给、以节拍为颗粒，异步整形也能给、由每一跳的整形加上停留上限共同保证；只有信用整形给不出硬上界，它只承诺长期平均速率和有限突发。④ 谁最轻谁最重：最轻的是信用整形，两条斜率加一道门槛，不需要时钟也不需要逐流配置；最重的是门控，全网时钟加逐流时刻表；循环排队居中，省掉了逐流时刻表但要全网同节拍；异步整形省掉了时钟和时刻表，却把成本转移到了每条流一份状态和逐帧计算上。⑤ 颗粒度从队列下沉到流：前三者的账都是记在队列上的，一个队列里的所有流共用一本账，互相之间会串扰；异步整形把账本下沉到流，每条流自己一本，所以它管得住单条流的行为。⑥ 用整形组聚合并到一本账上的得失：省下的是表项数量，硬件能支持的整形器实例是有限的，而车上流可以有几十上百条，一条流一份状态会撑爆表项；代价是组内的帧必须共用一条时间线，也就是前面说的组资格时间，同组的流之间会互相排队，整形粒度变粗，一条流急躁起来会连累组里其他流多等一会儿，所以分组要按流量特性和时延要求相近的流来分。⑦ 令牌滴速配小了会看到什么：如果配得比这条流真实的发送速率还小，那么每当它连着发几帧，桶就被掏空，接下来每一帧算出来的资格时间都会越来越晚，很快超过每跳允许停留的时间而被丢弃，现场的表现就是这条流的丢帧计数一路往上涨，而且丢得很有规律，总是发生在它连续发送之后；与此同时，那些零星到达的帧却一切正常，因为桶里有存货。看到这种规律，第一件事就是回头核对这条流的规格参数。' }
+  ],
+  mcq: { mc1: 'C', mc2: 'B', mc3: 'A' }
+};
+</script>
+<script>
+/* 进度自动保存：key = teachme_lesson57（与 ai-grader.js 的 teachme_grader_* 前缀不冲突） */
+(function () {
+  var KEY = 'teachme_lesson57';
+  function save() {
+    var data = { t: {}, m: {} };
+    ['feynman1', 'feynman2', 'feynman3'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) data.t[id] = el.value;
+    });
+    ['mc1', 'mc2', 'mc3'].forEach(function (n) {
+      var sel = document.querySelector('input[name="' + n + '"]:checked');
+      if (sel) data.m[n] = sel.value;
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+  }
+  function restore() {
+    var raw = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) {}
+    if (!raw) return;
+    var data;
+    try { data = JSON.parse(raw); } catch (e) { return; }
+    if (data.t) Object.keys(data.t).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && !el.value) el.value = data.t[id];
+    });
+    if (data.m) Object.keys(data.m).forEach(function (n) {
+      var el = document.querySelector('input[name="' + n + '"][value="' + data.m[n] + '"]');
+      if (el) el.checked = true;
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    restore();
+    document.addEventListener('input', save);
+    document.addEventListener('change', save);
+  });
+})();
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</div>
+</body>
+</html>

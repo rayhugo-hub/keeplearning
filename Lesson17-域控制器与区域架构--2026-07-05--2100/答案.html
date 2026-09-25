@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 17：答案 — 中央计算平台（HPC）——区域架构的"超级大脑"</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson16-车载传感器--2026-07-05--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson18-T-BOX知识--2026-07-10--2100/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 17 — 答案</div>
+  <h1>中央计算平台（HPC）——区域架构的"超级大脑" — 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（HPC 和普通电脑有什么区别？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"普通台式机 vs 坦克里的加固电脑"类比）：</strong></p>
+<p><strong>普通电脑（台式机）：</strong>放在 25°C 空调房里，从不震动，死机重启，用 3 年就换。</p>
+<p><strong>HPC（车规）：</strong></p>
+<ol>
+  <li><strong>温度：</strong>夏天车内暴晒 85°C，冬天 -40°C——普通芯片会失效。HPC 必须满足 <strong>-40°C ~ 125°C</strong> 车规范围（AEC-Q100 认证）</li>
+  <li><strong>振动：</strong>普通硬盘在颠簸路面上一小时就坏。HPC 通过 <strong>10 年 20 万公里</strong> 振动耐久测试——无风扇、无机械硬盘，全固态</li>
+  <li><strong>安全：</strong>电脑蓝屏重启就行。HPC 死机→刹车可能失效！必须通过 <strong>ISO 26262 ASIL</strong> 功能安全认证，关键功能有硬件冗余</li>
+  <li><strong>寿命：</strong>消费电子 2~3 年，汽车要求 <strong>10~15 年</strong> 不间断运行</li>
+</ol>
+<p><strong>一句话：</strong>你把台式机扔后备箱去越野——一小时就坏。HPC 是专为"残酷环境 + 生命安全"设计的加固版超级电脑。</p>
+</div>
+
+<h3>Q2（为什么要虚拟化？什么是 Hypervisor？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p><strong>为什么需要两个系统？</strong>座舱需要丰富生态和漂亮 UI → Android 最合适，但非实时；安全系统需要微秒响应、零死机 → RTOS/AUTOSAR，但不能跑 App。</p>
+<p><strong>为什么不能只是两个程序？</strong>跑同一个 OS 里→一个崩溃另一个也完蛋，或者一个占满 CPU 饿死另一个。车上等于杀人。</p>
+<p><strong>虚拟化（Hypervisor）——"一屋分三房"：</strong>Hypervisor 直接运行在硬件之上，把一颗物理芯片虚拟成多个<strong>完全独立</strong>的虚拟机：VM1 跑 Android（座舱），VM2 跑 Linux（智驾），VM3 跑 RTOS（安全）。三个虚拟机完全隔离——VM1 崩溃了不影响 VM2/VM3。Hypervisor 保证每个虚拟机有专属 CPU 核和固定内存，谁也抢不了谁的资源。</p>
+</div>
+
+<h3>Q3（"调 23°C + 降车窗"的完整指令旅程）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<ol>
+  <li><strong>语音输入：</strong>麦克风拾音 → HPC 的 NPU 上跑语音 AI 模型 → 转成文字</li>
+  <li><strong>意图理解：</strong>座舱 Android 的 NLP 解析出两个独立命令——"空调设 23°C"和"左前车窗降一半"</li>
+  <li><strong>服务调用：</strong>Android App 将每个意图转为 <strong>SOME/IP</strong> 调用——空调服务的 <code>setTemperature(23)</code> + 车窗服务的 <code>setWindow(左前, 50%)</code></li>
+  <li><strong>以太网传输：</strong>HPC 的以太网 Switch 通过千兆车载以太网广播两个 SOME/IP 请求</li>
+  <li><strong>ZCU 执行：</strong>空调请求→前部 ZCU 控制压缩机/膨胀阀；车窗请求→左前 ZCU 输出 PWM 驱动电机→玻璃降一半</li>
+  <li><strong>状态上报：</strong>两个 ZCU 通过 SOME/IP Event 上报执行结果</li>
+  <li><strong>UI 更新：</strong>HPC 座舱系统更新界面——空调显示 23°C ✓，车窗显示半开 ✓</li>
+</ol>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>HPC 是"大脑"——处理融合感知、全局决策、AI 推理；ZCU 是"手脚"——就近采集传感器信号、驱动电机/灯/锁等执行器、转发数据。A❌ 分工反了；C❌ 功能完全不同，不是位置差异；D❌ 完全反了——导航娱乐在 HPC 上，车窗控制由 ZCU 负责。</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>B</strong></td>
+  <td>Hypervisor 的核心价值是<strong>隔离</strong>——让多个不同实时性/安全等级的操作系统互不干扰地运行在同一颗芯片上。座舱用 Android（功能丰富但非实时），智驾用 Linux（可靠），安全用 RTOS/AUTOSAR（微秒级实时、ASIL-D）——三者通过 Hypervisor 隔离。A❌ 虚拟化通常有少量性能开销；C❌ 无关；D❌ 恰恰相反——正是<strong>不能</strong>跑在一个系统里才需要虚拟化。</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>B</strong></td>
+  <td>SOME/IP 是 AUTOSAR 标准的面向服务协议（request/response/event 模式），适合按需调用的服务：关窗、调空调、导航询问——像"你帮我订个外卖"（一次请求→响应）。DDS 是数据分发协议（publish/subscribe），适合持续广播的数据流：传感器数据、车辆状态——像"你订了天气预报，每天自动推送"（谁需要谁订阅，持续推送）。A❌ 正好说反了；C❌ 完全不同；D❌ 两者都是车载骨干协议。</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

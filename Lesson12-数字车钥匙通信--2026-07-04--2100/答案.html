@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 12：答案 — UWB精确测距原理与安全机制</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson11-座舱--2026-06-28--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <a href="../Lesson13-座舱互联--2026-07-05--0900/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 12 — 答案</div>
+  <h1>UWB精确测距原理与安全机制 — 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（UWB 为什么比 BLE 准）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>想象两个人在黑暗的房间里猜对方的位置。</p>
+<ul>
+  <li><strong>BLE 就像蒙着眼睛，只听对方说话的声音大小来判断距离</strong>——如果对方对着墙说话（反射），或者中间隔着被子（阻挡），你听到的声音大小和实际距离就不对应。你只能说"好像在这个方向"，不能说"他站在那个柜子前面"。</li>
+  <li><strong>UWB 就像两个人玩"扔球接球"游戏，而且每次都精确计时。</strong>你知道球飞回来一共用了多少秒，去掉对方拿球的时间，剩下的除以 2 就是球飞的时间。乘以球的速度，就是距离。速度是恒定的（光速），所以距离算得特别准。</li>
+</ul>
+<p>关键差异：BLE 看"感觉"，UWB 算"时间"。感觉会被各种因素干扰，但光速是恒定的，时间测量得越准、距离就算得越准。</p>
+</div>
+
+<h3>Q2（UWB 防中继攻击的原理）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>中继攻击的本质是：两个坏蛋甲乙配合，甲靠近你的手机，乙靠近你的车，甲乙之间用设备把信号快速地"传递"过去——车以为手机就在旁边，其实手机在家里。</p>
+<ul>
+  <li><strong>BLE 能被攻击，是因为它的时间精度太低。</strong>BLE 只看信号强度（信号大=近，信号小=远），中继器转发的信号和手机直发的信号在强度上差别不大，车分辨不出来。BLE 也看不了时间——它的脉冲宽度是微秒级的，中继器多出的几十微秒延迟根本测不出来。</li>
+  <li><strong>UWB 能防攻击，是因为它在严格地算时间。</strong>UWB 测距的过程是"手机发→车收→车回→手机收"，整个往返时间被严格测量。中继器无论如何都要花时间处理信号（至少几十微秒），这个额外延迟会被 UWB 的纳秒级精度捕捉到——算出来距离就变成了几十公里，车一看这个距离太离谱，直接拒绝开门。</li>
+</ul>
+<p>打个比方：BLE 像递纸条，甲看了内容再抄一份递给乙，乙看不出这个纸条是"旧消息"；UWB 像打电话，每个字必须即时回应，甲中间插嘴说了一句"哦"——电话那头立刻知道有人在窃听。</p>
+</div>
+
+<h3>Q3（为什么还需要 BLE 和 NFC）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>UWB 虽然测距厉害，但它不是万能的，三个原因：</p>
+<ol>
+  <li><strong>功耗更高：</strong>UWB 发射脉冲需要瞬间大电流，持续工作比 BLE 耗电得多。手机如果一直开着 UWB 收发，电池撑不了多久。所以平时用 BLE 做"唤醒"和"握手"——BLE 检测到手机靠近（约 10 米内），再唤醒 UWB 做精确测距。</li>
+  <li><strong>成本更高：</strong>UWB 芯片比 BLE 芯片贵 3~5 倍，而且天线设计更复杂。如果所有设备都装 UWB，整车的 BOM 成本会明显上升。所以只在关键场景（无感进入、车内定位）用 UWB，非关键场景用 BLE 就够了。</li>
+  <li><strong>通信速率和生态不同：</strong>NFC 虽然距离极短（&lt; 4 cm），但它有独特的优势——① 手机没电时也能用（部分手机有 NFC 备用刷卡功能）；② 兼容现有的门禁/支付生态；③ 通信建立极快，适合"碰一下"的场景。BLE 则适合持续连接（如播放音乐、传输车辆状态）。</li>
+</ol>
+<p>结论：三种技术不是替代关系，而是互补关系——<strong>BLE 负责发现和唤醒，UWB 负责精确定位和安全测距，NFC 负责最后一厘米的备份通信</strong>。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>UWB 测距的核心原理是飞行时间法（ToF），通过测量信号往返的精确时间来计算距离。A❌ 测量信号幅值是 RSSI 法（BLE 的做法）；C❌ 频率偏移是多普勒效应的原理，用于测速不是测距；D❌ 衰减速率受环境影响大，不精确。</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>B</strong></td>
+  <td>UWB 的高精度来自 500 MHz+ 的大带宽，带宽越大脉冲越窄（~2 ns），时间分辨率越高。A❌ UWB 使用 3.1~10.6 GHz 频段，不是 2.4 GHz；C❌ 发射功率并不比 BLE 高很多，精度不是靠功率；D❌ 天线尺寸与精度无关。</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>C</strong></td>
+  <td>UWB 的双向测距（TWR）天然防中继攻击，因为中继器引入的额外延迟会被纳秒级的时间测量检测到。A❌ 云端数据安全与 UWB 物理层无关；B❌ SIM 卡复制是移动网络安全问题；D❌ Wi-Fi 密码暴力破解是网络层攻击。</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

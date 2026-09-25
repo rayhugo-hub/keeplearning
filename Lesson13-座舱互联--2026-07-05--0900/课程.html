@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 13（09:00）：座舱互联——手机和车怎么"交朋友"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{text-align:center;margin:.8rem 0}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 13（09:00）— 2026-07-05 | 📱 座舱互联：手机互联与车云通信</div>
+  <h1>座舱互联——手机和车怎么"交朋友"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson12-数字车钥匙通信--2026-07-04--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson14-舱驾融合--2026-07-05--1200/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>你坐进车里，中控屏上自动弹出了你的手机界面——导航路线、正在播放的音乐、来电提醒，全都出现在车机上。你没有插线，没有扫码配对，车就像认识你的手机一样。</p>
+
+<p><strong>问题：车是怎么在几秒内"认识"你的手机，还把你的应用生态「搬」到车机上的？</strong></p>
+
+<div class="callout">
+  <p>车机和手机之间到底走的是什么协议？为什么 CarPlay 投屏和 HiCar 融合两种方案体验截然不同？今天的重点：<strong>智能手机互联与车云通信的底层原理。</strong></p>
+</div>
+
+<hr>
+
+<h2>二、三种座舱互联方式</h2>
+
+<h3>2.1 手机投屏互联（CarPlay / Android Auto / HiCar）</h3>
+
+<p>这是目前最常见的互联方式。手机通过 USB 线或 Wi-Fi 连接到车机，把手机界面「投」到车机屏幕上。</p>
+
+<table>
+<tr><th>协议</th><th>推出方</th><th>连接方式</th><th>特点</th></tr>
+<tr><td><strong>Apple CarPlay</strong></td><td>苹果</td><td>USB / 无线 Wi-Fi</td><td>iOS 原生支持，体验统一；但仅限苹果生态</td></tr>
+<tr><td><strong>Android Auto</strong></td><td>谷歌</td><td>USB / 无线 Wi-Fi</td><td>Android 原生方案，国内较少直接使用</td></tr>
+<tr><td><strong>HUAWEI HiCar</strong></td><td>华为</td><td>USB / 无线 Wi-Fi</td><td>深度融合方案，支持应用流转、硬件共享</td></tr>
+</table>
+
+<p><strong>两个关键概念：</strong></p>
+
+<ul>
+  <li><strong>投射（Projection）：</strong>手机负责运算，车机只当"显示器"和"触控板"。所有应用在手机上跑，画面实时编码传输到车机。优点是车机不需要高性能芯片，缺点是有延迟（编码+传输+解码）。</li>
+  <li><strong>融合（Integration）：</strong>手机和车机共享能力——手机提供算力和网络，车机提供屏幕和扬声器。HiCar 甚至支持手机应用直接在车机上运行（应用流转），以及调用车机摄像头、麦克风等硬件。</li>
+</ul>
+
+<div class="callout-warn">
+  <p><strong>一个深刻的差异：</strong>CarPlay 是"手机镜像"模式——手机是主脑，车机是外设。HiCar 是"分布式"模式——手机和车机像一台设备的两个部件，应用可以自由流转。前者更稳定，后者更灵活。</p>
+</div>
+
+<h3>2.2 车云互联（TSP / Telematics）</h3>
+
+<p>车除了和手机连接，还要和「云端」连接。这就是 TSP（Telematics Service Provider，远程信息服务商）平台的作用。</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph 车端["🚗 车端"]
+        TBOX["T-BOX（4G/5G 通信模块）"]
+        IVI["车机（中控娱乐系统）"]
+    end
+
+    subgraph 云端["☁️ 云端"]
+        TSP["TSP 平台"]
+        OTA["OTA 升级服务器"]
+        DATA["大数据分析"]
+    end
+
+    subgraph 手机端["📱 手机端"]
+        APP["手机 App"]
+    end
+
+    TBOX -- "4G/5G 蜂窝网络" --> TSP
+    TSP --> OTA
+    TSP --> DATA
+    APP -- "互联网" --> TSP
+    APP -- "蓝牙/Wi-Fi" --> IVI
+    TBOX -- "车载以太网" --> IVI
+</div>
+
+<p><strong>TSP 提供的核心服务：</strong></p>
+
+<table>
+<tr><th>服务</th><th>说明</th><th>例子</th></tr>
+<tr><td>远程控制</td><td>手机 App 通过 TSP 向车发指令</td><td>远程开空调、解锁车门、闪灯寻车</td></tr>
+<tr><td>车辆状态</td><td>车定期上报状态给 TSP</td><td>续航里程、胎压、位置、故障码</td></tr>
+<tr><td>OTA 升级</td><td>云端推送固件/软件到车</td><td>车机系统更新、ECU 固件升级</td></tr>
+<tr><td>紧急呼叫</td><td>事故时自动拨打救援中心</td><td>eCall（欧洲法规强制）</td></tr>
+<tr><td>大数据</td><td>车运行数据上报分析</td><td>驾驶行为分析、预测性维护</td></tr>
+</table>
+
+<h3>2.3 蓝牙/Wi-Fi 直连</h3>
+
+<p>手机和车也可以通过蓝牙或 Wi-Fi Direct 直连，不需要 TSP 云端中转：</p>
+
+<ul>
+  <li><strong>蓝牙：</strong>用于电话接听、音乐播放（A2DP）、消息通知。连接建立慢但功耗低，常驻待机。</li>
+  <li><strong>Wi-Fi：</strong>用于高速数据传输（投屏、视频播放）、OTA 下载包传输。速度快但功耗高。</li>
+  <li><strong>组合使用：</strong>蓝牙做"握手"和"唤醒"，Wi-Fi 做"数据传输"——这是无线 CarPlay/HiCar 的标准方案。</li>
+</ul>
+
+<hr>
+
+<h2>三、手机互联的"握手"流程</h2>
+
+<p>当你的手机第一次连接车机时，背后经历了以下步骤：</p>
+
+<pre class="code-block">
+Step 1: 发现（Discovery）
+  手机打开蓝牙 → 车机广播 BLE 服务 → 手机发现车机
+
+Step 2: 配对（Pairing）
+  手机和车机确认身份（扫码/PIN码/NFC碰触）
+  建立蓝牙经典连接
+
+Step 3: 能力协商（Capability Negotiation）
+  手机询问车机：屏幕分辨率？支持触控？有 GPS 吗？有扬声器吗？
+  车机回答：1920×720，支持触控，有 GPS，有 4 个扬声器
+
+Step 4: 建立数据通道（Data Channel）
+  如果是无线模式：建立 Wi-Fi Direct 或 Wi-Fi P2P 连接
+  如果是有线模式：通过 USB（MFi/iAP 协议）传输数据
+
+Step 5: 投屏启动（Streaming）
+  手机开始编码屏幕画面 → 通过数据通道发送到车机
+  车机解码并显示，同时将触控事件传回手机
+</pre>
+
+<div class="callout">
+  <p><strong>关键理解：</strong>每次你连上 CarPlay 或 HiCar，实际上是在车机和手机之间建立了一个"私有局域网"——数据走 Wi-Fi/有线，不经过公网。这就是为什么投屏延迟低至 50~100 毫秒，而云投屏（如手机→云端→车机）延迟通常在 200 毫秒以上。</p>
+</div>
+
+<hr>
+
+<h2>四、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>座舱互联分两层：近场直连和远程云连</strong></td><td>手机投屏走 Wi-Fi/蓝牙直连（低延迟），车云通信走 4G/5G 蜂窝（远程指令和 OTA）</td></tr>
+<tr><td><strong>2</strong></td><td><strong>投屏 vs 融合：前者手机是大脑，后者车机也是大脑</strong></td><td>CarPlay 是投射模型（手机算，车机显），HiCar 是分布式模型（应用可流转、硬件可共享）</td></tr>
+<tr><td><strong>3</strong></td><td><strong>TSP 是所有车云服务的"总开关"</strong></td><td>远程控制、OTA、紧急呼叫、数据上报都通过 TSP 平台中转，车-手机-云构成完整三角</td></tr>
+</table>
+
+<hr>
+
+<h2>五、图示：手机→车三通道通信模型</h2>
+
+<div class="mermaid">
+sequenceDiagram
+    participant Phone as 📱 手机
+    participant Car as 🚗 车机
+    participant Cloud as ☁️ TSP 云端
+
+    Note over Phone,Car: 通道A：蓝牙（常驻低功耗）
+    Phone->>Car: BLE 广播 / 设备发现
+    Car->>Phone: 配对请求
+    Phone->>Car: 配对确认
+
+    Note over Phone,Car: 通道B：Wi-Fi（高速投屏）
+    Phone->>Car: 建立 Wi-Fi Direct 连接
+    Phone->>Car: 编码后的屏幕画面（H.264/H.265）
+    Car->>Phone: 触控事件 / 语音指令
+    Car->>Phone: 车辆状态（车速、油量）
+
+    Note over Car,Cloud: 通道C：蜂窝（车云通信）
+    Car->>Cloud: 车辆状态上报（每30秒）
+    Cloud->>Car: 远程指令（开空调、导航下发）
+    Cloud->>Car: OTA 升级包推送
+    Phone->>Cloud: 用户通过 App 下发远程指令
+    Cloud->>Car: 转发指令到 T-BOX
+</div>
+
+<hr>
+
+<h2>六、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>请用自己的话解释：为什么手机投屏到车机（如 CarPlay）延迟很低，但通过手机热点看视频有时候会卡顿？两者走的都是无线信号，根本区别在哪里？</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>你在手机 App 上点了一下"远程开空调"，车几分钟后真的启动了空调。请用自己的话描述：从你点下按钮到空调启动，中间经历了哪些步骤？（提示：想想手机→云端→车端的三方通信）</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>有人说："CarPlay 投屏还不够好——应该让车机能独立运行手机应用就好了。"请问要实现这个"应用流转"功能，在技术上面临哪些困难？请用你自己的话解释。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>七、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. 以下哪个是 CarPlay 和 HiCar 在互联模式上的本质区别？</div>
+<label><input type="radio" name="mc1" value="A"> A. CarPlay 只支持有线连接，HiCar 只支持无线</label>
+<label><input type="radio" name="mc1" value="B"> B. CarPlay 是投射模式（手机运算+车机显示），HiCar 是融合模式（应用流转+硬件共享）</label>
+<label><input type="radio" name="mc1" value="C"> C. CarPlay 使用蓝牙传输画面，HiCar 使用 Wi-Fi</label>
+<label><input type="radio" name="mc1" value="D"> D. CarPlay 只能播放音乐，HiCar 能导航</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. TSP（远程信息服务商）平台在车云互联中扮演什么角色？</div>
+<label><input type="radio" name="mc2" value="A"> A. 只负责给车机提供 Wi-Fi 热点</label>
+<label><input type="radio" name="mc2" value="B"> B. 作为车和手机之间所有远程控制指令的"中转站"和"管理平台"</label>
+<label><input type="radio" name="mc2" value="C"> C. 替代 T-BOX，直接在云上模拟车的所有功能</label>
+<label><input type="radio" name="mc2" value="D"> D. 只负责推送广告到车机屏幕</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. 无线 CarPlay/HiCar 建立连接时，蓝牙和 Wi-Fi 各自承担什么角色？</div>
+<label><input type="radio" name="mc3" value="A"> A. 蓝牙负责传输画面，Wi-Fi 负责传声音</label>
+<label><input type="radio" name="mc3" value="B"> B. 蓝牙只用来配对唤醒，Wi-Fi 负责高速数据传输（投屏画面和声音）</label>
+<label><input type="radio" name="mc3" value="C"> C. 两者各传一半画面，提高分辨率</label>
+<label><input type="radio" name="mc3" value="D"> D. Wi-Fi 负责唤醒，蓝牙负责传输数据</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ====== Auto-save / Load from localStorage ======
+const LS_KEY = 'teachme_lesson13';
+function saveProgress() {
+  const data = {};
+  data.f1 = document.getElementById('feynman1').value;
+  data.f2 = document.getElementById('feynman2').value;
+  data.f3 = document.getElementById('feynman3').value;
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    if (el.checked) data[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!saved) return;
+    if (saved.f1) document.getElementById('feynman1').value = saved.f1;
+    if (saved.f2) document.getElementById('feynman2').value = saved.f2;
+    if (saved.f3) document.getElementById('feynman3').value = saved.f3;
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      if (saved[el.name] === el.value) el.checked = true;
+    });
+  } catch(e) {}
+}
+// Auto-save on input change
+document.addEventListener('input', saveProgress);
+
+// ====== Submit All: MCQ grading + Feynman review ======
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS.mcq;
+  let score = 0, total = 0;
+  for (const [q, ans] of Object.entries(ANSWERS)) {
+    total++;
+    const selected = document.querySelector(`input[name="${q}"]:checked`);
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === ans) {
+      score++;
+      resultDiv.className = 'mcq-result correct';
+      resultDiv.textContent = '✅ 正确！';
+    } else {
+      const chosen = selected ? selected.value : '（未作答）';
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '❌ 错误。你的答案：' + chosen + '，正确答案：' + ans;
+    }
+  }
+
+  // Remove old score summary if exists
+  const oldScore = document.getElementById('mcq-score');
+  if (oldScore) oldScore.remove();
+
+  const scoreDiv = document.createElement('div');
+  scoreDiv.id = 'mcq-score';
+  scoreDiv.style.cssText = 'margin:.5rem 0;padding:.5rem .7rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;color:#2e7d32';
+  document.getElementById('btn-group-container').before(scoreDiv);
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+
+  // --- Copy Feynman answers for review ---
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  const f3 = document.getElementById('feynman3').value.trim();
+
+  let copyBlock = document.getElementById('copy-block');
+  if (!copyBlock) {
+    copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.5;display:none';
+    document.getElementById('btn-group-container').before(copyBlock);
+  }
+  copyBlock.style.display = 'block';
+  copyBlock.textContent = '【费曼题 Q1】\n' + (f1 || '（未作答）') + '\n\n【费曼题 Q2】\n' + (f2 || '（未作答）') + '\n\n【费曼题 Q3】\n' + (f3 || '（未作答）');
+
+  // Show hint about grading
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 13 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+
+// Load saved progress on page load
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson13',
+  title: 'Lesson 13（09:00）：座舱互联——手机和车怎么"交朋友"？',
+  feynman: [
+    { q: 1, ref: '核心区别在于"数据流不走公网" vs "数据流走公网"。CarPlay 投屏走的是手机和车机之间的 Wi-Fi Direct 私有局域网络——数据不经过路由器、不经过互联网，传输路径只有几米，延迟 50~100ms。手机热点看视频，数据从基站→互联网→手机热点→车机，经过多次路由转发，且受基站信号质量和运营商网络拥塞影响，延迟 200~500ms 且可能掉包。根本差异：一个在"小局域网"内传（距离短、无路由），一个经过"广域网"（路径长、多跳转）。' },
+    { q: 2, ref: '完整链路：① 手机 App 发送"开空调"指令到 TSP 云端（通过 4G/5G 互联网）；② TSP 平台验证用户身份、确认车辆在线状态；③ TSP 将指令通过 4G/5G 下发到车的 T-BOX（通信模块）；④ T-BOX 通过车载以太网/CAN 总线将指令转发给空调控制器（HVAC ECU）；⑤ 空调控制器启动压缩机、风扇；⑥ HVAC ECU 反馈执行结果给 T-BOX，T-BOX 上报 TSP，TSP 推送通知给手机 App。整个过程涉及三端（手机、云、车）、多种协议（HTTPS、MQTT、CAN）。' },
+    { q: 3, ref: '三个主要困难：① 硬件架构差异——手机用 ARM 架构（骁龙/A 系列芯片），车机可能用不同的 SoC（高通 SA8155/AMD 锐龙），应用需要跨平台运行，不能直接把 APK/IPA 搬到车机上。② 交互适配——手机应用是为触控小屏设计的，车机屏更大且需要驾驶安全考量（大按钮、勿扰模式），需要重新设计 UI。③ 安全与隐私——车机连接了大量车辆控制总线，如果手机应用能直接在车上运行，恶意应用可能访问车辆接口。鸿蒙 HiCar 的"虚拟化"方案是折中：应用仍在手机上运行，但 UI 被投射到车机并重新渲染。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

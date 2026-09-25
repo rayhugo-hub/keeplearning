@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 49：答案 — 车载以太网交换机与 VLAN</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.answer-correct{color:#2e7d32;font-weight:700}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Lesson 49：参考答案</h1>
+<p class="meta">车载以太网交换机与 VLAN——全车数据怎么"分流不串门"？</p>
+</div>
+<div class="nav-bar">
+  <a href="../Lesson48-车载以太网物理层PHY--2026-09-01--0005/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson50-车载以太网FRER无缝冗余--2026-09-05--1027/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">📖 返回课程</a>
+</div>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1：用"邮局寄信/分拣"的类比讲：交换机收到一个帧后，怎么知道该从哪个口送出去？为什么 A 发给 B 的数据不会吵到 C？（提示：第一次怎么认路、以后怎么认路、实在不认识怎么办）</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>交换机是"邮局分拣员"——靠"地址簿"（MAC 地址表）按收件人定向投递，所以 A 和 B 说话不会吵到 C。
+</div>
+<table>
+<tr><th>邮局类比</th><th>以太网对应物</th></tr>
+<tr><td>每个住户的信箱</td><td>每个设备独占的交换机端口</td></tr>
+<tr><td>寄件人、收件人</td><td>帧里的源 MAC、目的 MAC</td></tr>
+<tr><td>分拣员的地址簿</td><td>交换机的 MAC 地址表</td></tr>
+<tr><td>按片区投递</td><td>查表后只从目的端口转发（定向投递）</td></tr>
+<tr><td>地址簿里没有的收件人</td><td>未知单播 → 泛洪（发给所有口）</td></tr>
+</table>
+<p><strong>三个环节：</strong></p>
+<ol>
+<li><strong>第一次认路（学习）</strong>：A 第一次发帧，交换机看到源地址就知道"A 在这个口"，记进地址簿。地址会<strong>老化</strong>——长时间不说话的设备会被忘掉，防止地址簿存满僵尸条目；</li>
+<li><strong>以后认路（查表转发）</strong>：收到目的地址为 B 的帧，查地址簿命中 B 的端口，<strong>只从那个口送出去</strong>——C 的口根本收不到，所以不吵；</li>
+<li><strong>实在不认识（泛洪）</strong>：地址簿里查不到 B（如 B 刚开机还没发过数据），只能把帧复制发给<strong>该 VLAN 内所有口</strong>，等 B 一回信就把它记下来，下次定向投递。</li>
+</ol>
+<p><strong>为什么比 CAN 高效：</strong> CAN 是"一根线 + 广播 + 仲裁抢话筒"，谁说话所有人都听、所有人共享带宽；交换机每个口独享一条线、全双工，A 和 B 传大文件的同时 C 和 D 可以各聊各的——"吵不到别人"靠的是<strong>查表定向转发</strong>，不是运气。</p>
+<p><strong>结论：</strong> 学习 → 查表 → 定向投递，查不到才泛洪——这就是交换机"邮局"的完整认路逻辑。</p>
+
+<h3>Q2：VLAN 为什么叫"虚拟墙"？用"大楼贴门牌、分房间"的类比讲：同一台交换机上，为什么 ADAS 的数据和座舱的数据必须隔开？如果不隔开，会发生什么坏事？</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>VLAN = 在<strong>同一台物理交换机（一栋楼）</strong>里用 802.1Q 标签（门牌号 VID）砌出<strong>互不可见的虚拟房间</strong>——物理上共用一台设备，逻辑上各是各的网。
+</div>
+<table>
+<tr><th>类比</th><th>802.1Q 对应物</th></tr>
+<tr><td>一栋楼（物理上同一个建筑）</td><td>一台物理交换机</td></tr>
+<tr><td>楼里砌墙分的房间</td><td>一个个 VLAN</td></tr>
+<tr><td>门牌号</td><td>标签里的 <strong>VID（12 位）</strong></td></tr>
+<tr><td>房间里的广播喇叭</td><td>广播域（只在本 VLAN 扩散）</td></tr>
+<tr><td>楼栋门卫</td><td>中央网关（跨 VLAN 必须经过：路由 + 防火墙）</td></tr>
+</table>
+<p><strong>为什么必须隔开（不隔开的坏事）：</strong></p>
+<ol>
+<li><strong>广播吵人</strong>：座舱设备做服务发现（SOME/IP 等）会发组播/广播到处"喊话"。不隔开的话喊话传遍全网，ADAS 域的每个设备都得停下来处理与自己无关的帧，带宽和 CPU 被白占；流量失控时<strong>广播风暴</strong>能直接把网络堵死；</li>
+<li><strong>互相偷看（安全）</strong>：如果 ADAS 视频流和外部诊断口在同一个"大房间"，外部设备插上诊断口理论上就能收到内部数据——安全上完全不可接受；</li>
+<li><strong>互相拖累（性能）</strong>：座舱大流量下载时的泛洪/广播会挤占 ADAS 的宝贵带宽，影响关键控制流。</li>
+</ol>
+<p><strong>隔开之后：</strong> 广播/组播只在自己 VLAN 里扩散；诊断口默认看不见 ADAS；<strong>跨 VLAN 通信必须走中央网关</strong>这道"门卫"，由它做路由 + 防火墙，谁和谁能说话由门卫决定。</p>
+<p><strong>结论：</strong> 这就是"虚拟墙"的含义——不加墙，一栋楼里所有人都互相干扰、互相偷看；加了墙（VID 门牌），各回各家、各找各妈，安全又清净。</p>
+
+<h3>Q3：一路摄像头视频流和几条刹车控制报文同时到交换机，为什么"视频流优先、控制不卡顿"不是靠运气？讲清楚"认出来 → 放进不同队列 → 按队列放行"这一串动作各自解决什么问题。</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>让不同流量得到不同待遇，前提是<strong>先认出来</strong>——"认出来（分类）→ 放进不同队列 → 按队列调度放行"三步缺一不可。
+</div>
+<table>
+<tr><th>动作</th><th>解决什么问题</th><th>怎么做的</th></tr>
+<tr><td><strong>① 认出来（分类）</strong></td><td>交换机不分类就不知道谁重要</td><td>按 VID、PCP、DSCP、或流特征（源/目的 MAC、IP、端口组合，ACL/TCAM 精确匹配）把流量认出来，精确到"这一路前视摄像头"</td></tr>
+<tr><td><strong>② 放进不同队列</strong></td><td>都挤一个队列会"先来先走"，视频流堵死控制报文</td><td>每个出口有 8 个队列（0~7），视频流/控制报文进高优先级队列，诊断/OTA 进低队列</td></tr>
+<tr><td><strong>③ 按队列放行</strong></td><td>队列里也有顺序问题，要精确控制谁先出门</td><td>出口调度器优先发高队列；TSN Qbv 门控按时隙表精确控制每个队列的出门时刻（上一课"准点到"就落在这里）</td></tr>
+</table>
+<p><strong>如果不分类（只靠"先来先走"）：</strong> 视频流又大又持续，会源源不断占着出口，控制报文只能在后面排队——关键时刻刹车指令卡住，这就是<strong>队头堵塞</strong>。</p>
+<p><strong>补充：</strong> 还可以对每一路视频流做<strong>限速监管（802.1Qci / PSFP）</strong>——允许它突发到多少、平均不能超多少，防止某一路流量失控把出口打满。</p>
+<p><strong>结论：</strong> "视频流优先、控制不卡顿"是一整套<strong>分类 → 入队 → 调度（门控）</strong>机制的结果；没有分类，后面的队列和门控都无从谈起。</p>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ1：802.1Q 标签里，决定一个帧属于哪个"虚拟局域网"（房间）的关键字段是什么？</h3>
+<p><span class="answer-correct">✅ C. VID（12 位）——虚拟网编号，真正的"门牌号"</span></p>
+<p>解析：802.1Q 标签 4 字节：TPID（0x8100）只负责告诉交换机"我是带 VLAN 标签的帧"（信封上的快递标记）；PCP（3 位）表示优先级 0~7（加急/普通，用于 QoS）；DEI（1 位）是拥塞丢弃指示。真正决定帧属于哪个虚拟网、只和谁互通的是 <strong>12 位 VID</strong>（1~4094）。A 把"我是带标签的帧"的标记当成了编号；B 是优先级不是身份；D 目的 MAC 决定"送给谁"，但不决定"在哪个房间"。</p>
+
+<h3>MCQ2：二层交换机转发一个单播帧时，正确的做法是？</h3>
+<p><span class="answer-correct">✅ B. 学习源 MAC 与端口的对应关系，查目的 MAC 地址表，命中就只从对应端口转发</span></p>
+<p>解析：交换机是<strong>学习型二层设备</strong>：①学习——记录每个源 MAC 从哪个口进来；②查表——单播帧查目的 MAC 表；③命中就只从对应端口转发（邮局按收件人投递），查不到才在本 VLAN 泛洪。A 是集线器（Hub）或老总线的行为——所有口都发，正是交换机要避免的"吵到别人"；C 把帧交给 CPU 处理是"慢路径"，只有协议帧（如 LLDP、STP）才这么做，数据帧走硬件查表才能线速转发；D 是三层路由器的活（查 IP 路由表），二层交换机不看 IP。</p>
+
+<h3>MCQ3：视频流、控制报文、诊断数据共用一台交换机，要保证控制报文不被视频流"挤死"，核心机制是？</h3>
+<p><span class="answer-correct">✅ C. 先按 VLAN/PCP/流特征把流量分类，映射进不同优先级队列，再按队列调度（Qbv 门控）放行</span></p>
+<p>解析：不同流量要区别对待，前提是"先认出来"——按 VID/PCP/DSCP/流特征分类后映射进不同出口队列（0~7），再由出口调度器（Qbv 门控）决定谁先出门，这样视频流再大也只能用自己队列的时隙，控制报文有自己的高优先级时隙，不会被挤死。A 提高时钟频率只让"转发"变快，解决不了"同一个队列里先来先走"的排队问题；B 全部标成同一优先级等于没有优先级，视频流照样挤占；D 物理分开只是把问题外包给另一台交换机，成本高且没有解决"同一条骨干上共存"的根本问题（骨干上最终还是会相遇）。</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 28（18:00）：车载 OTA 升级——汽车是怎么"在线升级"的？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+.struct-box{background:#f8f9fb;border:1px solid #e0e0e6;border-radius:8px;padding:.6rem .8rem;margin:.6rem 0;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;line-height:1.6;overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 28（18:00）— 2026-07-19 | 🚗 车载 OTA 升级</div>
+  <h1>车载 OTA 升级——汽车是怎么"在线升级"的？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson27-功能安全ISO26262--2026-07-19--1200/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson29-车载激光雷达--2026-07-19--2100/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你坐在车里，中控屏弹出一条通知：</p>
+
+<div class="callout">
+  <p><strong>系统更新可用 — 本次更新包含：</strong>优化动力电池管理策略、修复蓝牙连接偶尔断连的问题、提升 ACC 自适应巡航的平顺性。</p>
+</div>
+
+<p>你点了一下"确认更新"，下车锁门，10 分钟后回来——车已经升级好了，动力更顺、蓝牙更稳、巡航更智能。</p>
+
+<p><strong>你觉得这很自然？</strong> 那再想想下面的问题：</p>
+
+<ul>
+  <li>更新的是<strong>哪个芯片</strong>里的软件？</li>
+  <li>如果更新到一半<strong>断电了</strong>会发生什么？</li>
+  <li>万一新固件有 bug，刹车系统<strong>变慢了</strong>怎么办？</li>
+  <li>你拧钥匙通电的瞬间，车怎么知道<strong>该用哪个版本的软件</strong>？</li>
+</ul>
+
+<div class="callout">
+  <p><strong>这个"点一下就能升级"的过程，背后是一整套复杂的工程体系——这就是车载 OTA（Over-The-Air）升级技术要解决的问题。</strong></p>
+</div>
+
+<hr>
+
+<h2>二、车载 OTA 是什么？</h2>
+
+<h3>什么是 OTA？</h3>
+
+<p><strong>OTA（Over-The-Air，空中下载技术）</strong> 是指通过<strong>无线通信（4G/5G/Wi-Fi）</strong> 将软件或固件从云端下载到车上并完成安装的过程。</p>
+
+<p>它让汽车从一个"出厂后就永远不会变"的硬件，变成了一个<strong>可迭代、可进化</strong>的智能终端。</p>
+
+<h3>SOTA vs FOTA——两种升级</h3>
+
+<table>
+<tr><th>概念</th><th>升级对象</th><th>升级难度</th><th>典型场景</th></tr>
+<tr><td><strong>SOTA</strong>（Software OTA）</td><td>应用程序、地图数据、UI 界面</td><td>⭐ 低</td><td>高德地图更新、音乐 App 升级、语音包下载</td></tr>
+<tr><td><strong>FOTA</strong>（Firmware OTA）</td><td>底层固件、ECU 控制程序</td><td>⭐⭐⭐ 高</td><td>刹车逻辑优化、BMS 电池管理更新、变速箱换挡策略调整</td></tr>
+</table>
+
+<div class="callout-warn">
+  <p><strong>关键区别：</strong> SOTA 只涉及"应用层"（不影响车辆安全），FOTA 触及"控制层"（直接影响车辆的行驶和安全）。</p>
+</div>
+
+<h3>OTA 升级的完整链路</h3>
+
+<div class="mermaid">
+flowchart LR
+    subgraph CLOUD["☁️ 云端"]
+        OMS["OTA 管理平台"]
+        PKG["升级包仓库"]
+        AUTH["签名与授权"]
+    end
+
+    subgraph VEHICLE["🚗 车端"]
+        TBOX["T-BOX&lt;br&gt;通信网关"]
+        OCM["OTA 客户端&lt;br&gt;（主控）"]
+        ECU1["ECU A&lt;br&gt;（座舱域）"]
+        ECU2["ECU B&lt;br&gt;（智驾域）"]
+        ECU3["ECU C&lt;br&gt;（动力域）"]
+    end
+
+    OMS --&gt;|"4G/5G 下载升级包"| TBOX
+    TBOX --&gt; OCM
+    OCM --&gt;|"分发与刷写"| ECU1
+    OCM --&gt;|"分发与刷写"| ECU2
+    OCM --&gt;|"分发与刷写"| ECU3
+</div>
+
+<table>
+<tr><th>角色</th><th>职责</th></tr>
+<tr><td><strong>OTA 管理平台（OMS）</strong></td><td>管理升级版本、生成增量包、下发策略、记录升级结果</td></tr>
+<tr><td><strong>T-BOX</strong></td><td>接收云端升级包，提供通信通道</td></tr>
+<tr><td><strong>OTA 客户端（OCM）</strong></td><td>校验签名、解压包、分发到各 ECU、监控升级状态</td></tr>
+<tr><td><strong>目标 ECU</strong></td><td>接收固件、写入 Flash、验证完整性、切换启动分区</td></tr>
+</table>
+
+<hr>
+
+<h2>三、OTA 升级的核心挑战与解决方案</h2>
+
+<h3>挑战 1：升级中断——"更新到一半断电了怎么办？"</h3>
+
+<p>这是 FOTA 最怕的场景。如果 ECU 正在擦写 Flash 时突然断电：</p>
+<ul>
+  <li>Flash 里的旧固件<strong>已被擦除</strong></li>
+  <li>新固件<strong>还没写完</strong></li>
+  <li>ECU 变成"砖头"——既不能启动旧程序，也无法加载新程序</li>
+</ul>
+
+<p><strong>解决方案：A/B 分区切换（又名"双区备份"）</strong></p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph BEFORE["更新前"]
+        A1["A 分区&lt;br&gt;（当前运行 v1.0）"]
+        B1["B 分区&lt;br&gt;（备用，空/旧版本）"]
+    end
+
+    subgraph UPDATING["更新中"]
+        A2["A 分区&lt;br&gt;（当前运行 v1.0）"]
+        B2["B 分区&lt;br&gt;（写入 v2.0 中...）"]
+    end
+
+    subgraph OK["更新成功"]
+        A3["A 分区&lt;br&gt;（v1.0 备份）"]
+        B3["B 分区&lt;br&gt;（v2.0 已写入）"]
+        SWITCH["切换到 B 分区&lt;br&gt;启动 v2.0"]
+    end
+
+    subgraph FAIL["更新中断"]
+        A4["A 分区&lt;br&gt;（v1.0，完好）"]
+        B4["B 分区&lt;br&gt;（损坏/不完整）"]
+        ROLLBACK["回退到 A 分区&lt;br&gt;启动 v1.0"]
+    end
+
+    BEFORE --&gt; UPDATING
+    UPDATING --&gt;|"写入完成 + CRC 校验通过"| OK
+    UPDATING --&gt;|"断电/校验失败"| FAIL
+</div>
+
+<table>
+<tr><th>状态</th><th>A 分区</th><th>B 分区</th><th>ECU 启动哪个？</th></tr>
+<tr><td>升级前</td><td>v1.0（运行中）</td><td>空</td><td>A</td></tr>
+<tr><td>升级中</td><td>v1.0（运行中）</td><td>写入 v2.0</td><td>A（不受影响）</td></tr>
+<tr><td>升级成功</td><td>v1.0（备用）</td><td>v2.0（已验证）</td><td><strong>B</strong></td></tr>
+<tr><td>升级失败/断电</td><td>v1.0（完好）</td><td>损坏</td><td><strong>A</strong>（自动回退）</td></tr>
+</table>
+
+<div class="callout">
+  <p><strong>核心思想：</strong> 任何时候都保证<strong>至少有一个可启动的固件版本</strong>在 Flash 中。</p>
+</div>
+
+<h3>挑战 2：安全——"万一黑客伪造了升级包怎么办？"</h3>
+
+<p>车载 OTA 必须防止以下攻击：</p>
+<ul>
+  <li><strong>伪造升级包</strong>：黑客发送恶意固件到车上</li>
+  <li><strong>重放攻击</strong>：拦截旧版升级包，诱骗 ECU 降级到有漏洞的版本</li>
+  <li><strong>中间人攻击</strong>：在车和云端之间篡改升级数据</li>
+</ul>
+
+<p><strong>解决方案：端到端安全体系</strong></p>
+
+<table>
+<tr><th>安全措施</th><th>说明</th></tr>
+<tr><td><strong>数字签名</strong></td><td>升级包使用 OEM 私钥签名，ECU 用公钥验签——非授权包无法通过校验</td></tr>
+<tr><td><strong>安全引导（Secure Boot）</strong></td><td>ECU 启动时验证固件签名，防篡改固件运行</td></tr>
+<tr><td><strong>版本防回滚</strong></td><td>ECU 记录"最低可接受的版本号"，拒绝降级到低于该版本的固件</td></tr>
+<tr><td><strong>HTTPS + TLS</strong></td><td>通信链路加密，防中间人窃听或篡改</td></tr>
+<tr><td><strong>硬件安全模块（HSM）</strong></td><td>私钥存储在芯片内部的安全区域，软件无法读取</td></tr>
+</table>
+
+<h3>挑战 3：兼容性与依赖——"升级 A 会不会影响 B？"</h3>
+
+<p>现代汽车有 100+ 个 ECU，升级其中一个可能影响其他模块的配合。</p>
+
+<p><strong>解决方案：升级包依赖检查 + 整车级版本管理</strong></p>
+
+<p>ECU 升级前，OTA 客户端会做：</p>
+<ol>
+  <li><strong>硬件兼容性检查</strong>——确认当前硬件版本支持新固件</li>
+  <li><strong>软件依赖检查</strong>——确认相关 ECU 的版本兼容（如升级 BMS 时，VCU 必须不低于某版本）</li>
+  <li><strong>整车 VIN 白名单</strong>——确认该升级包适用于这台具体 VIN 的车</li>
+  <li><strong>执行条件检查</strong>——车速为 0、挡位为 P、电量足够（≥某个阈值）</li>
+</ol>
+
+<hr>
+
+<h2>四、OTA 升级流程全景</h2>
+
+<div class="mermaid">
+sequenceDiagram
+    participant OMS as 云端 OMS
+    participant TBOX as T-BOX
+    participant OCM as OTA 客户端
+    participant ECU as 目标 ECU
+
+    OMS--&gt;&gt;TBOX: ① 推送升级通知（VIN 过滤）
+    TBOX--&gt;&gt;OCM: ② 转发通知
+    OCM--&gt;&gt;OCM: ③ 条件检查&lt;br&gt;（车速=0/挡位=P/电量充足）
+    OCM--&gt;&gt;TBOX: ④ 请求下载升级包
+    TBOX--&gt;&gt;OMS: ⑤ HTTPS 下载升级包
+    OMS--&gt;&gt;TBOX: ⑥ 加密+签名的升级包
+    TBOX--&gt;&gt;OCM: ⑦ 传输到 OCM
+    OCM--&gt;&gt;OCM: ⑧ 验签 + 解密 + 解压
+    OCM--&gt;&gt;ECU: ⑨ 分发到目标 ECU
+    ECU--&gt;&gt;ECU: ⑩ 写入备用分区 + CRC 校验
+    ECU--&gt;&gt;OCM: ⑪ 写入完成确认
+    OCM--&gt;&gt;ECU: ⑫ 触发切换分区标记
+    OCM--&gt;&gt;TBOX: ⑬ 上报升级结果
+    TBOX--&gt;&gt;OMS: ⑭ 最终结果确认
+    OMS--&gt;&gt;OMS: ⑮ 记录升级日志
+</div>
+
+<hr>
+
+<h2>五、三条规则总结</h2>
+
+<div class="rule-box">
+  <p><strong>1. SOTA 动应用，FOTA 动灵魂</strong>——SOTA 只更新应用层软件（地图、App），不影响车辆安全；FOTA 更新底层固件（刹车逻辑、BMS 策略），直接影响行驶安全。<strong>FOTA 必须有 A/B 分区、签名验证、回退机制三重保障</strong></p>
+</div>
+
+<div class="rule-box">
+  <p><strong>2. A/B 分区 = 永不"变砖"的保险</strong>——每次更新写备用分区，当前分区继续运行。写入成功才切换，写入失败自动回退。<strong>任何时候都保证至少有一个可启动的固件</strong></p>
+</div>
+
+<div class="rule-box">
+  <p><strong>3. 安全是 OTA 的生命线</strong>——数字签名防伪造、安全引导防篡改、版本防回滚防降级攻击、HSM 硬件保护密钥。<strong>没有安全体系，OTA 就是一辆"随时可以被远程入侵"的车</strong></p>
+</div>
+
+<div class="callout">
+  <p><strong>一句话总结：</strong> 车载 OTA 让汽车从"出厂即固定"变为"可进化"的智能终端，但每一次远程升级背后，都是 A/B 分区、数字签名、依赖检查、条件验证等一系列工程机制的协同保障。</p>
+</div>
+
+<hr>
+
+<h2>六、费曼简答题</h2>
+
+<p>用你自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>（想象你讲给一个做手机 App 开发的朋友听）：</p>
+
+<div class="question">
+<p class="q-label">Q1</p>
+<p>你朋友说："手机也可以 OTA 升级啊，手机升级系统和你们汽车 OTA 不都是下载一个包然后安装吗？有什么区别？" 请用<strong>"换手机壳 vs 换手机主板"</strong>的类比来解释为什么汽车 FOTA 比手机系统升级复杂得多。</p>
+<textarea id="fq1" placeholder="用你自己的话回答..."></textarea>
+</div>
+
+<div class="question">
+<p class="q-label">Q2</p>
+<p>你朋友问："你说 A/B 分区可以在升级失败时自动回退——那岂不是每个 ECU 的 Flash 容量都要翻倍？车企为什么愿意多花这个钱？" 请用<strong>"备份钥匙 vs 请开锁师傅"</strong>的类比解释 A/B 分区为什么值得这个成本。</p>
+<textarea id="fq2" placeholder="用你自己的话回答..."></textarea>
+</div>
+
+<hr>
+
+<h2>七、选择题</h2>
+
+<div class="mcq-group">
+<p class="q-label">1. 以下哪个是 FOTA（Firmware OTA）和 SOTA（Software OTA）的根本区别？</p>
+<label><input type="radio" name="mc1" value="A"> A. FOTA 通过 4G 升级，SOTA 通过 Wi-Fi 升级</label>
+<label><input type="radio" name="mc1" value="B"> B. FOTA 更新底层控制固件（影响车辆安全），SOTA 更新应用层软件（不影响安全）</label>
+<label><input type="radio" name="mc1" value="C"> C. FOTA 需要用户确认，SOTA 不需要</label>
+<label><input type="radio" name="mc1" value="D"> D. FOTA 只能在 4S 店进行，SOTA 可以在任何地方进行</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<p class="q-label">2. 车载 OTA 升级中，A/B 分区（双区备份）的核心作用是？</p>
+<label><input type="radio" name="mc2" value="A"> A. 加快下载速度</label>
+<label><input type="radio" name="mc2" value="B"> B. 让两个分区同时运行提升性能</label>
+<label><input type="radio" name="mc2" value="C"> C. 保证升级失败时能自动回退到旧版本，防止 ECU "变砖"</label>
+<label><input type="radio" name="mc2" value="D"> D. 节省 Flash 存储空间</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<p class="q-label">3. 以下哪个不是车载 OTA 的安全机制？</p>
+<label><input type="radio" name="mc3" value="A"> A. 升级包数字签名</label>
+<label><input type="radio" name="mc3" value="B"> B. 版本防回滚</label>
+<label><input type="radio" name="mc3" value="C"> C. HTTPS + TLS 加密传输</label>
+<label><input type="radio" name="mc3" value="D"> D. 升级前先格式化所有 Flash</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a class="btn btn-outline" href="答案.html">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除答案</button>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson27-功能安全ISO26262--2026-07-19--1200/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson29-车载激光雷达--2026-07-19--2100/课程.html">下一课 →</a>
+</div>
+
+</div><!-- /container -->
+
+<script>
+(function() {
+  'use strict';
+
+  const LS_KEY = 'teachme_lesson28';
+
+  // === MCQ correct answers ===
+  const CORRECT = { mc1: 'B', mc2: 'C', mc3: 'D' };
+
+  // === Save progress ===
+  function saveProgress() {
+    const data = {};
+    document.querySelectorAll('textarea').forEach(function(el) {
+      data[el.id] = el.value;
+    });
+    document.querySelectorAll('input[type="radio"]').forEach(function(el) {
+      if (el.checked) data[el.name] = el.value;
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  }
+
+  // === Load progress ===
+  function loadProgress() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(LS_KEY));
+      if (!saved) return;
+      Object.keys(saved).forEach(function(key) {
+        var el = document.getElementById(key);
+        if (el && el.tagName === 'TEXTAREA') { el.value = saved[key]; return; }
+        var radios = document.querySelectorAll('input[name="' + key + '"]');
+        if (radios.length) {
+          radios.forEach(function(r) { if (r.value === saved[key]) r.checked = true; });
+        }
+      });
+    } catch(e) {/* ignore */}
+  }
+
+  // === Auto-save on change ===
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('textarea, input[type="radio"]')) saveProgress();
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.matches('textarea')) saveProgress();
+  });
+
+  // === Submit all (inline fallback) ===
+  window.submitAll = function() {
+    var score = 0;
+    var total = Object.keys(CORRECT).length;
+
+    // Grade MCQs
+    Object.entries(CORRECT).forEach(function(entry) {
+      var q = entry[0];
+      var ans = entry[1];
+      var selected = document.querySelector('input[name="' + q + '"]:checked');
+      var resultDiv = document.getElementById(q + '-result');
+      if (!resultDiv) return;
+      if (selected && selected.value === ans) {
+        resultDiv.className = 'mcq-result correct';
+        resultDiv.textContent = '✅ 正确！';
+        score++;
+      } else {
+        resultDiv.className = 'mcq-result wrong';
+        resultDiv.textContent = selected ? '❌ 错误。正确答案是 ' + ans : '❌ 未选择。正确答案是 ' + ans;
+      }
+    });
+
+    // Show MCQ score
+    var existingScore = document.getElementById('mcq-score');
+    if (existingScore) existingScore.remove();
+    var scoreDiv = document.createElement('div');
+    scoreDiv.id = 'mcq-score';
+    scoreDiv.style.cssText = 'margin:.5rem 0;padding:.7rem 1rem;background:#f0faf0;border-radius:8px;font-size:.9rem;border-left:4px solid #2e7d32;';
+    scoreDiv.innerHTML = '<strong>📊 选择题得分：' + score + '/' + total + '</strong>';
+    var btnGroup = document.querySelector('.btn-group');
+    if (btnGroup) btnGroup.after(scoreDiv);
+
+    // Build Feynman text for copy
+    var feynmanText = '=== Lesson 28 费曼答案 ===\n\n';
+    document.querySelectorAll('textarea').forEach(function(el) {
+      var label = el.closest('.question');
+      var qLabel = label ? label.querySelector('.q-label') : null;
+      feynmanText += (qLabel ? qLabel.textContent : el.id) + '\n';
+      feynmanText += (el.value.trim() || '(未填写)') + '\n\n';
+    });
+    feynmanText += '=== 选择题 ===\n得分: ' + score + '/' + total;
+
+    var copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'margin:.5rem 0;padding:.7rem 1rem;background:#f4f4f8;border-radius:8px;font-size:.85rem;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto';
+    copyBlock.textContent = feynmanText;
+    var hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 28 评分</strong>」';
+
+    if (scoreDiv) {
+      scoreDiv.after(copyBlock);
+      copyBlock.after(hint);
+    } else if (btnGroup) {
+      btnGroup.after(copyBlock);
+      copyBlock.after(hint);
+    }
+  };
+
+  window.clearAll = function() {
+    if (!confirm('确定清除所有已保存的答案？')) return;
+    localStorage.removeItem(LS_KEY);
+    document.querySelectorAll('textarea').forEach(function(el) { el.value = ''; });
+    document.querySelectorAll('input[type="radio"]').forEach(function(el) { el.checked = false; });
+    document.querySelectorAll('.mcq-result').forEach(function(el) { el.className = 'mcq-result'; el.style.display = 'none'; });
+    var scoreDiv = document.getElementById('mcq-score');
+    if (scoreDiv) scoreDiv.remove();
+    var copyBlock = document.getElementById('copy-block');
+    if (copyBlock) copyBlock.remove();
+    var hint = document.getElementById('feynman-score-hint');
+    if (hint) hint.remove();
+  };
+
+  window.addEventListener('DOMContentLoaded', loadProgress);
+})();
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson28',
+  title: 'Lesson 28（18:00）：车载 OTA 升级——汽车是怎么"在线升级"的？',
+  feynman: [
+    { q: 1, ref: '用"换手机壳 vs 换手机主板"类比：手机升级像"换手机壳"——换坏了最多手机不好看，扔掉旧的换个新的，不危及生命安全。汽车 FOTA 像"换手机主板"——如果换的过程中断电了，手机就彻底不能用了（ECU 变砖）。而且"手机"在高速上跑着，里面坐着人——主板换到一半出问题，不只是手机不能用的问题，是人命关天。所以汽车 FOTA 多了：(1) A/B 分区——必须保证任何时候都有"退路"；(2) 条件检查——必须在 P 挡、熄火、电量充足的条件下才能升级；(3) 签名验证 + 安全引导——防止黑客通过远程升级控制刹车；(4) 整车依赖检查——升级一个 ECU 不能影响其他 100 个 ECU 的配合；(5) 法规合规——涉及安全的 ECU 升级需要符合 ISO 26262 等功能安全标准' },
+    { q: 2, ref: '用"备份钥匙 vs 请开锁师傅"类比：没有 A/B 分区 = 只有一把钥匙 → 锁在门外 → 花 200 元请开锁师傅（升级失败 → ECU 变砖 → 拖车 + 4S 店刷写 → 几百到几千元）。有 A/B 分区 = 有一把备份钥匙 → 锁在门外 → 花 10 秒拿出备份钥匙开门（升级失败 → 自动回退 → 零额外成本）。算账：每个 ECU 加 A/B 分区多花 ~$2（Flash 翻倍），整车 ~$20 成本增加。一次 OTA 失败导致拖车去 4S 店平均 $150~$300。假设整车生命周期 20 次 FOTA，失败率 2% → 没有 A/B 分区期望损失 $80/车。$20 一次投入 vs $80 预期损失——经济上绝对划算。更深一层：A/B 分区不只是省钱，还是安全的前提——"刹车升级失败导致追尾"这种事不是花钱能解决的' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'D' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

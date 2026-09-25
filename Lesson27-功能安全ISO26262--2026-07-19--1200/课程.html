@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 27（12:00）：功能安全 ISO 26262——汽车电子如何做到"不怕出故障"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+.struct-box{background:#f8f9fb;border:1px solid #e0e0e6;border-radius:8px;padding:.6rem .8rem;margin:.6rem 0;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;line-height:1.6;overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 27（12:00）— 2026-07-19 | 🚗 汽车功能安全：ISO 26262</div>
+  <h1>功能安全 ISO 26262——汽车电子如何做到"不怕出故障"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson26-AUTOSAR汽车开放系统架构--2026-07-18--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson28-车载OTA升级--2026-07-19--1800/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你正以 120 km/h 的速度在高速上行驶。突然，<strong>刹车踏板下方的某个芯片检测到"信号异常"</strong>——原本应该输出"刹车压力 40 bar"的传感器，突然跳到了"255 bar"（满量程）。</p>
+
+<p><strong>这时候，车的"大脑"该怎么办？</strong></p>
+
+<ul>
+  <li>方案 A：相信传感器，全力刹车 → 你可能会被后车追尾</li>
+  <li>方案 B：忽略传感器，不做任何反应 → 你可能会追尾前车</li>
+  <li>方案 C：<strong>系统识别到传感器异常，自动切换到一个"备用的估算值"，同时点亮仪表盘上的"刹车系统故障"灯</strong></li>
+</ul>
+
+<div class="callout">
+  <p><strong>这个"C 方案"就是功能安全要解决的核心问题：当系统发生故障时，仍然能安全地工作，或者安全地停下来。</strong></p>
+</div>
+
+<hr>
+
+<h2>二、功能安全是什么？</h2>
+
+<p><strong>功能安全（Functional Safety）</strong> 是指：<strong>当系统发生故障时，系统不会对人造成不可接受的伤害。</strong></p>
+
+<p>它不是"让系统不出故障"（那叫可靠性），而是 <strong>"系统出了故障，也能确保安全"</strong>。</p>
+
+<h3>可靠性 vs 功能安全</h3>
+
+<table>
+<tr><th>概念</th><th>核心问题</th><th>例子</th></tr>
+<tr><td><strong>可靠性</strong></td><td>系统多久坏一次？</td><td>刹车灯 MTBF ≥ 10 万小时</td></tr>
+<tr><td><strong>功能安全</strong></td><td>系统坏了怎么保证安全？</td><td>刹车灯短路后，备用灯自动点亮，或系统进入"跛行模式"</td></tr>
+</table>
+
+<h3>ISO 26262——汽车功能安全的"宪法"</h3>
+
+<p>ISO 26262 是 <strong>汽车行业功能安全的国际标准</strong>，全称《Road vehicles — Functional safety》。它规定：</p>
+
+<ul>
+  <li>汽车电子系统从<strong>概念设计</strong>到<strong>量产</strong>的全生命周期，必须如何识别和管控"安全风险"</li>
+  <li>如何给不同功能分配 <strong>ASIL（汽车安全完整性等级）</strong></li>
+  <li>开发和验证过程必须达到哪些<strong>严格程度</strong></li>
+</ul>
+
+<table>
+<tr><th>概念</th><th>说明</th></tr>
+<tr><td>适用范围</td><td>整车上所有 E/E 系统——刹车、转向、气囊、ADAS、电池管理等</td></tr>
+<tr><td>最新版本</td><td>ISO 26262:2018（第二版），新增了半导体和自动驾驶相关内容</td></tr>
+<tr><td>行业地位</td><td><strong>全球强制遵守</strong>——没有 ISO 26262 认证，几乎无法进入主流车企的供应链</td></tr>
+<tr><td>与 AUTOSAR 的关系</td><td>AUTOSAR 提供了功能安全需要的底层机制（如 Watchdog Manager、E2E 通信保护）</td></tr>
+</table>
+
+<hr>
+
+<h2>三、ASIL——功能安全的核心"危险等级"</h2>
+
+<p>ISO 26262 的核心是 <strong>ASIL（Automotive Safety Integrity Level，汽车安全完整性等级）</strong>——它根据功能的<strong>危险程度</strong>规定了不同的开发严格度。</p>
+
+<h3>ASIL 的三大决定因素</h3>
+
+<table>
+<tr><th>因素</th><th>含义</th><th>等级范围</th></tr>
+<tr><td><strong>S（Severity）</strong></td><td>伤害严重程度</td><td>S0（无伤害）→ S1（轻伤）→ S2（重伤）→ S3（致命）</td></tr>
+<tr><td><strong>E（Exposure）</strong></td><td>危险暴露概率</td><td>E0 → E1（极低）→ E2（低）→ E3（中）→ E4（高）</td></tr>
+<tr><td><strong>C（Controllability）</strong></td><td>驾驶员能控制吗？</td><td>C0 → C1（易控）→ C2（可控）→ C3（难控）</td></tr>
+</table>
+
+<h3>常见 ASIL 等级举例</h3>
+
+<table>
+<tr><th>功能</th><th>ASIL</th><th>原因</th></tr>
+<tr><td>电子刹车助力（E-Boost）</td><td><strong>ASIL D</strong></td><td>失效可能致命，且驾驶员很难在高速下补偿</td></tr>
+<tr><td>电动助力转向（EPS）</td><td><strong>ASIL D</strong></td><td>转向失效可能导致失控</td></tr>
+<tr><td>ADAS 自动紧急刹车（AEB）</td><td><strong>ASIL C/D</strong></td><td>感知识别错误可能导致碰撞</td></tr>
+<tr><td>车窗防夹</td><td><strong>ASIL B</strong></td><td>夹到手指很疼但不会致命</td></tr>
+<tr><td>车内氛围灯</td><td><strong>ASIL A</strong></td><td>出故障也不会造成伤害</td></tr>
+<tr><td>信息娱乐系统</td><td><strong>QM（质量管理）</strong></td><td>黑屏了最多影响心情，不影响安全</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart LR
+    subgraph ASIL_LEVELS["ASIL 等级金字塔"]
+        QM["QM&lt;br&gt;质量管理级&lt;br&gt;（信息娱乐）"]
+        A["ASIL A&lt;br&gt;（车内灯）"]
+        B["ASIL B&lt;br&gt;（车窗防夹）"]
+        C["ASIL C&lt;br&gt;（ACC巡航）"]
+        D["ASIL D&lt;br&gt;（刹车/转向）"]
+    end
+
+    QM --&gt; A --&gt; B --&gt; C --&gt; D
+</div>
+
+<div class="callout-warn">
+  <p><strong>ASIL 越高，开发越贵：</strong> 从 ASIL A 到 ASIL D，开发成本可能翻 4~5 倍。所以汽车厂商会尽量把功能拆解——让安全关键部分走 ASIL D，非关键部分走 QM，而不是把整个系统都做成 ASIL D。</p>
+</div>
+
+<hr>
+
+<h2>四、功能安全的三个核心机制</h2>
+
+<h3>1. 安全机制（Safety Mechanism）</h3>
+
+<p>当系统检测到故障时，采取什么动作来保证安全？</p>
+
+<table>
+<tr><th>安全机制</th><th>含义</th><th>例子</th></tr>
+<tr><td><strong>进入安全状态</strong></td><td>系统切换到一个"已知安全"的模式</td><td>转向失效 → 启用机械锁止，方向盘变重但还能转向</td></tr>
+<tr><td><strong>降级运行</strong></td><td>部分功能降级，但核心功能保留</td><td>ADAS 摄像头受阻 → 禁用 ACC，但刹车和转向仍可用</td></tr>
+<tr><td><strong>故障容错</strong></td><td>冗余设计，一个坏了另一个顶上</td><td>双路刹车液压回路，一路漏油另一路仍能制动</td></tr>
+<tr><td><strong>看门狗（Watchdog）</strong></td><td>监控 CPU 是否"死机"</td><td>CPU 需要定期"喂狗"，超时不喂就触发复位</td></tr>
+</table>
+
+<h3>2. 故障诊断覆盖（Diagnostic Coverage）</h3>
+
+<table>
+<tr><th>诊断技术</th><th>检测什么</th><th>覆盖率</th></tr>
+<tr><td>ECC（纠错码）</td><td>RAM/Flash 中的位翻转</td><td>99%+</td></tr>
+<tr><td>CRC（循环冗余校验）</td><td>通信数据被篡改或丢失</td><td>高</td></tr>
+<tr><td>锁步核（Lockstep）</td><td>CPU 计算错误</td><td>极高——两个核执行相同指令并比对</td></tr>
+<tr><td>自检（BIST）</td><td>上电时检测硬件是否正常</td><td>中</td></tr>
+<tr><td>信号合理性检查</td><td>传感器值是否在正常范围内</td><td>中</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart TB
+    subgraph DETECT["故障检测层"]
+        ECC["ECC 内存纠错"]
+        CRC["CRC 通信校验"]
+        LOCK["锁步核比对"]
+        REASON["合理性检查"]
+    end
+
+    subgraph REACT["故障响应层"]
+        WDT["看门狗复位"]
+        SAFE["进入安全状态"]
+        REDUN["冗余切换"]
+        LIMP["跛行模式"]
+    end
+
+    OK["&#x2705; 安全状态"]
+    FAIL["&#x274C; 系统停用，但安全"]
+
+    REASON --&gt;|"检测到故障"| WDT
+    WDT --&gt; OK
+    LOCK --&gt; SAFE
+    ECC --&gt; REDUN
+    SAFE --&gt; OK
+    REDUN --&gt; OK
+    LIMP --&gt; FAIL
+</div>
+
+<h3>3. 安全生命周期（Safety Lifecycle）</h3>
+
+<p>ISO 26262 要求整个开发过程遵循 <strong>V 模型</strong>，每一个开发步骤都有对应的验证步骤：</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph LEFT["概念阶段"]
+        HARA["危害分析与风险评估&lt;br&gt;(HARA) → ASIL"]
+        GOAL["安全目标定义&lt;br&gt;(Safety Goal)"]
+        FSC["功能安全概念&lt;br&gt;(FSC)"]
+        TSC["技术安全概念&lt;br&gt;(TSC)"]
+        IMPL["系统/硬件/软件实现"]
+    end
+
+    subgraph RIGHT["验证阶段"]
+        CASE["功能安全评估&lt;br&gt;(Safety Case)"]
+        TESTS["安全验证测试&lt;br&gt;(Safety Tests)"]
+        INTEG["集成测试&lt;br&gt;(Integration)"]
+        UNIT["单元测试&lt;br&gt;(Unit Tests)"]
+        IMPL2["实现即验证"]
+    end
+
+    HARA --&gt; GOAL --&gt; FSC --&gt; TSC --&gt; IMPL
+    IMPL --- IMPL2
+    UNIT --- TSC
+    INTEG --- FSC
+    TESTS --- GOAL
+    CASE --- HARA
+</div>
+
+<hr>
+
+<h2>五、三条规则总结</h2>
+
+<div class="rule-box">
+  <p><strong>1. 功能安全 ≠ 可靠性</strong>——可靠性问"系统多久坏一次"，功能安全问"系统坏了怎么确保安全"。功能安全的目标是：<strong>单点故障不致命</strong></p>
+</div>
+<div class="rule-box">
+  <p><strong>2. ASIL 决定"多严格"</strong>——ASIL A→D 递增，由危害严重度（S）、暴露概率（E）、可控性（C）三者决定。刹车/转向是 ASIL D，车内灯是 QM。<strong>ASIL 越高，开发成本越高</strong>，所以只对"安全关键功能"做高 ASIL</p>
+</div>
+<div class="rule-box">
+  <p><strong>3. 故障可检测，安全有退路</strong>——功能安全不是"不出故障的神话"，而是"出了故障能检测到，检测到后能进入安全状态"的工程体系。ECC 纠错、锁步核比对、看门狗复位、冗余切换——这些机制确保：<strong>就算硬件有毛病，车子也不会乱来</strong></p>
+</div>
+
+<div class="callout">
+  <p><strong>一句话总结：</strong> ISO 26262 是汽车电子的"安全带"——它承认电子系统一定会出故障，但通过 ASIL 分级、安全机制、V 模型开发流程，确保<strong>每个已知风险都有应对方案</strong>。</p>
+</div>
+
+<hr>
+
+<h2>六、费曼简答题</h2>
+
+<p>用你自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>（想象你讲给一个做家电开发的工程师朋友听）：</p>
+
+<div class="question">
+<p class="q-label">Q1</p>
+<p>你朋友做洗衣机控制板，他问：我们家电也有安全要求（过热保护、漏电保护），但我看你们汽车行业好像更夸张——"功能安全"到底是多了什么？请用<strong>"飞机的双引擎 vs 自行车的一个刹车"</strong>的类比来解释为什么汽车功能安全比一般家电的安全要求严格那么多。</p>
+<textarea id="fq1" placeholder="用你自己的话回答..."></textarea>
+</div>
+
+<div class="question">
+<p class="q-label">Q2</p>
+<p>你朋友问：你说 ASIL D 是最严格的等级——那我在代码里多写一些 if-else 检查不就行了吗？为什么你们还要搞什么锁步核、ECC 这些硬件层面的东西？请用<strong>"一个警察 vs 两个互相监视的警察"</strong>的类比来解释为什么功能安全需要硬件层面的故障检测机制。</p>
+<textarea id="fq2" placeholder="用你自己的话回答..."></textarea>
+</div>
+
+<hr>
+
+<h2>七、选择题</h2>
+
+<div class="mcq-group">
+<p class="q-label">1. ISO 26262 中的 ASIL 等级由哪三个因素综合决定？</p>
+<label><input type="radio" name="mc1" value="A"> A. 成本（C）、时间（T）、质量（Q）</label>
+<label><input type="radio" name="mc1" value="B"> B. 严重度（S）、暴露概率（E）、可控性（C）</label>
+<label><input type="radio" name="mc1" value="C"> C. 速度（S）、能耗（E）、复杂度（C）</label>
+<label><input type="radio" name="mc1" value="D"> D. 安全性（S）、效率（E）、成本（C）</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<p class="q-label">2. 以下哪个是功能安全与可靠性的最核心区别？</p>
+<label><input type="radio" name="mc2" value="A"> A. 功能安全关心系统寿命，可靠性关心故障后果</label>
+<label><input type="radio" name="mc2" value="B"> B. 功能安全关心"出了故障是否安全"，可靠性关心"多久出一次故障"</label>
+<label><input type="radio" name="mc2" value="C"> C. 两者完全相同，只是叫法不同</label>
+<label><input type="radio" name="mc2" value="D"> D. 功能安全只适用于自动驾驶，可靠性适用于所有系统</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<p class="q-label">3. 一个 ASIL D 等级的电子刹车系统，CPU 跑飞了（程序计数器跳到非法地址），正确的响应路径是什么？</p>
+<label><input type="radio" name="mc3" value="A"> A. CPU 自动重启，重启期间不刹车</label>
+<label><input type="radio" name="mc3" value="B"> B. 看门狗检测到 CPU 超时，触发复位；同时备用芯片接管刹车控制，车辆进入"跛行模式"</label>
+<label><input type="radio" name="mc3" value="C"> C. 不管它，等驾驶员发现仪表盘亮灯了再开去维修</label>
+<label><input type="radio" name="mc3" value="D"> D. 永久锁死刹车，确保车辆立即停下</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a class="btn btn-outline" href="答案.html">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除答案</button>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson26-AUTOSAR汽车开放系统架构--2026-07-18--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson28-车载OTA升级--2026-07-19--1800/课程.html">下一课 →</a>
+</div>
+
+</div><!-- /container -->
+
+<script>
+(function() {
+  'use strict';
+
+  const LS_KEY = 'teachme_lesson27';
+
+  // === MCQ correct answers ===
+  const CORRECT = { mc1: 'B', mc2: 'B', mc3: 'B' };
+
+  // === Save progress ===
+  function saveProgress() {
+    const data = {};
+    document.querySelectorAll('textarea').forEach(function(el) {
+      data[el.id] = el.value;
+    });
+    document.querySelectorAll('input[type="radio"]').forEach(function(el) {
+      if (el.checked) data[el.name] = el.value;
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  }
+
+  // === Load progress ===
+  function loadProgress() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(LS_KEY));
+      if (!saved) return;
+      Object.keys(saved).forEach(function(key) {
+        var el = document.getElementById(key);
+        if (el && el.tagName === 'TEXTAREA') { el.value = saved[key]; return; }
+        var radios = document.querySelectorAll('input[name="' + key + '"]');
+        if (radios.length) {
+          radios.forEach(function(r) { if (r.value === saved[key]) r.checked = true; });
+        }
+      });
+    } catch(e) {/* ignore */}
+  }
+
+  // === Auto-save on change ===
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('textarea, input[type="radio"]')) saveProgress();
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.matches('textarea')) saveProgress();
+  });
+
+  // === Submit all (inline fallback) ===
+  window.submitAll = function() {
+    var score = 0;
+    var total = Object.keys(CORRECT).length;
+
+    // Grade MCQs
+    Object.entries(CORRECT).forEach(function(entry) {
+      var q = entry[0];
+      var ans = entry[1];
+      var selected = document.querySelector('input[name="' + q + '"]:checked');
+      var resultDiv = document.getElementById(q + '-result');
+      if (!resultDiv) return;
+      if (selected && selected.value === ans) {
+        resultDiv.className = 'mcq-result correct';
+        resultDiv.textContent = '✅ 正确！';
+        score++;
+      } else {
+        resultDiv.className = 'mcq-result wrong';
+        resultDiv.textContent = selected ? '❌ 错误。正确答案是 ' + ans : '❌ 未选择。正确答案是 ' + ans;
+      }
+    });
+
+    // Show MCQ score
+    var existingScore = document.getElementById('mcq-score');
+    if (existingScore) existingScore.remove();
+    var scoreDiv = document.createElement('div');
+    scoreDiv.id = 'mcq-score';
+    scoreDiv.style.cssText = 'margin:.5rem 0;padding:.7rem 1rem;background:#f0faf0;border-radius:8px;font-size:.9rem;border-left:4px solid #2e7d32;';
+    scoreDiv.innerHTML = '<strong>📊 选择题得分：' + score + '/' + total + '</strong>';
+    var btnGroup = document.querySelector('.btn-group');
+    if (btnGroup) btnGroup.after(scoreDiv);
+
+    // Build Feynman text for copy
+    var feynmanText = '=== Lesson 27 费曼答案 ===\n\n';
+    document.querySelectorAll('textarea').forEach(function(el) {
+      var label = el.closest('.question');
+      var qLabel = label ? label.querySelector('.q-label') : null;
+      feynmanText += (qLabel ? qLabel.textContent : el.id) + '\n';
+      feynmanText += (el.value.trim() || '(未填写)') + '\n\n';
+    });
+    feynmanText += '=== 选择题 ===\n得分: ' + score + '/' + total;
+
+    var copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'margin:.5rem 0;padding:.7rem 1rem;background:#f4f4f8;border-radius:8px;font-size:.85rem;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto';
+    copyBlock.textContent = feynmanText;
+    var hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 27 评分</strong>」';
+
+    if (scoreDiv) {
+      scoreDiv.after(copyBlock);
+      copyBlock.after(hint);
+    } else if (btnGroup) {
+      btnGroup.after(copyBlock);
+      copyBlock.after(hint);
+    }
+  };
+
+  window.clearAll = function() {
+    if (!confirm('确定清除所有已保存的答案？')) return;
+    localStorage.removeItem(LS_KEY);
+    document.querySelectorAll('textarea').forEach(function(el) { el.value = ''; });
+    document.querySelectorAll('input[type="radio"]').forEach(function(el) { el.checked = false; });
+    document.querySelectorAll('.mcq-result').forEach(function(el) { el.className = 'mcq-result'; el.style.display = 'none'; });
+    var scoreDiv = document.getElementById('mcq-score');
+    if (scoreDiv) scoreDiv.remove();
+    var copyBlock = document.getElementById('copy-block');
+    if (copyBlock) copyBlock.remove();
+    var hint = document.getElementById('feynman-score-hint');
+    if (hint) hint.remove();
+  };
+
+  window.addEventListener('DOMContentLoaded', loadProgress);
+})();
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson27',
+  title: 'Lesson 27（12:00）：功能安全 ISO 26262——汽车电子如何做到"不怕出故障"？',
+  feynman: [
+    { q: 1, ref: '用"飞机的双引擎 vs 自行车的一个刹车"类比：自行车的刹车坏了 → 你可以用脚刹、滑行停下（驾驶员完全可以补偿，C1 可控性高）。飞机失去一个引擎 → 另一个引擎还能飞（硬件冗余是必备的）。汽车的刹车系统介于两者之间：(1) 不能靠"驾驶员用脚刹"——120km/h 时做不到 → 系统必须自己保证安全；(2) 但也不能无限加冗余（成本和重量限制）→ 只能精确评估"哪个故障真要命"，只对最关键的做最高等级 ASIL D。家用电器的"安全"是"坏了别着火"，汽车的"安全"是"坏了也别让里面的人受伤"——"里面还有人"就是一切差异的根源。ISO 26262 的全生命周期 V 模型开发、ASIL 分级、独立安全评审，都是针对这个核心差异设计的' },
+    { q: 2, ref: '用"一个警察 vs 两个互相监视的警察"类比：软件检查的局限性（一个警察巡逻）——警察 A 负责检查"街上有没有坏人"，但如果有人把警察 A 打晕了，就没有人发现异常。软件里的 if-else 检查，如果 CPU 本身已经跑飞了，"检查代码"也会跟着跑飞。软件检查不能检测 CPU 内部寄存器的位翻转——检查者（CPU）和被检查者（程序）是同一个。硬件安全机制（两个互相监视的警察）——警察 A 和警察 B 同步执行相同路线（锁步核）。如果警察 A 被打晕（CPU 计算错误），警察 B 立刻发现"A 怎么不走同一条路线？"→ 触发报警。还有一个中央监控室（看门狗——独立于两个警察的第三方），每隔 10 分钟确认两个警察都在 → 超时不确认，自动派出特警队（系统复位或冗余切换）。总结：软件检查是"自己查自己"——如果自己已经坏了，查也查不出。硬件安全机制是"我找一个独立的兄弟来监督我，还让第三个兄弟在外面盯着"。功能安全之所以要求锁步核、ECC、独立看门狗，是因为故障可能让检测者本身也失效——只有独立冗余的硬件机制才能防止这种情况' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

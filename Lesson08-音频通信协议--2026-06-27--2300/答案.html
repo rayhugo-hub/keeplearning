@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 08：答案 — 音频通信协议</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.nav-bar{display:flex;gap:1rem;margin:.5rem 0 1.5rem;padding:.4rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+  <div class="meta">Lesson 08 — 答案</div>
+  <h1>音频通信协议——参考答案</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson07-舱联与舱驾--2026-06-27--2300/答案.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson09-以太和CAN通信知识--2026-06-28--0900/答案.html">下一课 →</a>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<div class="q-label">Q1（为什么不能用 Wi-Fi/蓝牙）</div>
+<div class="ref-box">想象一下：用 Wi-Fi 或蓝牙给 40 个扬声器传音乐，就像用快递给 40 个人分别送一块拼图——每个快递到达的时间不一样，有的人上午收到，有的人下午收到，你永远没法在"同一时刻"拼齐整张图。Wi-Fi 和蓝牙的延迟不稳定（Wi-Fi 可能几十到几百毫秒抖动），无法保证 40 个扬声器"同时"发出同一个声音。而 A2B 用专用的同步时钟确保所有扬声器在同一个精确时间点发声，延迟稳定在 50 微秒以内，和 Wi-Fi/蓝牙完全不是一个量级。</div>
+
+<div class="q-label">Q2（"合唱团"比喻）</div>
+<div class="ref-box">一个合唱团要唱好，所有人必须听同一个指挥的节拍。如果乐队在左边打拍子、右边 20 个团员晚 1 秒才听到，那唱出来就是"阴阳怪气"的，谁也不在调上。A2B 就像在车厢里安了一个超级准确的指挥（主节点），用一根菊花链把节拍信号传到每个"团员"（扬声器节点），而且每个节点收到的节拍是同时的（延迟 &lt; 50 μs，比人耳敏感度低 100 倍）。所有扬声器跟着同一个"指挥"唱歌，你就听到了完整的、同步的好声音。</div>
+
+<div class="q-label">Q3（A2B vs TSN 选择）</div>
+<div class="ref-box">如果我是特斯拉的工程师，我会分场景选：
+<ul>
+<li><strong>现阶段（2026）选 A2B</strong> —— 成本低、成熟度高、延迟已经足够（&lt; 50 μs）。一辆车 20-40 个扬声器，A2B 菊花链一根线全串起来，线束重量从 8 kg 降到 2 kg，对续航有直接帮助。</li>
+<li><strong>如果做高端旗舰（2030+）选 TSN</strong> —— 全车已经是以太网骨干，音频流、视频流、传感器数据都走同一根网线。以后需要 64+ 通道的 3D 沉浸式音频（苹果 Spatial Audio 级别），A2B 的 32 通道就不够用了。</li>
+<li><strong>结论</strong>：量产车选 A2B（成熟、便宜、够用），旗舰选 TSN（面向未来、扩展性好）。</li>
+</ul></div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th style="width:60px">题号</th><th>答案</th><th>解析</th></tr>
+<tr><td>1</td><td><strong>B</strong></td><td>传统模拟架构：每个扬声器 2 根独立信号线 → 40 根线 → 5-8 kg。A2B 菊花链：一根双绞线串起所有节点 → 1-2 kg。同时 A2B 的主节点广播同步时钟，所有从节点时钟完全对齐，延迟 &lt; 50 μs。虽然 A2B 也能提供不错音质，但"音质更好"并非 A2B 对比模拟的核心优势。</td></tr>
+<tr><td>2</td><td><strong>C</strong></td><td>A2B 的同步机制是硬件级的：主节点产生主时钟（12.288 MHz），通过菊花链的帧结构周期性地广播给所有从节点。每个从节点从总线恢复时钟，并用 PLL（锁相环）锁定到主时钟上。所有节点的采样时钟完全一致，节点间延迟约 50 μs/节点。</td></tr>
+<tr><td>3</td><td><strong>A</strong></td><td>A2B 总线供电（POC）允许通过同一根双绞线同时传输音频数据和直流电源。头枕扬声器安装在座椅内部，如果要从座椅底部专门拉一根 12V 电源线，布线非常麻烦（座椅是运动部件，线束要走随动机构）。有了 POC，头枕扬声器只需要一根 A2B 线接入菊花链即可。</td></tr>
+<tr><td>4</td><td><strong>B</strong></td><td>TSN/AVB 的核心价值在于"统一骨干网"——全车所有电子系统共享同一套以太网基础设施。音频流不再是"走专用总线"，而是和其他数据流共用交换机。虽然 TSN 的延迟（100-200 μs）比 A2B（&lt; 50 μs）高，但对于人耳同样不可感知。TSN 的优势不是性能更好，而是"统一网络降低了整车系统复杂度"。</td></tr>
+</table>
+
+<hr>
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

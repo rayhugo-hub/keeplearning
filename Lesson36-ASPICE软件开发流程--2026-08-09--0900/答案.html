@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 36：答案 — ASPICE 与软件开发流程——汽车软件为什么不能像手机 App 一样"发版修 bug"？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+.ans-item{margin:.3rem 0}
+.ans-label{font-weight:600;color:#2e7d32}
+.ans-label-wrong{color:#c62828}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson35-车载操作系统与虚拟化--2026-08-02--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson37-BMS电池管理系统--2026-08-09--1200/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 36 — 答案</div>
+  <h1>ASPICE 与软件开发流程——汽车软件为什么不能像手机 App 一样"发版修 bug"？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（为什么汽车行业必须用 ASPICE 这类过程标准？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<table>
+<tr><th>角度</th><th>说明</th></tr>
+<tr><td><strong>产品生命周期</strong></td><td>手机 App 生命周期一两年，汽车软件随车服役 10 年以上，还要经历 OTA 持续升级。没有规范流程，几年后没人能说清"这个功能当初是谁、按什么需求、怎么实现的"——无法维护、无法升级</td></tr>
+<tr><td><strong>多供应商协作</strong></td><td>一辆车的软件来自几十家 Tier1/供应商，要协作、要集成。没有统一的过程标准，各家风格迥异，集成时根本无法对齐接口、版本和测试</td></tr>
+<tr><td><strong>安全与追溯</strong></td><td>汽车软件涉及功能安全（ISO 26262）。出了问题要能追溯：哪个需求、哪次变更、哪个测试漏了。ASPICE 的追溯性让"事后查证"成为可能——这是监管和召回调查的基础</td></tr>
+</table>
+<p><strong>一句话：</strong> 手机软件可以"快速迭代、坏了就修"；汽车软件必须"过程可控、全程可溯"——因为它的错误可能致命，生命周期长达十年，还要几十家供应商协作。</p>
+</div>
+
+<h3>Q2（用生活类比解释 V 模型为什么左边分解、右边验证）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（盖房子类比）：</strong></p>
+<table>
+<tr><th>要点</th><th>类比</th></tr>
+<tr><td><strong>逐层分解</strong></td><td>盖房子先有"设计蓝图"（系统需求）→ 分到"楼层图纸"（架构）→ 再细到"每面墙、每根梁"（详细设计/单元）。左边是从整体到细节的层层分解</td></tr>
+<tr><td><strong>逐层验证</strong></td><td>每盖一层都要"验收"：地基验收、框架验收、装修验收。右边是从单元到整体的逐层集成测试，<strong>每一层验证对应左边的每一层设计</strong></td></tr>
+<tr><td><strong>需求可追溯</strong></td><td>每一面墙都能回答"我对应蓝图上的哪个房间"；反过来，蓝图上的每个房间都有对应的墙和验收记录。出问题能立刻定位是哪层设计、哪个环节漏了</td></tr>
+<tr><td><strong>问题越早发现越便宜</strong></td><td>地基歪了在打地基时发现，改一铲子土就行；等房子盖完了才发现，要拆楼重盖。软件同理：需求错误在设计阶段发现最便宜，到整车测试才发现要推倒重来</td></tr>
+</table>
+<p><strong>类比要点：</strong> V 模型不是"先设计再测试"的两步走，而是"每层设计都有对应验证"的镜像结构——左边怎么拆，右边怎么合，全程一一对应、可追溯。</p>
+</div>
+
+<h3>Q3（为什么没有 ASPICE，ISO 26262 就是空中楼阁？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<table>
+<tr><th>问题</th><th>回答者</th></tr>
+<tr><td><strong>要安全到什么程度、需要什么证据？</strong></td><td>ISO 26262（功能安全）规定：安全目标、ASIL 等级、安全分析（FMEA/FTA）、安全证据等</td></tr>
+<tr><td><strong>用什么流程开发，才能保证质量可追溯？</strong></td><td>ASPICE（过程标准）规定：V 模型开发流程、需求/测试追溯、配置管理、变更管理、质量保证</td></tr>
+</table>
+<p><strong>两者必须结合的原因：</strong></p>
+<ul>
+<li>ISO 26262 的"安全证据"（安全需求、验证记录、测试报告）<strong>必须由规范的开发过程产生</strong>——如果开发流程混乱（没有追溯、没有配置管理、没有变更控制），那么"证据"本身就是不可信的</li>
+<li>ASPICE 保证"过程正确"（做没做、按什么做的、有没有记录）；ISO 26262 保证"结果安全"（有没有分析风险、有没有安全措施）</li>
+<li><strong>流程乱 → 证据不可信 → 安全认证过不了</strong>。所以业界把两者绑在一起：做功能安全开发，必须同时满足 ASPICE 的过程要求和 ISO 26262 的安全要求</li>
+</ul>
+<p><strong>一句话：</strong> ISO 26262 问"安全吗、有证据吗"，ASPICE 问"开发过程靠谱吗、可追溯吗"——没有靠谱的过程，安全的证据就是假的，认证自然过不了。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ 1：ASPICE 评估的核心对象是？</h3>
+<p><strong>正确答案：B. 汽车软件开发过程的成熟度与规范性</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 芯片的算力与功耗表现</td><td>❌ 算力功耗是硬件选型问题，与 ASPICE 无关</td></tr>
+<tr><td>B. 汽车软件开发过程的成熟度与规范性</td><td>✅ ASPICE 是过程标准：评估"怎么开发"，而不是"开发出什么"</td></tr>
+<tr><td>C. 整车的碰撞安全性能</td><td>❌ 碰撞安全是整车安全测试的范畴（如 NCAP），不是 ASPICE</td></tr>
+<tr><td>D. 零部件供应商的报价合理性</td><td>❌ 报价是商务采购问题，ASPICE 管的是供应商的开发过程能力</td></tr>
+</table>
+
+<h3>MCQ 2：关于 V 模型的描述？</h3>
+<p><strong>正确答案：B. 左侧逐层分解需求与设计，右侧逐层集成与验证，且需求与测试一一对应、可追溯</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 只有左侧的"设计"重要，右侧的"测试"可以省略</td><td>❌ 右侧测试与左侧设计同等重要，V 模型的精髓就是"左右对应"</td></tr>
+<tr><td>B. 左侧逐层分解，右侧逐层验证，一一对应可追溯</td><td>✅ V 模型左侧分解、右侧验证，测试用例对应需求，全程可追溯</td></tr>
+<tr><td>C. V 模型只适用于硬件开发，不适用于软件开发</td><td>❌ V 模型既适用于硬件也适用于软件（ASPICE 的 SYS.* 管系统、SWE.* 管软件）</td></tr>
+<tr><td>D. 先全部写完代码，最后一次性测试就够了</td><td>❌ "写完再测"是典型的瀑布式缺陷，V 模型强调每层都有对应验证、尽早发现错误</td></tr>
+</table>
+
+<h3>MCQ 3：OEM 审核供应商时最常要求的能力等级？</h3>
+<p><strong>正确答案：B. CL2（已管理）和 CL3（已建立）</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. CL0（不完整）和 CL1（已执行）</td><td>❌ CL0/CL1 意味着过程执行都不完整，远达不到量产要求</td></tr>
+<tr><td>B. CL2（已管理）和 CL3（已建立）</td><td>✅ 行业主流要求是 CL2（有计划、有跟踪、有资源）到 CL3（标准化、全公司统一执行）</td></tr>
+<tr><td>C. CL5（持续优化）是唯一可接受的等级</td><td>❌ CL5 是终极目标，但并非"唯一可接受"——绝大多数项目以 CL2/CL3 为门槛</td></tr>
+<tr><td>D. 能力等级只跟软件规模有关</td><td>❌ 能力等级与过程管理直接相关，与软件规模无关——再小的软件也要有规范过程</td></tr>
+</table>
+
+<hr>
+
+<p><a href="课程.html" class="back-link">← 返回课程</a></p>
+
+</div>
+</body>
+</html>

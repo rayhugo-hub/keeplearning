@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 13：答案 — 座舱互联——手机和车怎么"交朋友"？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson12-数字车钥匙通信--2026-07-04--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson14-舱驾融合--2026-07-05--1200/课程.html">下一课 →</a>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 13 — 答案</div>
+  <h1>座舱互联——手机和车怎么"交朋友"？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（为什么 CarPlay 延迟低，手机热点看视频会卡顿）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>核心区别在于"数据流不走公网" vs "数据流走公网"。</p>
+<ul>
+  <li><strong>CarPlay 投屏</strong>走的是手机和车机之间的私有局域网络（Wi-Fi Direct 或 USB 有线直连）。数据不经过路由器、不经过互联网基站，传输距离只有几米。这就好比两个人在同一间屋子里面对面说话，没有中间人传话，自然快。</li>
+  <li><strong>手机热点看视频</strong>，数据从互联网视频服务器出发 → 经过多个路由器 → 基站（4G/5G）→ 手机（热点）→ Wi-Fi 到车机。这就好比一个人在纽约说话，中间经过接线员、海底光缆、信号塔，最后才传到车里——信号路径长、中间环节多，任何一个环节拥堵（晚上高峰期、信号差）就会卡顿。</li>
+</ul>
+<p><strong>根本差异：</strong>一个在"小局域网"内直传（距离短、无中间跳转），一个经过"广域网"（路径长、多跳转、受运营商网络质量影响）。</p>
+</div>
+
+<h3>Q2（远程开空调的完整链路）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>从你点下手机 App 上的"开空调"按钮到空调实际启动，经历了以下步骤：</p>
+<ol>
+  <li><strong>手机 App → TSP 云端：</strong>你的手机通过 4G/5G 互联网发送"开空调"指令到车厂的 TSP 平台。指令包含：车辆识别码(VIN)、指令类型(开空调)、温度设定(24°C)、时间戳和数字签名。</li>
+  <li><strong>TSP 云端验证：</strong>TSP 平台验证你的用户身份（是否是车主？账号是否有权限？）、检查车辆当前在线状态（车是否通电？T-BOX 是否在线？）。</li>
+  <li><strong>TSP 云端 → 车辆 T-BOX：</strong>验证通过后，TSP 将指令通过 4G/5G 蜂窝网络下发到车上的 T-BOX（通信模块）。</li>
+  <li><strong>T-BOX → 车内总线：</strong>T-BOX 收到指令后，通过车载以太网或 CAN 总线将指令转发给空调控制器（HVAC ECU）。</li>
+  <li><strong>空调控制器执行：</strong>HVAC ECU 收到指令后，启动压缩机、鼓风机，调节风门位置开始制冷/制热。</li>
+  <li><strong>反馈确认：</strong>HVAC ECU 将执行结果通过 CAN 总线发回 T-BOX，T-BOX 上报 TSP，TSP 推送通知到你的手机 App。</li>
+</ol>
+<p><strong>关键理解：</strong>整个链路涉及三端（手机、云、车）、四种协议（App↔TSP 用 HTTPS/MQTT、TSP↔T-BOX 用厂商私有协议或 MQTT、车内用 CAN/以太网）。任何一个环节出问题（车辆没信号、T-BOX 断电、云端服务故障），指令都会失败。</p>
+</div>
+
+<h3>Q3（应用流转的技术困难）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>要让车机能独立运行手机应用（而不是简单地投屏），面临三个主要困难：</p>
+<ol>
+  <li><strong>硬件架构差异：</strong>手机用的是 ARM 架构芯片（骁龙、A 系列），车机可能用不同的 SoC（高通 SA8155/8295、AMD 锐龙、瑞萨 R-Car）。手机应用（APK/IPA）是基于手机 CPU 指令集编译的，不能直接在车机上运行。需要跨平台引擎或虚拟机，但会带来性能和兼容性问题。</li>
+  <li><strong>交互适配难题：</strong>手机应用是为小尺寸触控屏设计的（按钮小、滑动操作多），车机屏幕尺寸更大（10~15 寸）且需要驾驶安全考量——按钮必须更大、操作路径更短、播放视频必须限制。如果直接把手机应用搬上车机，会出现"按钮太小点不到"、"驾驶中操作太复杂"等安全问题。</li>
+  <li><strong>安全与隐私风险：</strong>车机不是普通智能设备——它连接着车辆控制总线（CAN、以太网），能访问车速、刹车、转向等核心安全数据。如果手机应用能在车机上直接运行，一个被恶意篡改的应用可能试图访问车辆控制接口。这是安全底线问题。</li>
+</ol>
+<p><strong>折中方案：</strong>华为 HiCar 的"虚拟化"方案是将应用仍放在手机上运行，但通过分布式框架把 UI 渲染投射到车机，同时让应用能调用车机硬件（摄像头、麦克风）。这样既实现了"应用在车机上用"，又避免了安全风险——应用始终跑在手机上。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>CarPlay 是投射模式（手机运算→车机显示，手机是主脑），HiCar 是融合模式（应用流转+硬件共享，手机和车机是分布式关系）。A❌ 两者都支持有线和无线；C❌ 两者都用 Wi-Fi 传输画面，蓝牙只用于唤醒和配对；D❌ 两者都能导航和播放音乐。</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>B</strong></td>
+  <td>TSP 平台是车和手机之间所有远程控制指令的"中转站"和"管理平台"——它负责指令路由、身份验证、车辆状态管理。A❌ Wi-Fi 热点不是 TSP 的功能（是车机的功能）；C❌ TSP 不替代 T-BOX，T-BOX 是车端硬件；D❌ 推送广告不是 TSP 的核心功能。</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>B</strong></td>
+  <td>无线 CarPlay/HiCar 的标准方案是：蓝牙负责设备发现和配对唤醒（低功耗常驻），Wi-Fi 负责高速数据传输（投屏画面+声音传输）。这是一个"分工协作"的关系。A❌ 蓝牙带宽不够传画面；C❌ 两者不传一半画面；D❌ Wi-Fi 带宽大但功耗高，不适合常驻作为唤醒通道。</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

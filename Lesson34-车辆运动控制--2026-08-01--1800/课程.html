@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 34（18:00）：车辆运动控制——线控底盘如何让汽车“自己刹车、自己转向”？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 34（18:00）— 2026-08-01 | 🚗 车辆运动控制（线控制动 / 线控转向）</div>
+  <h1>车辆运动控制——线控底盘如何让汽车“自己刹车、自己转向”？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson33-V2X车路协同--2026-08-01--1718/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson35-车载操作系统与虚拟化--2026-08-02--1800/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你在高速上开着辅助驾驶，车速 120km/h。前方车辆突然急刹——你的脚还搭在油门上，但车已经“自己”全力制动了。更妙的是：这辆车的刹车踏板下面没有真空助力器，方向盘下面也没有转向柱，刹车和转向全靠“电信号”在传递。</p>
+
+<p><strong>问题来了：</strong> 汽车是怎么做到“没有机械连接，也能刹车、也能转向”的？</p>
+
+<div class="callout">
+<p><strong>答案是线控（X-by-Wire，电传操纵）。</strong> 把“脚踩踏板→液压→卡钳”和“手转方向盘→转向柱→车轮”这两条机械链路，改造成“传感器→电信号→ECU→电机执行器”。这一课讲清楚线控底盘的两大核心：<strong>线控制动</strong> 和 <strong>线控转向</strong>——这也是 L3+ 自动驾驶“最后落地”的执行层关键。</p>
+</div>
+
+<hr>
+
+<h2>二、车辆运动控制的“三兄弟”：转向、制动、驱动</h2>
+
+<p>一辆车要按人的意图运动，本质上是三个执行系统在干活：</p>
+
+<table>
+<tr><th>系统</th><th>传统方案</th><th>线控方案</th><th>线控后的变化</th></tr>
+<tr><td><strong>转向</strong></td><td>转向柱 + 液压/EPS 助力</td><td>线控转向 SBW</td><td>方向盘与车轮“分手”，靠电信号</td></tr>
+<tr><td><strong>制动</strong></td><td>真空助力 + 液压管路</td><td>EHB / EMB</td><td>踏板变“信号发生器”，制动力由电机建立</td></tr>
+<tr><td><strong>驱动</strong></td><td>油门拉线 / 机械节气门</td><td>电子油门 / 电驱扭矩指令</td><td>踏板变传感器，扭矩由 ECU 分配</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart LR
+    subgraph STEER["🔄 转向"]
+        S1["传统：转向柱 + 助力"]
+        S2["线控：SBW 电信号 + 转向电机"]
+    end
+    subgraph BRAKE["🛑 制动"]
+        B1["传统：踏板 + 真空助力 + 液压"]
+        B2["线控：EHB 电控液压 / EMB 纯电"]
+    end
+    subgraph DRIVE["⚡ 驱动"]
+        D1["传统：油门拉线"]
+        D2["线控：电子油门 / 电驱指令"]
+    end
+    S1 --&gt; S2
+    B1 --&gt; B2
+    D1 --&gt; D2
+</div>
+
+<div class="callout">
+<p><strong>核心概念：</strong> 线控 = 用“传感器 + 电信号 + 电机执行器”替代“机械/液压连接”。驾驶员不再提供“力”，只提供“意图”（踏板踩多深、方向盘转多少），剩下的力气活全由电机干。</p>
+</div>
+
+<hr>
+
+<h2>三、线控制动：从“液压”到“电控液压”再到“纯电夹紧”</h2>
+
+<h3>第一步：传统制动（液压）</h3>
+<p>脚踩踏板 → 真空助力器放大脚力 → 主缸把液压油推入管路 → 卡钳夹紧刹车盘。<strong>驾驶员是唯一的“动力来源”。</strong></p>
+
+<h3>第二步：EHB 电控液压制动（过渡方案，已大规模量产）</h3>
+<ul>
+<li>踏板下面换成<strong>踏板位置传感器</strong>——踩踏板只是发出“我要多少减速度”的电信号</li>
+<li>制动力由<strong>电机驱动液压泵</strong>建立，不再依赖脚力</li>
+<li>代表产品：博世 iBooster、大陆 MK C1（One-Box 集成式）</li>
+<li><strong>关键好处：</strong> 没有驾驶员输入时也能自主建压——这正是 AEB 自动紧急制动、ACC 自适应巡航的物理基础</li>
+</ul>
+
+<h3>第三步：EMB 电子机械制动（终极方案，量产前夜）</h3>
+<ul>
+<li>完全取消液压管路，<strong>每个车轮一个电机</strong>直接推动卡钳夹紧刹车盘</li>
+<li>响应更快（&lt;100ms）、四轮独立控制、无液压油（免维护、易布置）</li>
+<li><strong>代价：</strong> 需要 48V 高压供电、单点失效风险高（电机卡死 = 该轮没刹车）、车规可靠性验证苛刻</li>
+</ul>
+
+<div class="mermaid">
+flowchart TB
+    subgraph TRAD["传统液压制动"]
+        T1["踏板 + 真空助力器"]
+        T2["液压管路 → 卡钳"]
+    end
+    subgraph EHB2["EHB 电控液压（已量产）"]
+        E1["踏板传感器 → ECU"]
+        E2["电机泵建压 → 液压 → 卡钳"]
+    end
+    subgraph EMB2["EMB 纯电制动（量产前夜）"]
+        M1["踏板传感器 → ECU"]
+        M2["四轮电机直接夹紧刹车盘"]
+    end
+    T1 --&gt; T2
+    E1 --&gt; E2
+    M1 --&gt; M2
+</div>
+
+<div class="callout-warn">
+<p><strong>为什么 EHB 先量产、EMB 后量产？</strong> EHB 保留液压管路做“后备”，12V 供电就能用，与现有平台兼容，冗余好做；EMB 更“纯粹”但供电、冗余、验证的难度都上了一个台阶——这是典型的“渐进式替代”。</p>
+</div>
+
+<hr>
+
+<h2>四、线控转向：方向盘和车轮“分手”了</h2>
+
+<h3>传统转向</h3>
+<p>方向盘 → 转向柱 → 转向机（EPS 助力）→ 横拉杆 → 车轮。<strong>方向盘转多少，车轮跟着转多少，中间是硬连接。</strong></p>
+
+<h3>线控转向 SBW（Steer-by-Wire）</h3>
+<p>方向盘 → 转角/扭矩传感器 → ECU → 前轴转向电机 → 车轮。<strong>方向盘和转向机之间没有转向柱、没有机械连接。</strong></p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph OLD["传统转向"]
+        O1["方向盘"] --&gt; O2["转向柱（硬连接）"] --&gt; O3["转向机"] --&gt; O4["车轮"]
+    end
+    subgraph NEW["线控转向 SBW"]
+        N1["方向盘（传感器）"] --&gt; N2["ECU 运算"] --&gt; N3["转向电机"] --&gt; N4["车轮"]
+    end
+</div>
+
+<p><strong>方向盘上的“手感”从哪来？</strong> 不再来自轮胎的机械反作用力，而是由<strong>路感反馈电机</strong>根据车速、方向盘转角、前轮受力等信息，用算法“模拟”出来的力反馈——想轻就轻、想重就重，还可以滤掉烂路的抖动。</p>
+
+<table>
+<tr><th>好处</th><th>说明</th></tr>
+<tr><td>🛡️ 碰撞安全</td><td>没有转向柱，碰撞时不会侵入乘员舱</td></tr>
+<tr><td>🔄 可变传动比</td><td>低速时小幅打轮就转大弯，高速时更稳重</td></tr>
+<tr><td>🧩 布置自由</td><td>左舵/右舵共用平台，方向盘位置随便放</td></tr>
+<tr><td>🤖 自动驾驶友好</td><td>无机械摩擦、无迟滞，控制精度更高</td></tr>
+<tr><td>🎮 手感可调</td><td>路感由软件定义，按场景调节轻重</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>量产现状：</strong> 丰田 bZ4X（2022 年选装）、特斯拉 Cybertruck（2023 年标配）已量产 SBW，法规（UN R79 修订）放开后各家都在跟进。</p>
+</div>
+
+<hr>
+
+<h2>五、一条完整的控制链路：感知 → 决策 → 执行 → 反馈</h2>
+
+<p>把前面几课串起来——L29~L31 的感知、L33 的 V2X 延伸感知，最终都要落到“执行”上：</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph SENSE["👁️ 感知层"]
+        P1["摄像头 / 雷达 / LiDAR / V2X"]
+    end
+    subgraph DECIDE["🧠 决策层（智驾域控）"]
+        D1["规划目标车速 / 轨迹"]
+    end
+    subgraph EXEC["🦾 执行层（底盘域控）"]
+        E1["制动 ECU → EHB / EMB"]
+        E2["转向 ECU → EPS / SBW"]
+        E3["驱动 ECU → 电机扭矩"]
+    end
+    P1 --&gt; D1
+    D1 --&gt; E1
+    D1 --&gt; E2
+    D1 --&gt; E3
+    E1 --&gt; F1["车身运动（减速 / 转弯）"]
+    E2 --&gt; F1
+    E3 --&gt; F1
+    F1 -. 车速 / 轮速 / 减速度反馈 .- D1
+</div>
+
+<div class="callout-warn">
+<p>这是一个<strong>闭环</strong>：执行器让车动起来，轮速、横摆角速度、纵向加速度等信号再反馈回决策层，不断修正指令。执行层的响应速度（毫秒级）直接决定“刹得住还是刹不住”。</p>
+</div>
+
+<hr>
+
+<h2>六、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：线控的本质是“解耦 + 电传”</h3>
+<p>机械/液压连接变成“传感器 + ECU + 电机”。驾驶员不再提供“力”，只提供“意图”。判断一个系统是不是线控，就看<strong>驾驶员输入是不是先变成了电信号</strong>。</p>
+
+<h3>📌 规则二：线控执行器是“安全件”，必须有冗余</h3>
+<p>制动、转向直接关系生命安全，功能安全等级高达 ASIL-D（衔接 Lesson 27）。量产方案必须有冗余：双电源、双通道、失效后备（如 EHB 保留液压回路、SBW 双电机）。<strong>“线控”不等于“单点脆弱”。</strong></p>
+
+<h3>📌 规则三：制动走“渐进”，转向已“落地”</h3>
+<p>制动路线是 EHB（已量产）→ EMB（量产前夜），因为 EHB 保留液压做后备、冗余好做；线控转向因为碰撞安全和自动驾驶需求，已经在量产车上落地（bZ4X、Cybertruck）。<strong>理解这条路线，就理解了汽车电子“渐进式替代”的规律。</strong></p>
+
+</div>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你的朋友说：“线控刹车不就是自动刹车吗？我的车早就有 AEB 了。” 请讲清楚“线控（X-by-Wire）”和“自动刹车（AEB）”是两码事——它们各自解决什么问题？为什么说线控是自动刹车的“物理基础”？</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>EMB（纯电制动）在技术上比 EHB（电控液压）更“先进”，但量产却晚得多。请从“供电”“失效风险”“验证难度”三个角度解释原因。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>线控转向取消了方向盘和车轮之间的机械连接。请解释：司机手上的“手感”现在从哪里来？为什么“手感”不是可有可无的装饰，而是和安全直接相关？</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：关于“线控（X-by-Wire）”的本质，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc1" value="A"> A. 用传感器+电信号+电机执行器替代机械/液压连接，驾驶员输入变成电信号</label>
+<label><input type="radio" name="mc1" value="B"> B. 用更粗的线束把车内信号集中管理</label>
+<label><input type="radio" name="mc1" value="C"> C. 用更强的液压泵替代传统真空助力</label>
+<label><input type="radio" name="mc1" value="D"> D. 只有自动驾驶汽车才需要线控技术</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：关于 EHB 电控液压制动（如博世 iBooster），下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc2" value="A"> A. 仍完全依赖驾驶员脚力制动，只是增加了电动助力</label>
+<label><input type="radio" name="mc2" value="B"> B. 取消了液压油，直接由电机夹紧刹车盘</label>
+<label><input type="radio" name="mc2" value="C"> C. 踏板变成“信号发生器”，制动力由电机驱动液压泵建立，没有驾驶员输入时也能自动建压</label>
+<label><input type="radio" name="mc2" value="D"> D. 只能应用在混合动力车型上</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：EMB 电子机械制动量产进度慢于 EHB，最主要的原因是？</div>
+<label><input type="radio" name="mc3" value="A"> A. 需要高压供电且单点失效风险高，冗余与车规可靠性验证苛刻</label>
+<label><input type="radio" name="mc3" value="B"> B. 刹车力度不如液压制动，安全性差</label>
+<label><input type="radio" name="mc3" value="C"> C. 各国法规明令禁止取消液压制动</label>
+<label><input type="radio" name="mc3" value="D"> D. 相关专利全部过期，车企没有开发动力</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson34',
+    title: 'Lesson 34（18:00）：车辆运动控制——线控底盘如何让汽车“自己刹车、自己转向”？',
+    mcq: { mc1: 'A', mc2: 'C', mc3: 'A' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson34', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson34');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson34');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson34',
+  title: 'Lesson 34（18:00）：车辆运动控制——线控底盘如何让汽车“自己刹车、自己转向”？',
+  feynman: [
+    { q: 1, ref: 'AEB 是软件层的功能（决定什么时候刹），线控是硬件层的架构（决定谁来刹、怎么刹）。传统制动里驾驶员是唯一动力来源，没踩踏板就没有制动力；线控（EHB/EMB）把踏板变成信号发生器、制动力由电机建立，所以没有驾驶员输入时系统也能自主全力制动——没有线控，AEB 想刹车也没手可用。一句话：AEB 是决定，线控是能力' },
+    { q: 2, ref: '供电：EMB 夹紧刹车盘需要大功率电机，12V 不够，通常要 48V 或更高电压平台，EHB 12V 即可；失效风险：EHB 保留液压管路可做后备，EMB 每轮一个电机，电机卡死=该轮无制动，单点失效风险高，必须有冗余电源/双通道；验证难度：液压制动有几十年成熟经验，EMB 是全新执行机构，车规可靠性（高温振动寿命）和失效模式验证周期长、成本高。所以产业界选择渐进式替代：先 EHB 落地，再过渡到 EMB' },
+    { q: 3, ref: '手感不再来自轮胎机械反作用力，而是由路感反馈电机根据车速、方向盘转角、前轮受力、路面附着等信息用算法模型模拟出来的力反馈，本质是软件定义的力。手感重要因为：1) 操控感知——司机靠手感判断车轮打滑和路面附着，没有手感像蒙眼开车；2) 安全判断——过弯手感变轻变重是重要路面信息，失真会导致误判；3) 舒适疲劳——轻重可调、滤掉烂路抖动。线控转向不是取消手感，而是把机械产生的手感换成算法模拟的手感' }
+  ],
+  mcq: { mc1: 'A', mc2: 'C', mc3: 'A' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

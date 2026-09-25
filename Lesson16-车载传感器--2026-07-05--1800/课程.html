@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 16（18:00）：车载传感器标定——让所有传感器"看向"同一个世界</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{text-align:center;margin:.8rem 0}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 16（18:00）— 2026-07-05 | 🎯 车载传感器（第二讲）：传感器标定与数据同步</div>
+  <h1>车载传感器标定——让所有传感器"看向"同一个世界</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson15-车载网关--2026-07-05--1500/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson17-域控制器与区域架构--2026-07-05--2100/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>你的车上有 8 个摄像头、5 个毫米波雷达、1 个激光雷达、12 个超声波雷达——它们各自看到的"世界"是一样的吗？</p>
+
+<p><strong>答案是：不一样。</strong></p>
+
+<p>同一个行人站在车右前方 3 米处，摄像头"看到"的是 1920×1080 像素平面上的一个图像区域（x=1200, y=600），激光雷达"看到"的是三维点云中的一堆点（X=2.5m, Y=1.8m, Z=1.6m），毫米波雷达"看到"的是另一个坐标系中一个模糊的回波信号。</p>
+
+<div class="callout">
+  <p><strong>核心问题：</strong>不同传感器看到的"同一个物体"，在各自的坐标系里位置完全不同。怎么让这些数据"对齐"，让车的大脑知道它们说的都是同一件事？</p>
+</div>
+
+<p>答案就是——<strong>传感器标定（Sensor Calibration）</strong>：通过数学计算，把不同传感器的坐标系"对齐"到同一个世界坐标系中。</p>
+
+<hr>
+
+<h2>二、传感器标定的两类"对齐"</h2>
+
+<p>传感器标定分为两大部分：<strong>自己内部对齐（内参）</strong> 和 <strong>彼此之间对齐（外参）</strong>。</p>
+
+<table>
+<tr><th>类型</th><th>英文</th><th>解决什么问题</th><th>类比</th></tr>
+<tr><td><strong>内参标定</strong></td><td>Intrinsic Calibration</td><td>单个传感器本身的测量偏差（畸变、偏移、焦距偏差等）</td><td>给每个人的眼睛各自配眼镜——先让"自己"看清楚</td></tr>
+<tr><td><strong>外参标定</strong></td><td>Extrinsic Calibration</td><td>不同传感器之间的空间位置和姿态关系（旋转、平移）</td><td>让大家站成一排、面向同一个方向——坐标系统一</td></tr>
+</table>
+
+<h3>内参标定：先让"自己"看清楚</h3>
+
+<p>以<strong>摄像头</strong>为例——镜头不是完美的。广角镜头会引入<strong>桶形畸变</strong>或<strong>枕形畸变</strong>，镜头中心和感光芯片中心可能不对齐，焦距也会受制造公差影响。</p>
+
+<div class="callout">
+  <p>真实世界直线 → 镜头 → 畸变弯曲的像 → 畸变矫正 → 矫正后的直线图像</p>
+</div>
+
+<p><strong>张正友标定法</strong>（Zhang's Method）——最经典的摄像头内参标定方法：</p>
+
+<ol>
+  <li>打印一张<strong>棋盘格标定板</strong>（黑白格子相同）</li>
+  <li>用摄像头从不同角度拍 10~20 张照片</li>
+  <li>检测每张照片中的<strong>角点</strong>（格子交叉点）</li>
+  <li>利用角点在"像素坐标"和"世界物理坐标"之间的对应关系，计算 5 个内参：
+    <ul>
+      <li>焦距（fx, fy）——两个方向</li>
+      <li>主点偏移（cx, cy）——光轴中心偏离</li>
+      <li>畸变系数（k1, k2, k3, p1, p2）</li>
+    </ul>
+  </li>
+  <li>以后拍的所有照片，直接用这组参数做<strong>畸变校正</strong></li>
+</ol>
+
+<div class="callout-warn">
+  <p>💡 每次生产下线的摄像头，畸变参数都不一样——因为每个镜头的制造公差是随机的。所以<strong>每颗摄像头必须独立标定</strong>。</p>
+</div>
+
+<h3>外参标定：让传感器彼此"对齐"</h3>
+
+<p>外参标定解决的是：<strong>不同传感器的坐标系之间的转换关系</strong>。</p>
+
+<pre class="code-block">
+         激光雷达坐标系                  摄像头坐标系
+       (X_L, Y_L, Z_L)               (X_C, Y_C, Z_C)
+             │                              │
+             │  旋转矩阵 R (3×3)            │
+             │  + 平移向量 T (3×1)          │
+             │                              │
+             └──────────→ 统一世界坐标系 ←──┘
+                     (X_W, Y_W, Z_W)
+</pre>
+
+<p>外参 = <strong>[R | T]</strong> — 一个 3×4 的矩阵，告诉系统"激光雷达看到的点，站在摄像头位置上应该在哪"。</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph S1["📷 摄像头坐标"]
+        CAM["(x_c, y_c, z_c)"]
+    end
+    subgraph S2["📡 激光雷达坐标"]
+        LIDAR["(x_l, y_l, z_l)"]
+    end
+    subgraph S3["📻 毫米波雷达坐标"]
+        RADAR["(x_r, y_r, z_r)"]
+    end
+    subgraph WORLD["🌍 统一世界坐标"]
+        W["(x_w, y_w, z_w)"]
+    end
+    CAM -->|外参 R1,T1| W
+    LIDAR -->|外参 R2,T2| W
+    RADAR -->|外参 R3,T3| W
+    W -->|融合后的感知结果| FUSION["🧠 传感器融合"]
+</div>
+
+<hr>
+
+<h2>三、多传感器联合标定——实际操作</h2>
+
+<p>实际量产中，一辆车需要做<strong>多传感器联合标定</strong>：</p>
+
+<h3>步骤</h3>
+
+<table>
+<tr><th>步骤</th><th>做什么</th><th>工具</th><th>精度要求</th></tr>
+<tr><td><strong>1. 确定标定场</strong></td><td>在车间内布置已知位置的特征物（棋盘格、角反射器、ArUco 码）</td><td>高精度测量仪、全站仪</td><td>±1mm</td></tr>
+<tr><td><strong>2. 单独标内参</strong></td><td>每个摄像头独立跑张正友标定</td><td>棋盘格标定板</td><td>亚像素级</td></tr>
+<tr><td><strong>3. 联合标外参</strong></td><td>所有传感器同时观测同一特征物，计算两两之间的 [R|T]</td><td>专用标定软件</td><td>±2mm / ±0.1°</td></tr>
+<tr><td><strong>4. 验证</strong></td><td>放一个目标物在不同位置，检查各传感器检测结果是否映射到同一坐标</td><td>验收测试</td><td>&lt; 5cm 偏差</td></tr>
+<tr><td><strong>5. 固化参数</strong></td><td>将标定参数写入各 ECU 的固件/配置文件中</td><td>刷写工具</td><td>—</td></tr>
+</table>
+
+<h3>常见的标定特征物</h3>
+
+<table>
+<tr><th>传感器对</th><th>用什么特征物</th><th>原理</th></tr>
+<tr><td>Camera ↔ Camera</td><td>棋盘格</td><td>两个摄像头同时看到棋盘格角点 → 通过三角测量计算外参</td></tr>
+<tr><td>Camera ↔ LiDAR</td><td>棋盘格（或 ArUco 码）</td><td>LiDAR 反射强度在白色和黑色格子间有明显差异 → 提取棋盘格边缘 → 与图像角点对应</td></tr>
+<tr><td>Camera ↔ Radar</td><td><strong>角反射器</strong>（Corner Reflector）</td><td>角反射器对雷达波有极强的回波→"唯一的亮点"，摄像头也能看到</td></tr>
+<tr><td>LiDAR ↔ Radar</td><td>角反射器</td><td>两种传感器都能探测到的"强特征点"</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart TB
+    subgraph 标定场布置
+        A["🎯 棋盘格标定板&lt;br&gt;（Camera + LiDAR 共用）"]
+        B["🔺 角反射器&lt;br&gt;（Radar 专用）"]
+        C["📐 ArUco 码&lt;br&gt;（Camera 直接识别）"]
+    end
+    subgraph 传感器同时观测
+        CAM["📷 摄像头 x8&lt;br&gt;→ 拍到棋盘格 + ArUco"]
+        LIDAR["📡 激光雷达 x1&lt;br&gt;→ 扫描到棋盘格边缘"]
+        RADAR["📻 毫米波雷达 x5&lt;br&gt;→ 探测到角反射器"]
+    end
+    subgraph 联立求解
+        CAL["📊 最小二乘法求解 [R|T]"]
+    end
+    A --> CAM
+    A --> LIDAR
+    B --> RADAR
+    C --> CAM
+    CAM --> CAL
+    LIDAR --> CAL
+    RADAR --> CAL
+    CAL --> RESULT["✅ 输出整套外参矩阵&lt;br&gt;Camera↔LiDAR: R1,T1&lt;br&gt;Camera↔Radar: R2,T2&lt;br&gt;LiDAR↔Radar: R3,T3"]
+</div>
+
+<hr>
+
+<h2>四、时间同步——比空间对齐更难的问题</h2>
+
+<p>空间对齐了，但如果<strong>时间</strong>对不上，一切等于白做。</p>
+
+<table>
+<tr><th>传感器</th><th>帧率</th><th>每帧时间</th><th>问题</th></tr>
+<tr><td>摄像头</td><td>30 fps</td><td>33 ms</td><td>曝光时间、读出时间不同步</td></tr>
+<tr><td>激光雷达</td><td>10~20 fps</td><td>50~100 ms</td><td>旋转扫描一圈需要时间</td></tr>
+<tr><td>毫米波雷达</td><td>20 fps</td><td>50 ms</td><td>数据处理延迟不定</td></tr>
+<tr><td>超声波雷达</td><td>~10 fps</td><td>~100 ms</td><td>声波往返时间本身就慢</td></tr>
+</table>
+
+<div class="callout-warn">
+  <p><strong>时间不同步的后果：</strong> 摄像头拍到的是"行人 33ms 前的位置"，而激光雷达看到的是同一个行人"100ms 前的位置"——车在 100km/h 时，0.1 秒已经跑了 <strong>2.8 米</strong>！如果不做时间对齐，融合系统会把"两个不同时空的行人"当成两个不同的物体。</p>
+</div>
+
+<h3>三种同步方案</h3>
+
+<table>
+<tr><th>方案</th><th>精度</th><th>实现方式</th><th>适用场景</th></tr>
+<tr><td><strong>硬触发（Hardware Trigger）</strong></td><td>&lt; 1 μs</td><td>FPGA/SoC 发同步脉冲→所有传感器同时曝光/采集</td><td>L4 自动驾驶、实验室标定</td></tr>
+<tr><td><strong>PTP 时间同步（IEEE 1588）</strong></td><td>&lt; 10 μs</td><td>以太网上精确时间协议，主时钟广播时间戳</td><td>车载以太网连接的传感器</td></tr>
+<tr><td><strong>软件时间戳对齐</strong></td><td>~50~100 ms</td><td>每个传感器带硬件时间戳→融合算法做插值/最近邻对齐</td><td>L2/L2+ 辅助驾驶，降低成本</td></tr>
+</table>
+
+<div class="mermaid">
+sequenceDiagram
+    participant Sync as 🕐 同步控制器
+    participant Cam as 📷 摄像头 30fps
+    participant Lidar as 📡 激光雷达 10fps
+    participant Radar as 📻 毫米波雷达 20fps
+    participant Fusion as 🧠 融合模块
+
+    Note over Sync,Fusion: 硬触发方案（最高精度）
+    Sync->>Cam: 🔴 触发信号（上升沿）
+    Sync->>Lidar: 🔴 触发信号
+    Sync->>Radar: 🔴 触发信号
+    Note over Cam: 立即曝光 （t=0ms）
+    Note over Lidar: 立即开始扫描 （t=0ms）
+    Note over Radar: 立即发射波束 （t=0ms）
+    Cam->>Fusion: 图像 + 时间戳 t=0ms
+    Lidar->>Fusion: 点云 + 时间戳 t=0ms
+    Radar->>Fusion: 目标列表 + 时间戳 t=0ms
+    Note over Fusion: 所有数据时间戳一致 → 直接融合
+
+    Note over Sync,Fusion: 软同步方案（低成本，L2 常用）
+    Cam->>Cam: 拍图 → 写入硬件时间戳
+    Lidar->>Lidar: 扫描完成 → 写入硬件时间戳  
+    Radar->>Radar: 目标输出 → 写入硬件时间戳
+    Cam->>Fusion: 图像 + t=100ms
+    Lidar->>Fusion: 点云 + t=150ms
+    Radar->>Fusion: 目标 + t=120ms
+    Note over Fusion: 用插值法将所有数据对齐到 t=120ms
+</div>
+
+<hr>
+
+<h2>五、在线自标定——出厂后还能自动修正</h2>
+
+<p>标定不是"一次做完管一辈子"的。行驶中的<strong>振动、碰撞、温度变化、零部件疲劳</strong>都会导致传感器位置偏移。</p>
+
+<table>
+<tr><th>偏移来源</th><th>典型偏移量</th><th>后果</th></tr>
+<tr><td>车辆颠簸</td><td>0.1°~0.5°</td><td>车道保持偏左/偏右 10~30cm</td></tr>
+<tr><td>更换前挡风玻璃</td><td>1°~3°</td><td>前视摄像头完全偏离，ADAS 误报</td></tr>
+<tr><td>保险杠碰撞（轻微）</td><td>2~5 mm</td><td>雷达探测角度误差</td></tr>
+<tr><td>温度热膨胀</td><td>0.05°/10°C</td><td>长期累积不可忽视</td></tr>
+</table>
+
+<p><strong>在线自标定（Online Self-Calibration）</strong> 技术应运而生：</p>
+
+<ul>
+  <li>利用行驶中<strong>已知特征</strong>（车道线、路沿、静止车辆、建筑物边缘）自动重新计算外参</li>
+  <li><strong>特斯拉 FSD</strong> 就是典型的在线自标定系统——摄像头检测到车道线偏离中心超过某个阈值 → 自动触发标定算法修正外参</li>
+  <li>一般结合 <strong>SLAM</strong>（同时定位与建图）技术，一边建地图一边修正传感器偏差</li>
+</ul>
+
+<div class="callout-warn">
+  <p>💡 这就是为什么<strong>校准后的 ADAS 系统需要在特定路线上"学习"一段时间</strong>——车在行驶中不断修正传感器之间的微小偏移。</p>
+</div>
+
+<hr>
+
+<h2>六、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>标定是传感器融合的"地基"</strong></td><td>内参不准→外参错位→融合数据全都是噪声，上层算法再好也白搭</td></tr>
+<tr><td><strong>2</strong></td><td><strong>空间对齐和时间同步缺一不可</strong></td><td>空间标定只解决"它们在哪儿"，时间同步解决"它们什么时候看到的"——两者都错了等于数据全废</td></tr>
+<tr><td><strong>3</strong></td><td><strong>标定不是一次性的——在线自标定是刚需</strong></td><td>振动、碰撞、温度变化都会导致参数偏移；量产车必须在日常行驶中持续自标定，否则 ADAS 精度随里程下降</td></tr>
+</table>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你朋友问："我的车上有摄像头、雷达、超声波，它们各自看到的东西位置都不一样——比如摄像头说'行人出现在屏幕左上角'，雷达说'行人在右前方3米'——车的电脑是怎么知道它们说的是同一个人的？"（提示：用"每个人都戴了不同颜色的眼镜、站在不同位置看同一棵树"来类比）</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>用你自己的话说说，为什么传感器不仅要"对齐空间位置"，还要"对齐时间"？如果你车的摄像头和雷达"看到的世界"相差了 0.1 秒，在高速行驶（120km/h）时会导致什么实际问题？</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>有人说："车出厂的时候已经让工程师调好了呀，为什么还要在开车过程中自动修正？" 请解释为什么传感器参数会随时间和使用而变化，举一个日常生活中的例子来类比。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. 摄像头内参标定（张正友标定法）主要解决什么问题？</div>
+<label><input type="radio" name="mc1" value="A"> A. 让摄像头和激光雷达对准同一个方向</label>
+<label><input type="radio" name="mc1" value="B"> B. 校正摄像头镜头本身的畸变、焦距偏差等"出厂误差"，让拍的图像更接近真实世界的几何关系</label>
+<label><input type="radio" name="mc1" value="C"> C. 让摄像头能在夜间拍得更清楚</label>
+<label><input type="radio" name="mc1" value="D"> D. 计算摄像头到地面之间的距离</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. 以下是关于传感器外参标定的描述，哪一项是正确的？</div>
+<label><input type="radio" name="mc2" value="A"> A. 外参标定只需要做一次，永远不需要更新</label>
+<label><input type="radio" name="mc2" value="B"> B. 外参标定解决的是不同传感器之间的空间坐标转换关系（旋转 + 平移）</label>
+<label><input type="radio" name="mc2" value="C"> C. 外参标定与时间同步无关</label>
+<label><input type="radio" name="mc2" value="D"> D. 所有传感器的外参都可以用同一个标定板一次性标定完成</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. 一辆 L4 自动驾驶汽车在高速行驶时，摄像头和激光雷达数据的时间差为 0.1 秒（100ms），车速 120km/h。这个时间差会导致什么问题？</div>
+<label><input type="radio" name="mc3" value="A"> A. 没有影响，因为传感器各自正常独立工作</label>
+<label><input type="radio" name="mc3" value="B"> B. 汽车已经移动了约 3.3 米，融合系统可能把"0.1 秒前看到的物体"和"现在看到的物体"当成两个不同的目标，导致误判</label>
+<label><input type="radio" name="mc3" value="C"> C. 只会影响图像颜色</label>
+<label><input type="radio" name="mc3" value="D"> D. 会导致激光雷达过热</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ====== Auto-save / Load from localStorage ======
+const LS_KEY = 'teachme_lesson16';
+function saveProgress() {
+  const data = {};
+  data.f1 = document.getElementById('feynman1').value;
+  data.f2 = document.getElementById('feynman2').value;
+  data.f3 = document.getElementById('feynman3').value;
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    if (el.checked) data[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!saved) return;
+    if (saved.f1) document.getElementById('feynman1').value = saved.f1;
+    if (saved.f2) document.getElementById('feynman2').value = saved.f2;
+    if (saved.f3) document.getElementById('feynman3').value = saved.f3;
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      if (saved[el.name] === el.value) el.checked = true;
+    });
+  } catch(e) {}
+}
+// Auto-save on input change
+document.addEventListener('input', saveProgress);
+
+// ====== Submit All: MCQ grading + Feynman review ======
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS.mcq;
+  let score = 0, total = 0;
+  for (const [q, ans] of Object.entries(ANSWERS)) {
+    total++;
+    const selected = document.querySelector(`input[name="${q}"]:checked`);
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === ans) {
+      score++;
+      resultDiv.className = 'mcq-result correct';
+      resultDiv.textContent = '✅ 正确！';
+    } else {
+      const chosen = selected ? selected.value : '（未作答）';
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '❌ 错误。你的答案：' + chosen + '，正确答案：' + ans;
+    }
+  }
+
+  // Remove old score summary if exists
+  const oldScore = document.getElementById('mcq-score');
+  if (oldScore) oldScore.remove();
+
+  const scoreDiv = document.createElement('div');
+  scoreDiv.id = 'mcq-score';
+  scoreDiv.style.cssText = 'margin:.5rem 0;padding:.5rem .7rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;color:#2e7d32';
+  document.getElementById('btn-group-container').before(scoreDiv);
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+
+  // --- Copy Feynman answers for review ---
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  const f3 = document.getElementById('feynman3').value.trim();
+
+  let copyBlock = document.getElementById('copy-block');
+  if (!copyBlock) {
+    copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.5;display:none';
+    document.getElementById('btn-group-container').before(copyBlock);
+  }
+  copyBlock.style.display = 'block';
+  copyBlock.textContent = '【费曼题 Q1】\n' + (f1 || '（未作答）') + '\n\n【费曼题 Q2】\n' + (f2 || '（未作答）') + '\n\n【费曼题 Q3】\n' + (f3 || '（未作答）');
+
+  // Show hint about grading
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 16 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+
+// Load saved progress on page load
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson16',
+  title: 'Lesson 16（18:00）：车载传感器标定——让所有传感器"看向"同一个世界',
+  feynman: [
+    { q: 1, ref: '用"三个人看同一棵树"来类比。三个人站在不同位置（对应不同传感器的安装位置），戴着不同度数的眼镜（对应各自的内参偏差）。第一个人说"树在我的左手边30度"，第二个人说"树在前面10米"，第三个人说"树在我的右前方"。标定就是两步：①先让大家各自配好眼镜（内参标定——校正每个传感器自身的畸变/偏差）；②然后确定每个人站的位置和面向方向（外参标定——确定传感器之间的旋转矩阵R和平移向量T）。做完这两步，所有"我看到的树"都能换算成"树相对于车的统一坐标"——系统就知道它们说的是同一棵树。包括摄像头看到的(x,y)像素坐标和激光雷达看到的(X,Y,Z)三维坐标，通过标定矩阵互相换算后，就知道它们描述的是同一个物体。' },
+    { q: 2, ref: '空间对齐（外参标定）让传感器知道"彼此在车上装在哪、朝哪个方向"；时间对齐让传感器知道"彼此是在同一时刻看到的目标，还是有时间差"。120km/h=33.3m/s，0.1秒车已经走了3.3米。摄像头在t=0拍到"前方障碍物在50米处"，但激光雷达在t=0.1s扫描完成时发现"前方障碍物在53米处"——融合系统看到两个不同的距离值，可能判定为"两个不同的障碍物"，导致：①AEB误判，不刹车或延迟刹车；②路径规划出错（以为有两个障碍物需要绕行）；③传感器融合置信度下降，造成频繁误报或漏报。一句话：空间不对齐=各说各话，时间不对齐=各说各时辰的话。' },
+    { q: 3, ref: '车出厂时工程师标定好了，但传感器参数不是一成不变的。日常类比：手机新买时陀螺仪/指南针很准，用了两年摔过几次、换过电池、温度变化，指南针就有点偏了——所以系统会要求你"画∞字形"重新校准。车上同理：①振动——跑10万公里后摄像头支架螺丝微松0.1mm，图像就偏了10个像素；②温度——夏天车内70°C到冬天-20°C，金属和塑料热膨胀不同→外参漂移；③轻微碰撞——保险杠被蹭了一下，毫米波雷达偏了0.5°，100米外探测偏差3米；④更换部件——换前挡风玻璃是ADAS标定的头号杀手，摄像头安装位置100%会变。所以在线自标定让车"自己给自己体检"——利用行驶中看到的车道线、路沿、静止车辆等已知特征，自动检测外参是否偏移并修正。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

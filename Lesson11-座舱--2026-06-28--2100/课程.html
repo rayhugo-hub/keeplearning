@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 11（21:00）：智能座舱的"大脑与神经"</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{text-align:center;margin:.8rem 0}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 11（21:00）— 2026-06-28 | 🚗 座舱域控制器与软件架构</div>
+  <h1>智能座舱的"大脑与神经"——域控制器与软件架构</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson10-T-BOX知识--2026-06-28--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson12-数字车钥匙通信--2026-07-04--2100/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>你坐进一辆智能电动车，中控大屏亮起，仪表盘显示欢迎动画，语音助手说"早上好"，后座屏幕同步播放动画片，HUD 抬头显示投射导航信息……</p>
+
+<p><strong>问题：所有这些屏幕和功能，是几台电脑在同时运行？</strong></p>
+
+<p>你可能觉得——"一个大屏一台电脑嘛"。但真相是：</p>
+
+<div class="callout">
+<strong>一台 2026 年的智能座舱，通常只用 1 颗芯片，但在这 1 颗芯片上同时运行着 2~3 个操作系统。</strong>
+</div>
+
+<p>导航在跑 Android，仪表盘在跑 QNX，空调控制可能跑在另一个实时系统上——<strong>而且它们互不干扰，都在同一个芯片上同时运行。</strong></p>
+
+<p>这是怎么做到的？这就是今天要讲的核心：<strong>座舱域控制器（CDC）与它的软件架构。</strong></p>
+
+<hr>
+
+<h2>二、从"一台车多个ECU"到"一个域控制器"</h2>
+
+<h3>2.1 传统架构：每个功能一台电脑</h3>
+
+<p>在智能座舱出现之前，传统汽车里每个电子功能都有自己的 ECU：</p>
+
+<table>
+<tr><th>功能</th><th>单独的 ECU</th><th>芯片</th></tr>
+<tr><td>收音机/媒体</td><td>音响主机 ECU</td><td>低端 MCU</td></tr>
+<tr><td>仪表盘显示</td><td>仪表 ECU</td><td>另一颗 MCU</td></tr>
+<tr><td>空调控制</td><td>HVAC ECU</td><td>再一颗 MCU</td></tr>
+<tr><td>倒车影像</td><td>单独的摄像头处理器</td><td>专用芯片</td></tr>
+<tr><td>蓝牙电话</td><td>蓝牙模块</td><td>独立蓝牙芯片</td></tr>
+</table>
+
+<p><strong>问题：</strong> 如果你车上每个功能都有一块独立的电路板 + 自己的芯片，光座舱区域就有 5~8 个 ECU，线束又重又贵，软件升级还要逐个刷写。</p>
+
+<h3>2.2 域控制器架构：一个"大脑"管全部</h3>
+
+<div class="mermaid">
+flowchart TB
+    subgraph OLD["传统分布式架构"]
+        O1["🎵 音响 ECU"]
+        O2["📊 仪表 ECU"]
+        O3["🌡️ 空调 ECU"]
+        O4["📷 倒车影像"]
+        O5["📱 蓝牙模块"]
+    end
+    subgraph NEW["域控制器架构"]
+        N["🧠 座舱域控制器（CDC）&lt;br&gt;单颗 SoC + Hypervisor"]
+        N1["📺 中控屏&lt;br&gt;Android"]
+        N2["📊 仪表屏&lt;br&gt;QNX"]
+        N3["🌡️ 空调控制"]
+        N4["📷 多路摄像头"]
+        N5["🎵 音频 DSP"]
+        N6["🗣️ 语音助手"]
+    end
+    O1 -->|"合并→"| NEW
+    O2 -->|"合并→"| NEW
+    O3 -->|"合并→"| NEW
+</div>
+
+<p><strong>域控制器（CDC）的好处：</strong></p>
+
+<table>
+<tr><th>对比维度</th><th>传统多 ECU</th><th>域控制器</th></tr>
+<tr><td>芯片数量</td><td>5~8 颗</td><td>1 颗高性能 SoC</td></tr>
+<tr><td>线束重量</td><td>~5 kg 以上</td><td>~1 kg</td></tr>
+<tr><td>OTA 升级</td><td>逐个 ECU 刷写</td><td>一次刷写全部</td></tr>
+<tr><td>跨屏交互</td><td>困难（需跨 ECU 通信）</td><td>本地共享内存，毫秒级</td></tr>
+<tr><td>成本</td><td>中</td><td>更低（减少硬件总量）</td></tr>
+</table>
+
+<hr>
+
+<h2>三、一颗芯片当多台电脑用——Hypervisor 虚拟机技术</h2>
+
+<h3>3.1 为什么需要同时跑多个 OS？</h3>
+
+<p>不同的屏幕和功能对操作系统有不同要求：</p>
+
+<table>
+<tr><th>系统</th><th>用途</th><th>要求</th></tr>
+<tr><td><strong>Android Automotive</strong></td><td>中控娱乐、导航、App 生态</td><td>生态丰富、开发快、但实时性差</td></tr>
+<tr><td><strong>QNX / Linux RT</strong></td><td>仪表盘、HUD、安全关键显示</td><td>高可靠性、硬实时、不能死机</td></tr>
+<tr><td><strong>FreeRTOS / 裸机</strong></td><td>空调旋钮响应、座椅调节</td><td>极低延迟、极简、不跑复杂 OS</td></tr>
+</table>
+
+<p><strong>问题：</strong> 你不能让 Android 来控制仪表盘——万一 Android 卡死了，你连车速都看不到了。但你又不能为了安全放弃 Android 丰富的应用生态。</p>
+
+<p><strong>解决方案：Hypervisor（虚拟机监视器）。</strong></p>
+
+<h3>3.2 Hypervisor 是什么？</h3>
+
+<div class="callout">
+<strong>简单比喻：</strong>Hypervisor 就像一栋公寓楼的管理员。<br><br>
+Android 是住 301 的租户，QNX 是住 302 的租户。他们共享水电（CPU、内存），但各有各的房间，互不打扰。管理员（Hypervisor）负责分配资源，确保 302 的租户不会因为 301 开派对而断水断电。
+</div>
+
+<div class="mermaid">
+flowchart TB
+    subgraph HW["🔧 硬件层 — 单颗 SoC"]
+        CPU["CPU 核心组&lt;br&gt;（8~12 核）"]
+        GPU["GPU"]
+        DSP["DSP / NPU"]
+        MEM["共享内存"]
+    end
+    subgraph HV["🛡️ Hypervisor 层"]
+        H["Hypervisor&lt;br&gt;（如：Xen、ACRN、QNX Hypervisor）"]
+    end
+    subgraph VM1["📱 虚拟机 1 — Android"]
+        A1["Android Automotive OS"]
+        A2["导航 App"]
+        A3["音乐 / 视频"]
+        A4["语音助手"]
+    end
+    subgraph VM2["📊 虚拟机 2 — QNX"]
+        Q1["QNX RTOS"]
+        Q2["仪表盘渲染"]
+        Q3["HUD 控制"]
+        Q4["安全监控"]
+    end
+    subgraph VM3["⚡ 虚拟机 3 — 实时系统"]
+        R1["FreeRTOS / 裸机"]
+        R2["空调面板"]
+        R3["座椅控制"]
+    end
+    HW --> HV
+    HV --> VM1
+    HV --> VM2
+    HV --> VM3
+</div>
+
+<p><strong>Hypervisor 的核心能力：</strong></p>
+
+<table>
+<tr><th>能力</th><th>含义</th><th>为什么重要</th></tr>
+<tr><td><strong>资源隔离</strong></td><td>每个 VM 独享固定的 CPU 核心 + 内存分区</td><td>Android 死机不影响仪表盘显示车速</td></tr>
+<tr><td><strong>GPU 虚拟化</strong></td><td>多个 VM 共享同一个 GPU，各自渲染自己的屏幕</td><td>中控屏和仪表屏各画各的，不打架</td></tr>
+<tr><td><strong>跨 VM 通信（IVI）</strong></td><td>VM 之间可以通过共享内存交换数据</td><td>中控导航把"下个转弯"传给仪表盘显示</td></tr>
+<tr><td><strong>安全分区</strong></td><td>安全等级高的 VM（QNX）不能被低等级 VM（Android）修改</td><td>防止被恶意 App 篡改仪表盘数据</td></tr>
+</table>
+
+<hr>
+
+<h2>四、主流座舱 SoC 芯片一览</h2>
+
+<table>
+<tr><th>芯片厂商</th><th>型号</th><th>制程</th><th>CPU 核心</th><th>典型算力（NPU）</th><th>装车代表</th></tr>
+<tr><td><strong>Qualcomm</strong></td><td>SA8295</td><td>5nm</td><td>8 核 Kryo</td><td>30 TOPS</td><td>蔚来 ET7/ET5、极氪 001、理想 L9</td></tr>
+<tr><td><strong>Qualcomm</strong></td><td>SA8775</td><td>5nm</td><td>12 核</td><td>72 TOPS</td><td>2024~2025 新车型（舱驾一体）</td></tr>
+<tr><td><strong>Samsung</strong></td><td>Exynos Auto V920</td><td>5nm</td><td>10 核</td><td>中</td><td>大众 ID. 系列、奥迪</td></tr>
+<tr><td><strong>MediaTek</strong></td><td>MT2715/MT2735</td><td>6nm</td><td>8 核</td><td>中</td><td>通用、福特部分车型</td></tr>
+<tr><td><strong>AMD</strong></td><td>Ryzen V2000 系列</td><td>7nm</td><td>4~8 核 x86</td><td>低（靠 GPU）</td><td>特斯拉 Model S/X（MCU 3）</td></tr>
+</table>
+
+<div class="callout-warn">
+<strong>2026 年的趋势：</strong> 座舱 SoC 的 NPU 算力已经从 10 TOPS 飙到 72 TOPS，因为语音识别、驾驶员监测（DMS）、AI 虚拟助手都需要 AI 推理能力。
+</div>
+
+<hr>
+
+<h2>五、软件架构：从"一个功能一个代码"到"服务化"</h2>
+
+<h3>5.1 传统架构：单体式（Monolithic）</h3>
+
+<p><code>应用 ← 中间件 ← 操作系统 ← 硬件</code></p>
+<ul>
+  <li>所有功能耦合在一起，改一个空调界面可能影响导航</li>
+  <li>第三方 App 不能接入（封闭系统）</li>
+  <li>OTA 升级要刷写整个系统镜像</li>
+</ul>
+
+<h3>5.2 现代架构：SOA（面向服务的架构）</h3>
+
+<pre class="code-block">
+┌─────────────────────────────────────┐
+│          应用层（App）               │
+│  导航  │  音乐  │  语音  │  设置      │
+├─────────────────────────────────────┤
+│       服务层（Service Layer）        │
+│  位置服务 │ 音频服务 │ 空调服务 │ ...  │
+├─────────────────────────────────────┤
+│      中间件层（SOME/IP / DDS）       │
+├─────────────────────────────────────┤
+│      操作系统层（Android / QNX）     │
+└─────────────────────────────────────┘
+</pre>
+
+<p><strong>SOA 的关键变化：</strong></p>
+<ul>
+  <li><strong>服务（Service）</strong> = 一个独立的功能单元（如"获取车内温度"）</li>
+  <li>任何 App 都可以调用任何服务，不需要知道服务在哪跑</li>
+  <li>服务之间通过标准接口通信（SOME/IP、DDS）</li>
+  <li>可以<strong>热插拔</strong>——空调服务崩溃了，导航 App 不受影响</li>
+</ul>
+
+<hr>
+
+<h2>六、三条简单规则</h2>
+
+<div class="rule-box">
+<p><strong>1. 域控制器替代多 ECU</strong>——一颗高性能 SoC 替代 5~8 颗独立芯片，减少线束、降低成本、方便 OTA 升级</p>
+<p><strong>2. Hypervisor 隔离不同系统</strong>——Android 跑娱乐、QNX 跑仪表盘，通过 Hypervisor 安全隔离，各不干扰、各得其所</p>
+<p><strong>3. SOA 服务化代替单体代码</strong>——每个功能是一个独立服务，App 通过标准接口调用，可以独立升级、独立容错</p>
+</div>
+
+<hr>
+
+<!-- ===== 习题部分 ===== -->
+
+<h2>七、费曼简答题</h2>
+
+<div class="callout-warn">
+用你自己的话回答，<strong>不要用任何专业术语</strong>。想象你讲给一个对车完全不懂的朋友听。
+</div>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>为什么现代智能座舱不像传统车那样每个功能用一台单独的"小电脑"（ECU），而是用一个"大电脑"（域控制器）统管所有屏幕和功能？用"办公室"或"家庭"的比喻来说明。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>Hypervisor 允许在一颗芯片上同时跑 Android（娱乐系统）和 QNX（仪表盘系统）。请用一个"合租"或"公寓楼"的比喻解释：为什么它们不能跑在同一个系统里？Hypervisor 解决了什么问题？</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>为什么座舱芯片的 AI 算力（NPU TOPS）变得越来越重要？请说出至少两个在座舱中"只有 AI 才能完成"的具体场景。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. Hypervisor 在座舱域控制器中的核心作用是什么？</div>
+<label><input type="radio" name="mc1" value="A"> A. 让 Android 跑得更快</label>
+<label><input type="radio" name="mc1" value="B"> B. 在同一颗芯片上安全隔离多个操作系统，使它们互不干扰</label>
+<label><input type="radio" name="mc1" value="C"> C. 替代 GPU 完成图像渲染</label>
+<label><input type="radio" name="mc1" value="D"> D. 负责控制空调压缩机</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. 以下哪个是"域控制器架构"相比"传统分布式 ECU 架构"的优势？</div>
+<label><input type="radio" name="mc2" value="A"> A. 每个功能可以用不同的芯片厂商</label>
+<label><input type="radio" name="mc2" value="B"> B. 硬件数量更多，冗余设计更安全</label>
+<label><input type="radio" name="mc2" value="C"> C. 减少芯片数量和线束重量，OTA 升级更方便</label>
+<label><input type="radio" name="mc2" value="D"> D. 空调和导航必须用同一套操作系统</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. 座舱芯片的 NPU（神经网络处理单元）主要用于以下哪个场景？</div>
+<label><input type="radio" name="mc3" value="A"> A. 加速 3D 导航地图的渲染</label>
+<label><input type="radio" name="mc3" value="B"> B. 处理仪表盘指针动画</label>
+<label><input type="radio" name="mc3" value="C"> C. 运行语音识别模型和驾驶员监测（DMS）等 AI 推理任务</label>
+<label><input type="radio" name="mc3" value="D"> D. 控制车窗升降的速度</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+const LS_KEY = 'teachme_lesson11';
+
+// Auto-load saved progress
+window.addEventListener('DOMContentLoaded', function() {
+  const saved = localStorage.getItem(LS_KEY);
+  if (!saved) return;
+  try {
+    const data = JSON.parse(saved);
+    if (data.feynman) {
+      document.querySelectorAll('textarea').forEach(el => {
+        const idx = parseInt(el.id.replace('feynman', '')) - 1;
+        if (data.feynman[idx]) el.value = data.feynman[idx];
+      });
+    }
+    if (data.mcq) {
+      for (const [q, val] of Object.entries(data.mcq)) {
+        const radio = document.querySelector(`input[name="${q}"][value="${val}"]`);
+        if (radio) radio.checked = true;
+      }
+    }
+  } catch(e) {}
+});
+
+// Auto-save on every input change
+function autoSave() {
+  const feynman = [];
+  document.querySelectorAll('textarea').forEach(el => feynman.push(el.value));
+  const mcq = {};
+  document.querySelectorAll('input[type="radio"]:checked').forEach(el => {
+    mcq[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify({ feynman, mcq }));
+}
+document.querySelectorAll('textarea, input[type="radio"]').forEach(el => {
+  el.addEventListener('input', autoSave);
+});
+
+// Grading
+function submitAll() {
+  // --- Grade MCQs ---
+  const ANSWERS = window.LESSON_ANSWERS.mcq;
+  let score = 0, total = 0;
+  for (const [q, correct] of Object.entries(ANSWERS)) {
+    total++;
+    const selected = document.querySelector(`input[name="${q}"]:checked`);
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === correct) {
+      score++;
+      resultDiv.className = 'mcq-result correct';
+      resultDiv.textContent = '✅ 正确！';
+    } else {
+      const ans = selected ? selected.value : '（未作答）';
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '❌ 错误。你的答案：' + ans + '，正确答案：' + correct;
+    }
+  }
+
+  // Remove old score summary if exists
+  const oldScore = document.getElementById('mcq-score');
+  if (oldScore) oldScore.remove();
+
+  const scoreDiv = document.createElement('div');
+  scoreDiv.id = 'mcq-score';
+  scoreDiv.style.cssText = 'margin:.5rem 0;padding:.5rem .7rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;color:#2e7d32';
+  document.getElementById('btn-group-container').before(scoreDiv);
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+
+  // --- Copy Feynman answers for AI grading ---
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  const f3 = document.getElementById('feynman3').value.trim();
+
+  let copyBlock = document.getElementById('copy-block');
+  if (!copyBlock) {
+    copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.5;display:none';
+    document.getElementById('btn-group-container').before(copyBlock);
+  }
+  copyBlock.style.display = 'block';
+  copyBlock.textContent = '【费曼题 Q1】\n' + (f1 || '（未作答）') + '\n\n【费曼题 Q2】\n' + (f2 || '（未作答）') + '\n\n【费曼题 Q3】\n' + (f3 || '（未作答）');
+
+  // Show hint about grading
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 11 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson11',
+  title: 'Lesson 11（21:00）：智能座舱的"大脑与神经"',
+  feynman: [
+    { q: 1, ref: '用"合租 vs 各租一套"比喻：传统多 ECU = 每人各租一套房子，资源浪费、通信麻烦、维护困难；域控制器 = 全家人合住一套大房子，节省资源、通信快、升级方便。核心对比：芯片 5~8 → 1 颗、线束重量 5kg → 1kg、OTA 一次搞定、跨屏交互毫秒级。更深层：合住才能做到中控导航实时传指令给仪表盘，这在传统架构中延迟太高。' },
+    { q: 2, ref: '用"合租公寓楼"比喻：Android（301 开派对）和 QNX（302 写代码）不能共享一个房间——Android 死机（派对太吵）会导致仪表盘黑屏（室友没法工作）。Hypervisor（公寓管理员）给它们分房间：各自独立空间，管理员确保 302 不断电（QNX 独占安全资源），还可以传纸条（跨 VM 通信）。本质差异：Android 是功能安全无关的娱乐系统，QNX 是功能安全关键（ASIL-B/D）系统，必须物理隔离。' },
+    { q: 3, ref: 'NPU 算力越来越重要，因为座舱中至少两个场景只能靠 AI：① 语音识别+自然语言理解——你说"我想去朝阳公园看花"，AI 理解意图并自动导航，传统固定短语方案做不到。② 驾驶员监测（DMS）——通过摄像头实时分析面部：闭眼超 2 秒=疲劳、视线偏航=分心，每秒处理 30 帧人脸需要深度学习模型，NPU 比 CPU 效率高 10~100 倍。③ AI 虚拟助手+手势识别等。结论：未来座舱的体验差异就在 AI 能力。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'C' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 03 标准答案 — 域控制器与区域架构</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e;margin-bottom:.3rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1.5rem}
+.nav-bar{display:flex;gap:1rem;margin-bottom:1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.1rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+.q-card{margin:.8rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.3rem;font-size:.9rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+.q-question{font-size:.85rem;color:#666;margin-bottom:.4rem}
+.q-answer{font-size:.9rem;padding:.5rem .7rem;background:#f0fdf4;border-left:3px solid #16a34a;border-radius:4px;color:#1a1a2e}
+.mcq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6rem;margin-top:.4rem}
+.mcq-item{padding:.5rem .7rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:.85rem}
+.mcq-item strong{color:#16a34a}
+.mcq-explain{font-size:.8rem;color:#555;margin-top:.3rem;padding-top:.3rem;border-top:1px dashed #d4d4de}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.back-link{display:inline-flex;align-items:center;gap:.4rem;margin-top:1.5rem;padding:.5rem 1rem;background:#4f6ef7;color:#fff;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:500;transition:background .15s}
+.back-link:hover{background:#3d5ce5}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<h1>📖 标准答案</h1>
+<p class="meta">Lesson 03（18:00）— 域控制器与区域架构：从"各自为政"到"中央集权"</p>
+
+<h2>费曼简答题</h2>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+  <div class="q-question">用"小公司 vs 大公司"的比喻解释从分布式到域控再到区域架构的演进。</div>
+  <div class="q-answer">你可以说：最早的车就像一个小作坊——每个人（ECU）只做一件事，比如老王管关门、老李管开窗，各做各的，但人多了就乱糟糟，线也拉得到处都是。后来公司做大了，老板就把人分成几个部门——动力部、底盘部、车身部、座舱部、智驾部，每个部门有个部长（域控制器），部门内部的事部长说了算。但问题来了——车身部的人散落在各个办公室，左前门的人离右后门的人隔了半个厂，做事还是要跑很远。最后公司想了个更聪明的办法：不按职能分，按办公位置分！一楼东边设一个区域经理（区域控制器），管这一层所有的事；一楼西边也设一个。每个区域经理管好自己这一片，有大事就汇报给总经理（中央计算平台）。这样一来，线不用拉那么长了，有什么事区域经理当场就办了。</div>
+</div>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+  <div class="q-question">为什么要在车门里放一个"小管家"（区域控制器），而不是让每个零件各自拉线到车头？</div>
+  <div class="q-answer">好比一个小区——每个门禁、每个灯、每个摄像头都单独拉一根线到物业总机房，那得挖多少沟、埋多少线！更聪明的方法是在每栋楼下面设一个弱电间（区域控制器），这栋楼所有门禁、灯、摄像头都先接到弱电间，弱电间只通过一根光纤跟总机房通信。车也是一个道理：左前门里面有车窗、门锁、后视镜、扬声器、开关——如果每个都单独拉一根线到车头的网关，左前门那根线束又粗又重，制造和维修都麻烦。放一个区域控制器在门里，所有设备就近连到它，它再通过一根以太网线上报给中央计算平台——线束减少 80%、重量减轻、装配也简单。</div>
+</div>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+  <div class="q-question">用手机 App 调用系统功能的例子解释 SOA。</div>
+  <div class="q-answer">想象你用手机：你想拍照，不需要知道摄像头驱动是哪个芯片写的，也不需要管 CMOS 传感器怎么把光转成电信号，你只需要在微信里点"拍照"，系统就自动调用了 camera.takePhoto()——摄像头硬件怎么工作的你完全不用管。SOA 就是同样的道理：把汽车里每个能力都包装成"服务"——比如"锁门"是一个服务、"升窗"是一个服务、"开空调"是一个服务。中央计算平台上的应用程序（比如"离车自动锁车"功能）只需要说"调用锁门服务"就行了，它不需要知道锁门服务是运行在哪个区域控制器上，也不需要知道门锁电机是 12V 还是 24V 的。这就是"面向服务"——我不关心谁干、怎么干，我只关心"有这个能力"。</div>
+</div>
+
+<hr>
+
+<h2>选择题</h2>
+
+<div class="mcq-grid">
+  <div class="mcq-item">
+    <strong>Q1</strong> 以下哪个是区域架构（Zone Architecture）的核心特点？<br>
+    ✅ <strong>B</strong>. 按物理位置划分区域，每个区域配一个区域控制器
+    <div class="mcq-explain">这是区域架构最核心的特点——不按功能分，而是按"这辆车左前角、左后角……"的物理位置划分。A 是传统分布式架构，C 和 D 都是干扰项。</div>
+  </div>
+  <div class="mcq-item">
+    <strong>Q2</strong> 在区域架构中，左前区域控制器的主要通信方式是什么？<br>
+    ✅ <strong>C</strong>. 通过千兆以太网上报给中央计算平台
+    <div class="mcq-explain">区域架构的骨干通信网络就是千兆（甚至更高）以太网，区域控制器采集本区域数据后，通过以太网与中央计算平台通信。CAN 总线速度太慢，不适合区域架构的高数据量需求。</div>
+  </div>
+  <div class="mcq-item">
+    <strong>Q3</strong> 最准确地描述"从分布式到域控再到区域架构"的演进动机？<br>
+    ✅ <strong>C</strong>. 减少 ECU 数量和线束复杂度，实现算力集中和整车级 OTA
+    <div class="mcq-explain">这是整个架构演进的核心驱动力：从"一个功能一个 ECU"到"域控集中"再到"区域架构"，每一步都是在减少 ECU 数量、减少线束、集中算力、降低整车成本并支持软件远程升级（OTA）。</div>
+  </div>
+</div>
+
+<a href="课程.html" class="back-link">← 返回课程</a>
+
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

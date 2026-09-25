@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 26：答案 — AUTOSAR 分层架构——汽车软件如何告别"手工作坊"？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson25-UDS统一诊断服务--2026-07-17--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <a href="课程.html">← 返回课程</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson27-功能安全ISO26262--2026-07-19--1200/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 26 — 答案</div>
+  <h1>AUTOSAR 分层架构——汽车软件如何告别"手工作坊"？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（用"操作系统 vs 裸机开发"类比解释 AUTOSAR）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"操作系统 vs 裸机开发"类比）：</strong></p>
+
+<p>想象 20 年前的手机开发：</p>
+
+<table>
+<tr><th>时代</th><th>开发方式</th><th>换芯片的代价</th></tr>
+<tr><td><strong>裸机时代</strong>（2000 年）</td><td>蓝牙驱动直接操作芯片寄存器，应用逻辑和驱动代码混在一起</td><td><strong>重写 60-80%</strong>——每款芯片的蓝牙寄存器、中断号、时序都不同</td></tr>
+<tr><td><strong>Android 时代</strong>（2010 年）</td><td>芯片厂商提供 HAL（硬件抽象层）驱动，App 通过 Android API 调用蓝牙</td><td><strong>零修改</strong>——芯片厂商更新 HAL，App 照常跑</td></tr>
+</table>
+
+<p>AUTOSAR 对汽车软件做的事情，和 Android 对手机做的事情完全一样：</p>
+
+<ol>
+  <li><strong>芯片厂商写 MCAL</strong>（相当于 Android 的 HAL）——直接操作寄存器的最小层</li>
+  <li><strong>工具链自动生成 RTE</strong>（相当于 Android Framework）——应用和底层的"翻译官"</li>
+  <li><strong>应用 SWC 只认 RTE API</strong>（相当于 App 只认 Android API）——完全不管底层硬件</li>
+</ol>
+
+<p><strong>所以：</strong> 车窗控制算法从 Infineon 移植到 NXP 时，芯片厂商提供新的 MCAL 包，工具链重新生成 RTE，你写的车窗算法代码 <strong>一行都不用改</strong>。就像微信不需要因为换了手机主板就重写一样。</p>
+
+<p><strong>一句话：</strong> AUTOSAR = 汽车软件的"Android"——它定义了应用和硬件之间的标准化接口层。</p>
+</div>
+
+<h3>Q2（用"公司部门沟通"类比解释 RTE）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"公司内部通信系统"类比）：</strong></p>
+
+<p><strong>没有 RTE 的情况（直接调函数）</strong></p>
+<ul>
+  <li>研发部想传消息给销售部，<strong>必须知道</strong>销售部经理的手机号、办公室门牌号、什么时候有空</li>
+  <li>如果销售部搬到另一层楼，研发部得更新所有联系信息——<strong>强耦合</strong></li>
+  <li>公司增加一个新部门"客服部"，所有老部门都要更新自己的通讯录——<strong>不好扩展</strong></li>
+  <li>每个部门各自决定通信方式（有人用微信、有人用邮件、有人用对讲机）——<strong>一团乱麻</strong></li>
+</ul>
+
+<p><strong>有 RTE 的情况（公司内部通信系统）</strong></p>
+<ul>
+  <li>研发部在系统上发一条通知（通过标准接口发数据），系统自动路由到销售部的收件箱——<strong>研发部不关心销售部在哪、用什么软件</strong></li>
+  <li>销售部换成外包团队，只要接入同一个通信系统，研发部不受影响——<strong>松耦合</strong></li>
+  <li>所有通知都有日志记录——<strong>可追溯</strong></li>
+  <li>增加新部门，只要接入系统，老部门无需修改——<strong>可扩展</strong></li>
+</ul>
+
+<p><strong>RTE 不是"多了一层慢"，而是：</strong></p>
+<ul>
+  <li>它让 SWC 之间从"认识具体的人"变成"认识标准接口"</li>
+  <li>编译时 RTE 的调用路径已经确定（静态配置，没有运行时开销）</li>
+  <li>每条通信路径在配置阶段就被工具链验证过了——<strong>不出车再发现通信故障</strong></li>
+</ul>
+
+<p><strong>一句话：</strong> RTE = 公司内部通信系统。虽然多了一个"中间人"，但换来的是松耦合、可替换、可追溯、可扩展——这些恰恰是汽车软件从"手工作坊"走向"工业化"的关键。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>D</strong></td>
+  <td><strong>MCAL（微控制器抽象层）</strong> 是 AUTOSAR 架构中唯一直接操作芯片寄存器的层。它由芯片厂商提供，封装了 GPIO、CAN、SPI、ADC、PWM 等外设的底层寄存器操作。应用层 ❌ 完全不碰硬件；RTE ❌ 只是通信中间件，不操作寄存器；服务层 ❌ 通过 MCAL 间接访问硬件，不直接操作寄存器</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>B</strong></td>
+  <td>RTE（Runtime Environment）的核心功能是作为 SWC 和 BSW <strong>之间的通信中间件</strong>。SWC 调用 <span class="code">Rte_Call()</span> 或 <span class="code">Rte_Write()</span>，RTE 负责把调用路由到目标 SWC 或 BSW 模块。A ❌ 驱动外设是 MCAL 的职责；C ❌ TCP/IP 协议栈是 BSW 中的通信栈模块（如 TCP/IP stack）；D ❌ NVRAM 管理是 BSW 内存栈（NvM 模块）的职责</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>C</strong></td>
+  <td>Classic AUTOSAR 面向传统 <strong>MCU</strong>（如 Infineon TriCore、NXP S32K），使用 <strong>RTOS（OSEK/VDX）</strong>，所有对象在<strong>编译前静态配置</strong>。Adaptive AUTOSAR 面向高性能 <strong>SoC</strong>（如 Snapdragon、Orin），运行在 <strong>POSIX 类 OS（Linux/QNX）</strong> 上，支持<strong>运行时动态部署</strong>。A ❌ 两者都不是开源项目；B ❌ 两者都支持多种芯片平台；D ❌ Classic 也支持以太网（如 SOME/IP），Adaptive 也支持 CAN 信标桥接</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

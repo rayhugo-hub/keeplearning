@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 53：答案 — 车载以太网 PSFP 每流监管</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.answer-correct{color:#2e7d32;font-weight:700}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Lesson 53：参考答案</h1>
+<p class="meta">车载以太网 PSFP 每流监管——一条数据流"发疯"，凭什么只掐它、不误伤别人？</p>
+</div>
+<div class="nav-bar">
+  <a href="../Lesson52-车载以太网MACsec链路安全--2026-09-07--0001/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson54-车载以太网帧抢占--2026-09-12--0029/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">📖 返回课程</a>
+</div>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1：用"车流进隧道"打比方：为什么防止一条"发疯的数据流"堵死全车网络，不能只靠出口的排队调度（像 L47 的 Qbv），也不能只对"整条隧道"统一限速？PSFP 的过滤器、流门、流量计这三道关卡，分别相当于交警的什么检查？（提示：想一想"按类管会连坐好车"、"进门查 vs 出门查"，以及"查证件、限时段、限车速"分别对应谁）</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>粒度要细到"车"，检查要设在"进隧道之前"；三道关卡分别查"身份与尺寸、时段、车速"。
+</div>
+<p><strong>① 为什么"出口调度 + 整路限速"都不够：</strong></p>
+<ul>
+<li><strong>按优先级/类别管会连坐</strong>：Qbv 的队列、L49 的优先级都是"一群人合管"。隧道里一辆超载卡车（坏流）堵在前面，排在它后面的好车（同队列的正常帧）全部被堵住——就算给"救护车"（关键帧）开了绿灯，它也可能被卡在车流里根本排不到前面。管得越粗，连坐面越大。</li>
+<li><strong>整条隧道统一限速会误伤</strong>：一刀切限速，守规矩的车也被拖慢，视频流、雷达流全都受损——应该限的是"那辆超载车"，不是所有人。</li>
+<li><strong>Qbv 守的位置是"出口"</strong>：它管的是"什么时候放行"，前提是车都守规矩地排队。可发疯的车<strong>已经开进隧道、占住车道了</strong>，出口再调度也只能让剩下的车"晚点出去"，被堵住的时间已经追不回来了。</li>
+</ul>
+<p><strong>② 三道关卡分别像交警的什么检查：</strong></p>
+<ul>
+<li><strong>流过滤器 = 查证件 + 量尺寸</strong>：先认出"你是谁、是哪条流"（流识别），再查这辆车有没有通行资格（白名单，没登记的流直接拦）——超长、超载的车（超过最大帧长的帧）在这里被量出来，直接拦下不让进；</li>
+<li><strong>流门 = 限时段通行证</strong>：这条路规定"几点到几点才许走"——这条流只被分配了周期里的一小段时间窗，窗口外到达的帧（不守时刻表的车）一律拦下；</li>
+<li><strong>流量计 = 按车限速</strong>：每辆车有自己单独的速度配额（CIR/EIR + 桶深），超速的车先吃警告（黄），持续超速直接处罚（红、丢弃）。</li>
+</ul>
+<p><strong>③ 为什么站在"入口"而不是"出口"：</strong> 拦在进隧道之前，坏车根本不进隧道——不占车道、不堵后面的好车。等它开进隧道再处理，路已经被堵过了。对应到交换机：PSFP 守在入口，坏帧在占用队列和带宽之前就被掐掉。</p>
+<p><strong>结论（类比落点）：</strong> PSFP 是隧道口"点名到人"的交警：按车执法（不连坐）、进门就查（不等出事）、查三样东西——证件与尺寸（过滤器）、时段（流门）、车速（流量计）。</p>
+
+<h3>Q2：摄像头视频流平均 80 Mbps，但每隔几秒会有一个瞬时大爆发（I 帧），瞬间冲到 120 Mbps——如果限速规则是"瞬时超过 80 就丢帧"，视频会花屏。令牌桶的"承诺速率（CIR）"和"突发额度（桶深 CBS/EBS）"分别是怎么解决这个问题的？反过来，如果一个 ECU 真发疯了、连续几分钟都按 120 Mbps 狂发，绿、黄、红三色分别怎么处理它？（提示：想想"攒币"与"桶见底"，短突发被吸收、持续超速逃不掉）</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>CIR 管"长期平均"，桶深管"瞬时弹性"；短突发靠攒下的币吸收，持续超速靠桶见底拦截。
+</div>
+<p><strong>① CIR 和桶深分别解决什么：</strong></p>
+<ul>
+<li><strong>CIR（承诺速率）= 长期平均的"高速配额"</strong>：它决定每秒往绿桶里"进币"的速率——相当于承诺"长期平均不超过 80 Mbps"；</li>
+<li><strong>CBS/EBS（桶深）= 允许的瞬时弹性</strong>：桶是"能攒钱"的。平时实际速率低于 80 Mbps 时，用不完的绿币在桶里越攒越多（最多攒到 CBS）；I 帧瞬间冲到 120 Mbps 时，一口气花掉攒下的币——<strong>只要桶里还有币，瞬时超速不丢帧</strong>。</li>
+<li>于是规则从"瞬时超过 80 就丢"（把正常业务尖峰当攻击）变成了"<strong>长期平均不超过 80、且桶没见底</strong>就不丢"——这正是给正常业务留的呼吸空间：视频 I 帧的短突发被吸收，画面不会花屏。</li>
+</ul>
+<p><strong>② 真发疯（持续几分钟 120 Mbps）时三色怎么处理：</strong></p>
+<ul>
+<li>刚发疯的瞬间：绿桶里攒的币先被大量消耗，帧<strong>染绿放行</strong>（桶还没空，短时内看不出问题）；</li>
+<li>很快绿桶见底：后续帧绿币付不起，开始消耗黄桶（EIR 以 10 Mbps 的速率进币，深度只有 EBS 0.5 Mbit）——这部分帧<strong>染黄</strong>：如果配置了 dropOnYellow 就丢弃，否则放行但打上"可丢"标记；</li>
+<li>黄桶也见底（持续超速下，10 Mbps 的进币速度远赶不上 120 Mbps 的花币速度）：<strong>所有帧染红、直接丢弃</strong>——输出被掐到只剩 EIR 的额度，相当于"断网降速"。</li>
+</ul>
+<p><strong>③ 为什么桶深不是漏洞：</strong> 桶再深也是有限的。桶只吸收"<strong>短时间</strong>的尖峰"；发疯的源是<strong>持续</strong>超速——花的币远多于进的币，再深的桶也必然见底。所以：<strong>短突发被吸收（业务友好），持续超速逃不掉（执法有效）</strong>——这正是令牌桶最聪明的地方。</p>
+
+<h3>Q3（进阶）：Qbv 的门和 PSFP 的"流门"都带个"门"字，本质区别是什么？为什么门关着时，Qbv 的帧可以"等"，PSFP 的帧却要"丢"？如果一辆车只部署了 Qbv、没有 PSFP，一个被攻破的 ECU 乱发数据时会发生什么？（提示：一个管"何时出门"、一个管"能不能进场"；有没有缓冲区；想想好帧是怎么被挤掉的）</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>Qbv 是出口"调度闸"（有队列可等），PSFP 是入口"执法闸"（无队列即丢）；Qbv 预设源守规矩，PSFP 负责强制。
+</div>
+<p><strong>① 本质区别——调度器 vs 执法者：</strong></p>
+<ul>
+<li><strong>Qbv（L47）是"调度器"</strong>：守在出口，管"好帧何时出门"。它的门<strong>后面有队列（缓冲区）</strong>——门关着时，帧安安稳稳地排在队列里等，开门后按顺序走。帧不会因为门关而丢，只是晚点走。这是为了精确控制离开时刻、保证端到端时延预算（配合 gPTP 时间表）。</li>
+<li><strong>PSFP 流门是"执法者"</strong>：守在入口，管"这帧有没有资格进场"。它<strong>没有为单条流准备缓冲区</strong>——门关着意味着"此刻不该出现这条流的帧"，语义是<strong>丢弃</strong>而非排队。等着的说法在这里没有意义：坏帧不该进场，不该占任何资源。</li>
+</ul>
+<p><strong>② 为什么位置一个在入口、一个在出口：</strong></p>
+<ul>
+<li>PSFP 在<strong>入口</strong>：坏帧在占用交换机的队列、带宽之前就被掐掉——<strong>不进场，就不会挤到别人</strong>；</li>
+<li>Qbv 在<strong>出口</strong>：它调度的是"已经合法进场、排队等出门"的好帧，保证它们准点到达目的地。</li>
+</ul>
+<p><strong>③ 只装 Qbv、没有 PSFP 会发生什么：</strong></p>
+<ul>
+<li>被攻破的 ECU 在<strong>自己的时间窗外</strong>乱发（Qbv 的调度表管不到它——Qbv 只按时间表开门，谁往队列里塞了什么是另一回事），或在窗口内<strong>超量狂发</strong>；</li>
+<li>这些坏帧会<strong>挤占交换机的队列和出口带宽</strong>：缓冲被塞满 → 溢出丢帧；队列被占满 → 好帧排不进去或被挤到后面；</li>
+<li>最要命的是：<strong>关键控制帧可能因此迟到或丢失</strong>。Qbv 就算给关键帧安排了绿灯时间窗，关键帧可能<strong>根本进不了队列</strong>（缓冲已满）或者已经"被挤迟到"——出口门控再准时，放行的也是迟到的帧；</li>
+<li>结果：端到端时延预算被破坏（L47 那一整套 TSN 保障失效），最坏情况下安全相关功能（转向、制动）得不到及时响应。</li>
+</ul>
+<p><strong>结论：</strong> Qbv 的隐含假设是"源都守规矩、只在分配的窗口内以约定的速率发"——它管不住不守规矩的源；PSFP 把假设变成执法：入口设卡，不守规矩的帧进不了场，Qbv 才能安心调度守规矩的帧。<strong>Qbv 管"准点"，PSFP 管"资格"，两道门缺一不可。</strong></p>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ1：车内骨干网已经部署了 802.1Qbv（L47）出口门控。为什么整车厂还要在交换机入口加 PSFP？</h3>
+<p><span class="answer-correct">✅ B. Qbv 的假设是"每个发送者都守规矩、只在自己的时间窗内以约定速率发送"：它只管出口放行时刻，坏源在时间窗外乱发或超量狂发时，这些帧已经挤占了入口带宽和队列缓冲、甚至挤掉关键帧，Qbv 只能让好帧"晚点出门"，救不回被挤掉或挤迟到的帧；PSFP 在入口按"每一条流"过滤 + 限流，坏流在占用交换资源之前就被掐掉</span></p>
+<p>解析：Qbv 是出口调度器，前提是流量本身合法；它管不了"坏源在入口灌水"——坏帧在到达出口队列之前就已经挤占资源、挤掉好帧了。PSFP 补的正是这个缺口：在入口按流执法，坏帧不进场。A 错：PSFP 不是"管入口队列"的队列机制，而是过滤器/门/计量器，入口本来也没有为单条流设队列；C 错：Qbv 支持丢弃（超过门控时间窗的滞留帧会被丢），但它救不了"已经被挤掉的好帧"；D 错：PSFP 的流门和 Qbv 恰恰<strong>共用</strong> gPTP 时间，两者同属 TSN 家族、配合使用，不是二选一。</p>
+
+<h3>MCQ2：某路 4K 摄像头流分配了 CIR = 80 Mbps、CBS = 2 Mbit、EIR = 10 Mbps、EBS = 0.5 Mbit。以下哪个描述符合"双速率三色令牌桶"的实际行为？</h3>
+<p><span class="answer-correct">✅ B. 短时间的突发（如 I 帧，几十毫秒冲到 120 Mbps）会先消耗绿桶（CBS）和黄桶（EBS）里攒下的存量，只要平均速率不超、桶没见底就不丢；若持续以 120 Mbps 狂发，桶很快耗尽，超出 EIR 的部分被染红丢弃——短突发被吸收，持续超速被拦截</span></p>
+<p>解析：令牌桶的关键是"可攒可花"：平时用不完的额度在桶里积累（桶深 CBS/EBS），短突发花存量、不丢帧；持续超速时进币速率（CIR 80 + EIR 10）远小于花币速率（120），桶必然见底，超出的部分染红丢弃。A 错：桶深 CBS = 2 Mbit 就是用来容忍瞬时超过 CIR 的短突发的，"超 80 就丢"等于把桶设成 0，会误杀正常 I 帧；C 错：流量计按<strong>每一帧</strong>判色，不是每秒算一次总账——否则几十毫秒的巨突发就能在"结算周期"内蒙混过关；D 错：车内链路本地自治，逐帧问云端既不现实也不安全（L52 也说过同样的道理）。</p>
+
+<h3>MCQ3：一个传感器 ECU 被攻破，开始同时干三件坏事：①发超过允许帧长的超大帧；②在自己的调度时间窗外乱发；③总速率远超分配的带宽。PSFP 的三道关卡分别在哪个环节把它拦下？</h3>
+<p><span class="answer-correct">✅ A. ①流过滤器查最大帧长，超长帧直接丢；②流门只在分配给这条流的时间窗内打开，窗外到达的帧一律丢弃；③流量计（令牌桶）把超速部分染红丢弃——三道关卡各管一摊，从不同维度掐住病流</span></p>
+<p>解析：这正是 PSFP 三个组件的设计分工——过滤器管"身份与尺寸"、流门管"时间"、流量计管"速率"，三个维度互不替代，正好一一对应题目里的三件坏事。B 错：三个组件职责不同（白名单/帧长、时间窗、速率），不是"共用一个桶"；C 错：帧长检查在<strong>入口的流过滤器</strong>做（超长帧根本不该进交换机），不是出口队列的职责；D 错：MACsec（L52）校验的是密码学完整性——帧是真是假、有没有被篡改，它<strong>不检查帧长、不检查发送时刻、不限制速率</strong>，超长但加密合法的帧它照样放行，所以仍需要 PSFP。</p>
+
+</div>
+</body>
+</html>

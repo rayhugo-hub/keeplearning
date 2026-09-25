@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 09（09:00）：以太和CAN通信知识</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{text-align:center;margin:.8rem 0}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem}
+.mcq-result{font-size:.85rem;margin-top:.3rem;padding:.2rem 0}
+.mcq-correct{color:#2e7d32;font-weight:500}
+.mcq-wrong{color:#c62828;font-weight:500}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+#mcq-score-display{margin:.6rem 0;font-size:.95rem}
+#mcq-score-display .score-good{color:#2e7d32;font-weight:600}
+#mcq-score-display .score-bad{color:#c62828;font-weight:600}
+#copy-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.5;display:none}
+.feynman-section h3{margin-top:1rem}
+@media print{body{background:#fff;padding:1rem}.container{box-shadow:none;padding:1rem}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 09（09:00）— 2026-06-28 | 🚗 车载通信总线</div>
+  <h1>以太和CAN通信知识——车里一百个ECU怎么"说话"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson08-音频通信协议--2026-06-27--2300/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson10-T-BOX知识--2026-06-28--1800/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你坐进一辆 2026 年的智能电动车，踩下刹车踏板。</p>
+
+<p><strong>问题：从你踩下刹车到车真正减速，中间发生了多少次通信？</strong></p>
+<p>答案是：<strong>在不到 20 毫秒内</strong>，刹车踏板传感器 → ABS 模块 → 电机控制器 → 电池管理系统，跨越了 4 个 ECU、3 种不同的通信总线。</p>
+<p>现代汽车有 <strong>70~100 个 ECU</strong>（发动机控制、刹车、转向、车身、座舱、智驾……），它们每秒交换成千上万条消息。如果全靠手机那种"发一条微信等回复"的方式，车早就撞了。</p>
+<p>这些 ECU 之间如何高效、可靠、实时地通信？这就是本节课要讲的——<strong>车载通信总线</strong>。</p>
+
+<hr>
+
+<h2>二、四大通信总线速览</h2>
+<p>一辆车不会只用一种总线。不同场景用不同总线，就像物流公司：<strong>重货走火车、快件走飞机、小区内走三轮车。</strong></p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph CAN["🚌 CAN/CAN-FD&lt;br&gt;动力 &amp; 底盘 &amp; 车身"]
+        CAN_ECU1["发动机 ECU"]
+        CAN_ECU2["ABS/ESP"]
+        CAN_ECU3["变速箱"]
+        CAN_ECU4["电池管理"]
+    end
+    subgraph LIN["🔌 LIN&lt;br&gt;低速车身"]
+        LIN1["车窗升降"]
+        LIN2["座椅调节"]
+        LIN3["门锁"]
+    end
+    subgraph ETH["🌐 车载以太网&lt;br&gt;大数据"]
+        ETH1["ADAS 摄像头"]
+        ETH2["座舱娱乐"]
+        ETH3["OTA 升级"]
+        ETH4["诊断（DoIP）"]
+    end
+    CAN --- ETH
+    CAN --- LIN
+</div>
+
+<table>
+<tr><th>总线</th><th>速度</th><th>线数</th><th>典型用途</th><th>成本</th></tr>
+<tr><td><strong>经典 CAN</strong></td><td>500 kbps ~ 1 Mbps</td><td>2 线</td><td>发动机、ABS、安全气囊</td><td>低</td></tr>
+<tr><td><strong>CAN-FD</strong></td><td>2~8 Mbps（数据段）</td><td>2 线</td><td>电池管理、ADAS 传感器数据</td><td>中</td></tr>
+<tr><td><strong>LIN</strong></td><td>最多 20 kbps</td><td>1 线</td><td>车窗、门锁、座椅</td><td>极低</td></tr>
+<tr><td><strong>车载以太网</strong></td><td>100 Mbps ~ 1 Gbps</td><td>1 对双绞线</td><td>摄像头、OTA、诊断、座舱</td><td>中高</td></tr>
+</table>
+
+<hr>
+
+<h2>三、CAN 总线——汽车电子的"普通话"</h2>
+
+<h3>3.1 为什么需要 CAN？</h3>
+<p>1980 年代，每个 ECU 之间都是点到点连线——一个高端车型的线束总长度超过 4 公里，重量 40+ kg。博世在 1983 年发明了 CAN（Controller Area Network），让所有 ECU 挂在两根线上通信。</p>
+
+<h3>3.2 CAN 的核心机制</h3>
+
+<div class="mermaid">
+flowchart LR
+    subgraph Bus["🚌 CAN 总线（双绞线）"]
+        direction LR
+        B["CAN-H&lt;br&gt;CAN-L"]
+    end
+    ECU1["ECU 1&lt;br&gt;发动机"] --- Bus
+    ECU2["ECU 2&lt;br&gt;ABS"] --- Bus
+    ECU3["ECU 3&lt;br&gt;变速箱"] --- Bus
+    ECU4["ECU 4&lt;br&gt;仪表盘"] --- Bus
+</div>
+
+<p><strong>三个关键特性：</strong></p>
+
+<table>
+<tr><th>特性</th><th>原理</th><th>为什么重要</th></tr>
+<tr><td><strong>多主总线</strong></td><td>任何 ECU 随时可以发消息，没有"老大"控制</td><td>紧急消息（如刹车）可以立即发出，不用等轮询</td></tr>
+<tr><td><strong>非破坏性位仲裁</strong></td><td>多个 ECU 同时发消息时，ID 小的（优先级高）自动获胜</td><td>高优先级消息永远不被打断，延迟完全可预测</td></tr>
+<tr><td><strong>差分信号</strong></td><td>CAN-H 和 CAN-L 电平相反，抗干扰能力强</td><td>在发动机舱这种强电磁干扰环境下仍可靠传输</td></tr>
+</table>
+
+<h3>3.3 CAN 数据帧结构（简化）</h3>
+
+<pre class="code-block">
+┌─────────┬──────┬──────────┬────────┬──────────┬─────────┐
+│ 起始位  │ 仲裁ID  │ 控制位    │ 数据段  │ CRC校验   │ 确认位  │
+│ (1 bit) │(11/29)│ (6 bits) │ 0~8字节 │(15 bits) │ (2 bits)│
+└─────────┴──────┴──────────┴────────┴──────────┴─────────┘</pre>
+
+<ul>
+<li><strong>仲裁 ID</strong>：号码越小优先级越高（ID=0 是最紧急的消息）</li>
+<li><strong>数据段</strong>：经典 CAN 最多 <strong>8 字节</strong>——这就是它的最大瓶颈</li>
+</ul>
+
+<hr>
+
+<h2>四、CAN-FD——CAN 的"涡轮增压版"</h2>
+
+<p>随着汽车电子越来越复杂，8 字节/帧和 1 Mbps 已经不够用了。CAN-FD（Flexible Data-rate）在 2015 年标准化：</p>
+
+<table>
+<tr><th>改进点</th><th>经典 CAN</th><th>CAN-FD</th></tr>
+<tr><td><strong>数据段长度</strong></td><td>最多 8 字节</td><td>最多 <strong>64 字节</strong></td></tr>
+<tr><td><strong>数据段速率</strong></td><td>与仲裁段相同（1 Mbps）</td><td><strong>2~8 Mbps</strong>（仲裁段仍用 500 kbps）</td></tr>
+<tr><td><strong>兼容性</strong></td><td>—</td><td>与经典 CAN 共享同一总线（混合组网）</td></tr>
+<tr><td><strong>典型应用</strong></td><td>传统动力、车身</td><td>电池管理（BMS）、ADAS、固件刷写</td></tr>
+</table>
+
+<div class="callout">
+<strong>重要：</strong>CAN-FD 不是取代 CAN，而是增强。同一根总线上可以同时跑经典 CAN 帧和 CAN-FD 帧。
+</div>
+
+<hr>
+
+<h2>五、LIN——最便宜的"跑腿工"</h2>
+
+<p>LIN（Local Interconnect Network）是 CAN 的廉价补充：</p>
+<ul>
+<li><strong>1 主多从</strong>拓扑，一个主节点控制多个从节点</li>
+<li><strong>单线传输</strong>（+地线），最高 20 kbps</li>
+<li><strong>成本极低</strong>：一个 LIN 收发器比 CAN 收发器便宜 50% 以上</li>
+</ul>
+
+<p><strong>典型用法：</strong></p>
+
+<table>
+<tr><th>子系统</th><th>LIN 节点数</th><th>功能</th></tr>
+<tr><td>左前门</td><td>3~4</td><td>车窗升降 + 后视镜折叠 + 门锁 + 氛围灯</td></tr>
+<tr><td>座椅</td><td>2~3</td><td>座椅前后调节 + 靠背角度 + 腰托</td></tr>
+<tr><td>天窗</td><td>1~2</td><td>天窗开闭 + 遮阳帘</td></tr>
+</table>
+
+<div class="callout">
+<strong>比喻：</strong>CAN 是城市主干道，LIN 是小区内部路——慢但够用，成本还低。
+</div>
+
+<hr>
+
+<h2>六、车载以太网——新一代"信息高速公路"</h2>
+
+<h3>6.1 为什么需要它？</h3>
+
+<table>
+<tr><th>数据类型</th><th>带宽需求</th><th>传统总线能否应对</th></tr>
+<tr><td>1 路 8MP 摄像头</td><td>~2 Gbps（原始）</td><td>❌ 任何 CAN/LIN 都不行</td></tr>
+<tr><td>OTA 升级包（~10 GB）</td><td>越快越好</td><td>❌ CAN 刷写要数小时</td></tr>
+<tr><td>座舱 4K 屏投屏</td><td>~6 Gbps</td><td>❌ 只有以太网能扛</td></tr>
+<tr><td>DoIP 诊断（ISO 13400）</td><td>100 Mbps+</td><td>❌ 传统诊断慢如蜗牛</td></tr>
+</table>
+
+<h3>6.2 车载以太网的"专有技术"</h3>
+
+<table>
+<tr><th>特性</th><th>说明</th></tr>
+<tr><td><strong>100BASE-T1 / 1000BASE-T1</strong></td><td>只用一对双绞线（普通以太网需要 4 对），减重 75%</td></tr>
+<tr><td><strong>低延迟</strong></td><td>TSN（时间敏感网络）保证关键消息的延迟在微秒级</td></tr>
+<tr><td><strong>单对线供电（PoDL）</strong></td><td>摄像头等小功率设备不用单独拉电源线</td></tr>
+<tr><td><strong>兼容 TCP/IP</strong></td><td>直接使用标准互联网协议栈，开发工具链成熟</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart TB
+    subgraph ETH_Backbone["🌐 车载以太网骨干"]
+        ETH_SW["以太网交换机"]
+    end
+    subgraph ADAS["📷 智驾域"]
+        CAM1["前向摄像头"]
+        CAM2["环视摄像头"]
+        RADAR["毫米波雷达"]
+        LIDAR["激光雷达"]
+    end
+    subgraph COCKPIT["🎮 座舱域"]
+        HU["车机 SoC"]
+        DASH["仪表盘"]
+        HUD["抬头显示"]
+    end
+    subgraph DIAG["🔧 诊断"]
+        OBD["OBD 接口&lt;br&gt;（DoIP）"]
+    end
+    subgraph TBOX["📡 T-BOX"]
+        LTE["4G/5G"]
+    end
+    
+    CAM1 --- ETH_SW
+    CAM2 --- ETH_SW
+    RADAR --- ETH_SW
+    LIDAR --- ETH_SW
+    HU --- ETH_SW
+    DASH --- ETH_SW
+    HUD --- ETH_SW
+    OBD --- ETH_SW
+    TBOX --- ETH_SW
+</div>
+
+<div class="callout">
+<strong>关键转变：</strong>传统架构是"CAN 总线挂全部"，新架构是"以太网做骨干，CAN/CAN-FD 做子系统总线"。
+</div>
+
+<hr>
+
+<h2>七、三条规则总结</h2>
+
+<div class="rule-box">
+<p><strong>1. CAN 是"普通道路"</strong>——可靠但窄：经典 CAN（1 Mbps/8 字节）统治动力底盘 30 年；CAN-FD（8 Mbps/64 字节）是它的高速扩宽版，向下兼容</p>
+<p><strong>2. LIN 是"巷子"</strong>——极便宜的单线低速总线（20 kbps），只干门窗座椅这种简单的活，不参与安全关键通信</p>
+<p><strong>3. 车载以太网是"高速公路"</strong>——100 Mbps~1 Gbps，一对双绞线承载摄像头、OTA、诊断等大数据，并通过 TSN 保证实时性，逐渐成为新的整车骨干</p>
+</div>
+
+<hr>
+
+<!-- ===== 费曼简答题 ===== -->
+
+<h2>八、费曼简答题</h2>
+<p>用你自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>（想象你讲给一个懂车的朋友听）。</p>
+
+<div class="feynman-section">
+<h3>Q1</h3>
+<p>CAN 总线上如果有两个 ECU 同时发消息，怎么知道谁先走？别用"仲裁""CSMA/CR"这类术语，用比喻或日常逻辑解释。</p>
+<textarea id="feynman1" placeholder="用你自己的话回答……"></textarea>
+</div>
+
+<div class="feynman-section">
+<h3>Q2</h3>
+<p>如果把一辆车的通信网络比作一个城市交通系统，CAN、CAN-FD、LIN 和车载以太网各扮演什么角色？为什么不能用一种总线搞定所有事情？</p>
+<textarea id="feynman2" placeholder="用你自己的话回答……"></textarea>
+</div>
+
+<hr>
+
+<!-- ===== 选择题 ===== -->
+
+<h2>九、选择题</h2>
+
+<div class="mcq-group">
+<p><strong>1. CAN 总线通过什么机制确保高优先级消息不会被低优先级消息阻塞？</strong></p>
+<label><input type="radio" name="mc1" value="A"> A. 主节点轮询（Master Polling）</label>
+<label><input type="radio" name="mc1" value="B"> B. 冲突检测后重发（CSMA/CD，类似早期以太网）</label>
+<label><input type="radio" name="mc1" value="C"> C. 非破坏性位仲裁（优先权低的自动退让）</label>
+<label><input type="radio" name="mc1" value="D"> D. 时分多址（每个节点分时发送）</label>
+<div class="mcq-result" id="mcq1-result"></div>
+</div>
+
+<div class="mcq-group">
+<p><strong>2. CAN-FD 相对经典 CAN 的最大改进是什么？</strong></p>
+<label><input type="radio" name="mc2" value="A"> A. 传输距离从 40m 增加到 1000m</label>
+<label><input type="radio" name="mc2" value="B"> B. 数据段速率提高且每帧可携带更多数据</label>
+<label><input type="radio" name="mc2" value="C"> C. 物理层改为光纤传输</label>
+<label><input type="radio" name="mc2" value="D"> D. 支持手机远程控制</label>
+<div class="mcq-result" id="mcq2-result"></div>
+</div>
+
+<div class="mcq-group">
+<p><strong>3. 以下哪个场景最适合使用车载以太网（100BASE-T1）？</strong></p>
+<label><input type="radio" name="mc3" value="A"> A. 控制驾驶座车窗升降</label>
+<label><input type="radio" name="mc3" value="B"> B. 传输前向 8MP 摄像头的视频流给智驾域控制器</label>
+<label><input type="radio" name="mc3" value="C"> C. 读取安全气囊传感器的触发信号</label>
+<label><input type="radio" name="mc3" value="D"> D. 控制车内氛围灯的颜色切换</label>
+<div class="mcq-result" id="mcq3-result"></div>
+</div>
+
+<hr>
+
+<!-- ===== 按钮组 ===== -->
+
+<div id="btn-group-container">
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+</div>
+</div>
+
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const LS_KEY = 'teachme_lesson09';
+const ANSWERS = {
+  mcq: { mc1: 'C', mc2: 'B', mc3: 'B' },
+  feynman: [
+    { q: 1, ref: '想象一群人同时在一间房间里喊话。谁嗓门大谁先被听到。CAN 总线上也一样——每个消息自带一个"编号"（ID），编号越小嗓门越大（优先级越高）。当两个 ECU 同时发消息时，它们一边发一边听。如果有一个 ECU 想发"1"（隐性位）但在总线上听到了"0"（显性位），它就立刻闭嘴退让——它知道有更紧急的消息在同时发送。不需要裁判、不需要排队，全凭"谁的数字小"自然胜出。' },
+    { q: 2, ref: 'CAN=城市主干道（可靠中速，所有关键系统都走这里）；CAN-FD=主干道快速公交车道（同一条路但可提速、载更多人）；LIN=小区内部路（极慢极便宜，只跑门窗座椅）；车载以太网=高速公路/高铁（超宽车道，专治摄像头海量视频和OTA大数据）。不能只用一种：全用以太网成本爆炸，全用CAN带不动摄像头，全用LIN连刹车消息都来不及传。通信分层=成本与性能的最佳平衡。' }
+  ]
+};
+
+// Auto-save on input
+document.addEventListener('DOMContentLoaded', function() {
+  // Restore saved state
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.feynman1) document.getElementById('feynman1').value = data.feynman1;
+      if (data.feynman2) document.getElementById('feynman2').value = data.feynman2;
+      if (data.mc1) document.querySelector('input[name="mc1"][value="' + data.mc1 + '"]').checked = true;
+      if (data.mc2) document.querySelector('input[name="mc2"][value="' + data.mc2 + '"]').checked = true;
+      if (data.mc3) document.querySelector('input[name="mc3"][value="' + data.mc3 + '"]').checked = true;
+    } catch(e) {}
+  }
+
+  // Auto-save event listeners
+  document.querySelectorAll('textarea').forEach(el => {
+    el.addEventListener('input', saveState);
+  });
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    el.addEventListener('change', saveState);
+  });
+});
+
+function saveState() {
+  const data = {
+    feynman1: document.getElementById('feynman1').value,
+    feynman2: document.getElementById('feynman2').value,
+    mc1: document.querySelector('input[name="mc1"]:checked')?.value || '',
+    mc2: document.querySelector('input[name="mc2"]:checked')?.value || '',
+    mc3: document.querySelector('input[name="mc3"]:checked')?.value || ''
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+function submitAll() {
+  let correct = 0;
+  let total = 0;
+  
+  // Grade MCQs
+  for (let i = 1; i <= 3; i++) {
+    const qName = 'mc' + i;
+    const selected = document.querySelector('input[name="' + qName + '"]:checked');
+    const resultDiv = document.getElementById('mcq' + i + '-result');
+    total++;
+    
+    if (selected && selected.value === ANSWERS.mcq[qName]) {
+      resultDiv.innerHTML = '<span class="mcq-correct">✅ 正确！答案就是 ' + ANSWERS.mcq[qName] + '</span>';
+      correct++;
+    } else if (selected) {
+      resultDiv.innerHTML = '<span class="mcq-wrong">❌ 不对。你选的是 ' + selected.value + '，正确答案是 ' + ANSWERS.mcq[qName] + '</span>';
+    } else {
+      resultDiv.innerHTML = '<span class="mcq-wrong">⚠️ 未作答。正确答案是 ' + ANSWERS.mcq[qName] + '</span>';
+    }
+  }
+
+  const scorePct = Math.round((correct / total) * 100);
+  let scoreHtml = '<p><strong>选择题得分：<span class="' + (scorePct >= 67 ? 'score-good' : 'score-bad') + '">' + correct + '/' + total + '（' + scorePct + '%）</span></strong></p>';
+  document.getElementById('mcq-score-display')?.remove();
+  
+  const scoreDiv = document.createElement('div');
+  scoreDiv.id = 'mcq-score-display';
+  scoreDiv.innerHTML = scoreHtml;
+  document.querySelector('.btn-group').after(scoreDiv);
+
+  // Copy Feynman answers for AI grading
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  let copyBlock = document.getElementById('copy-block');
+  if (!copyBlock) {
+    copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    document.getElementById('mcq-score-display').after(copyBlock);
+  }
+  copyBlock.style.display = 'block';
+  copyBlock.textContent = '【费曼题 Q1】\n' + (f1 || '（未作答）') + '\n\n【费曼题 Q2】\n' + (f2 || '（未作答）');
+
+  // Show hint about grading
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 09 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => el.innerHTML = '');
+  document.getElementById('mcq-score-display')?.remove();
+  const cb = document.getElementById('copy-block');
+  if (cb) cb.remove();
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson09',
+  title: 'Lesson 09（09:00）：以太和CAN通信知识',
+  feynman: [
+    { q: 1, ref: '想象一群人同时在一间房间里喊话。谁嗓门大谁先被听到。CAN 总线上也一样——每个消息自带一个"编号"（ID），编号越小嗓门越大（优先级越高）。当两个 ECU 同时发消息时，它们一边发一边听。如果有一个 ECU 想发"1"（隐性位）但在总线上听到了"0"（显性位），它就立刻闭嘴退让——它知道有更紧急的消息在同时发送。不需要裁判、不需要排队，全凭"谁的数字小"自然胜出。' },
+    { q: 2, ref: 'CAN=城市主干道（可靠中速，所有关键系统都走这里）；CAN-FD=主干道快速公交车道（同一条路但可提速、载更多人）；LIN=小区内部路（极慢极便宜，只跑门窗座椅）；车载以太网=高速公路/高铁（超宽车道，专治摄像头海量视频和OTA大数据）。不能只用一种：全用以太网成本爆炸，全用CAN带不动摄像头，全用LIN连刹车消息都来不及传。通信分层=成本与性能的最佳平衡。' }
+  ],
+  mcq: { mc1: 'C', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

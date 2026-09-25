@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 27：答案 — 功能安全 ISO 26262——汽车电子如何做到"不怕出故障"？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson26-AUTOSAR汽车开放系统架构--2026-07-18--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson28-车载OTA升级--2026-07-19--1800/课程.html">下一课 →</a>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 27 — 答案</div>
+  <h1>功能安全 ISO 26262——汽车电子如何做到"不怕出故障"？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（用"飞机的双引擎 vs 自行车的一个刹车"类比解释汽车功能安全的严格程度）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"飞机 vs 自行车"类比）：</strong></p>
+
+<table>
+<tr><th>对比项</th><th>家电（洗衣机）</th><th>汽车（刹车系统）</th></tr>
+<tr><td><strong>失效后果</strong></td><td>过热保护失效 → 烧坏电机，家里跳闸</td><td>刹车失效 → 120km/h 下无法减速 → <strong>可能导致死亡</strong></td></tr>
+<tr><td><strong>故障概率要求</strong></td><td>百万分之一已经很好</td><td><strong>十亿分之一（FIT &lt; 10）</strong> 才算达标</td></tr>
+<tr><td><strong>可接受的风险</strong></td><td>市电有漏电保护，但允许一定概率的电击</td><td>几乎零容忍——每年全球因刹车系统故障致死必须是 <strong>零</strong></td></tr>
+<tr><td><strong>开发严谨度</strong></td><td>功能验证 + 安全测试</td><td>V 模型全生命周期 + 独立安全评审 + 工具链认证</td></tr>
+</table>
+
+<p><strong>关键比喻：</strong></p>
+<ul>
+  <li><strong>自行车刹车坏了</strong> → 可以用脚刹、滑行停下 → <strong>驾驶员完全可以补偿（C1 可控性高）</strong></li>
+  <li><strong>飞机失去一个引擎</strong> → 另一个引擎还能飞 → <strong>硬件冗余（双引擎）是必备的</strong></li>
+  <li><strong>汽车刹车的地位介于两者之间：</strong> 不能靠"驾驶员用脚刹"（120km/h 时做不到）→ 必须系统自己保证安全；但也不能无限加冗余（成本和重量限制）→ 只能精确评估"哪个故障真的要命"，只对最关键的做最高等级安全设计</li>
+</ul>
+
+<p><strong>所以汽车功能安全（ISO 26262）的严格度远高于家电安全标准：</strong> 家电的"安全"通常是"坏了别着火"，汽车的"安全"是"坏了也别让里面的人受伤"——"里面还有人"这四个字就是一切差异的根源。</p>
+</div>
+
+<h3>Q2（用"一个警察 vs 两个互相监视的警察"类比解释硬件安全机制的必要性）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"警察 vs 互相监视的警察"类比）：</strong></p>
+
+<p><strong>软件检查的局限性（一个警察巡逻）：</strong></p>
+<ul>
+  <li>警察 A 负责检查"街上有没有坏人"——如果有人把警察 A 打晕了，就没有人发现"警察 A 被袭击了"</li>
+  <li>软件里的 if-else 检查，如果 <strong>CPU 本身已经跑飞了</strong>，"检查代码"也会跟着跑飞</li>
+  <li>软件检查不能检测 CPU 内部寄存器的位翻转——检查者（CPU）和被检查者（程序）是<strong>同一个人</strong></li>
+</ul>
+
+<p><strong>硬件安全机制的必要性（两个互相监视的警察）：</strong></p>
+<ul>
+  <li>两个警察 A 和 B <strong>同步执行相同的巡逻路线</strong>（锁步核）——如果 A 被打晕，B 会立刻发现"咦，A 怎么不走同一条路线？"→ <strong>触发报警</strong></li>
+  <li>还有一个<strong>中央监控室</strong>（看门狗——独立于两个警察的第三方），每隔 10 分钟确认两个警察都还在岗位上 → 如果收不到确认信号，自动派出特警队（系统复位或冗余切换）</li>
+</ul>
+
+<table>
+<tr><th>故障类型</th><th>软件能检测吗？</th><th>硬件机制能检测吗？</th></tr>
+<tr><td>传感器值超出范围</td><td>✅ 做合理性检查</td><td>✅ 独立安全芯片做交叉验证</td></tr>
+<tr><td>CPU 内部门控寄存器被辐射打翻</td><td>❌ 检查程序本身跑在同一个 CPU 上</td><td>✅ 锁步核发现两颗核结果不一致</td></tr>
+<tr><td>RAM 中关键数据被宇宙射线翻转</td><td>❌ 无法知道位翻转</td><td>✅ ECC 自动纠正/检测</td></tr>
+<tr><td>看门狗超时（CPU 卡死）</td><td>❌ CPU 已经卡死了，没法运行检查代码</td><td>✅ 独立硬件看门狗自动复位</td></tr>
+</table>
+
+<p><strong>一句话：</strong> 软件检查是"自己查自己"——如果自己已经坏了，查也查不出。硬件安全机制是"我找一个独立的兄弟来监督我，还让第三个兄弟在外面盯着"。功能安全之所以要求"锁步核""ECC""独立看门狗"，是因为 <strong>故障可能让检测者本身也失效</strong>——只有独立冗余的硬件机制才能防止这种情况。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td><strong>严重度（Severity, S0-S3）、暴露概率（Exposure, E0-E4）、可控性（Controllability, C0-C3）</strong> 三者组合后查表得到 ASIL A/B/C/D 或 QM。A ❌ 成本、时间、质量与功能安全等级无关；C ❌ 速度、能耗、复杂度不是 ISO 26262 定义的评估因素；D ❌ 安全性是结果，不是决定因素</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>B</strong></td>
+  <td>功能安全的关注点是<strong>故障后的安全后果</strong>——系统出故障后还能否安全运行（"出了故障是否安全"）。可靠性的关注点是<strong>故障频率</strong>——系统多久会坏一次（MTBF/失效率）。A ❌ 表述正好说反了；C ❌ 两者有本质区别；D ❌ 功能安全适用于所有汽车 E/E 系统，不仅限于自动驾驶</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>B</strong></td>
+  <td>ASIL D 等级的刹车系统必须设计多重安全机制：(1) <strong>独立硬件看门狗</strong>检测 CPU 是否超时未"喂狗"——跑飞意味着喂狗线程也被中断，看门狗必然超时；(2) <strong>备用芯片或冗余路径</strong>接管刹车控制；(3) 车辆进入<strong>跛行模式（Limp Home Mode）</strong>——有限的刹车能力维持，安全减速到停车。A ❌ 重启期间不刹车——在高速上意味着灾难；C ❌ 等驾驶员发现就是等死神敲门——120km/h 下没有时间等；D ❌ 永久锁死刹车更危险——后车追尾</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

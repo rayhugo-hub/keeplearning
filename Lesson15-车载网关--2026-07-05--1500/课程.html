@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 15（15:00）：车载网关的网络安全——网关如何守住汽车的第一道防线？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{text-align:center;margin:.8rem 0}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 15（15:00）— 2026-07-05 | 🛡️ 车载网关网络安全：从"交通警察"到"安全卫士"</div>
+  <h1>车载网关的网络安全——网关如何守住汽车的第一道防线？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson14-舱驾融合--2026-07-05--1200/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson16-车载传感器--2026-07-05--1800/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>想象一下：你正在高速上以 120km/h 行驶。这时，一辆停在路边的攻击车通过 Wi-Fi 接入了你的车载网关，然后向 CAN 总线发送了一条伪造的"刹车解除"指令——你的刹车踏板瞬间变软了。</p>
+
+<div class="callout-warn">
+  <p><strong>这不是科幻片，这是真实的安全研究案例。</strong> 2015 年，两位研究员 Charlie Miller 和 Chris Valasek 通过克莱斯勒 Uconnect 系统的 4G 漏洞远程攻入了一辆 Jeep Cherokee 的网关，在高速上控制了刹车和转向。这直接导致克莱斯勒召回 140 万辆车。</p>
+</div>
+
+<div class="callout">
+  <p>今天的重点：<strong>车载网关的网络安全</strong>——网关为什么是汽车的第一道防线？它都面临哪些攻击？用什么技术防御？</p>
+</div>
+
+<hr>
+
+<h2>二、网关为什么是安全核心？</h2>
+
+<p>回顾 Lesson 01：车载网关是汽车网络的中枢，它连接着<strong>外部通信</strong>（4G/5G、Wi-Fi、蓝牙、GPS）和<strong>内部网络</strong>（CAN FD、CAN、LIN、车载以太网）。</p>
+
+<div class="mermaid">
+flowchart TB
+    EXT["🌐 互联网 / 云&lt;br&gt;(4G/5G/T-BOX → 云平台)"]
+    TBOX["📡 T-BOX&lt;br&gt;(Modem)"]
+    GW["🛡️ 车载网关"]
+    CANFD["CAN FD&lt;br&gt;(动力/底盘)"]
+    ETH["车载以太网&lt;br&gt;(ADAS/座舱)"]
+    LIN["LIN/其他&lt;br&gt;(车身控制)"]
+
+    EXT --> TBOX
+    TBOX --> GW
+    GW --> CANFD
+    GW --> ETH
+    GW --> LIN
+</div>
+
+<p><strong>网关就是内外之间的"唯一通道"。</strong> 所有从外部进来的数据都必须经过网关——这意味着只要守住网关，外部攻击就无法直接触及 CAN 总线。反过来，<strong>如果网关被攻破，整车网络就完全暴露。</strong></p>
+
+<table>
+<tr><th>角色</th><th>说明</th></tr>
+<tr><td><strong>唯一入口</strong></td><td>所有外部通信（4G/蓝牙/Wi-Fi/车载以太网诊断）都经过网关</td></tr>
+<tr><td><strong>协议转换点</strong></td><td>外部来的 IP 数据包→内部 CAN 帧，转换点是最容易被攻击的点</td></tr>
+<tr><td><strong>路由决策点</strong></td><td>网关决定哪些消息可以转发、转发到哪里——防火墙功能就做在这里</td></tr>
+<tr><td><strong>安全审计点</strong></td><td>网关是部署入侵检测系统（IDS）的最佳位置</td></tr>
+</table>
+
+<hr>
+
+<h2>三、五大攻击场景</h2>
+
+<table>
+<tr><th>#</th><th>攻击路径</th><th>手段</th><th>后果</th></tr>
+<tr><td><strong>1</strong></td><td><strong>远程攻击</strong></td><td>通过 T-BOX 的 4G/5G 漏洞远程入侵网关</td><td>全球范围可攻击，无需物理接触</td></tr>
+<tr><td><strong>2</strong></td><td><strong>Wi-Fi/蓝牙攻击</strong></td><td>破解 Wi-Fi 密码或通过蓝牙配对漏洞进入</td><td>近距离（几十米内）可攻击</td></tr>
+<tr><td><strong>3</strong></td><td><strong>OBD-II 诊断攻击</strong></td><td>通过 DoIP（Diagnostics over IP）接口直接访问网关</td><td>物理接触，但 OBD 接口通常暴露在车内</td></tr>
+<tr><td><strong>4</strong></td><td><strong>无线传感器欺骗</strong></td><td>伪造 TPMS（胎压监测）或 RKE（遥控钥匙）信号</td><td>导致错误告警或车门被非法打开</td></tr>
+<tr><td><strong>5</strong></td><td><strong>供应链攻击</strong></td><td>在 T-BOX 或网关固件的生产环节植入后门</td><td>最隐蔽，难以发现</td></tr>
+</table>
+
+<div class="callout-warn">
+  <p><strong>2015 Jeep 事件回顾：</strong> Miller 和 Valasek 通过 Sprint 4G 网络找到了 Jeep 的 IP 地址（Uconnect 系统有公开 IP），利用系统漏洞获得了 T-BOX 的 shell 权限，再通过 CAN 总线注入伪造消息——即使车没有点火，也能控制雨刷、音响、转向和刹车。</p>
+</div>
+
+<hr>
+
+<h2>四、四大防御技术</h2>
+
+<h3>防御 1：网络隔离与防火墙</h3>
+
+<p>网关内部有多个"安全域"，域之间通过<strong>访问控制列表（ACL）</strong>控制通信：</p>
+
+<table>
+<tr><th>安全域</th><th>包含网络</th><th>外部可访问？</th></tr>
+<tr><td>❗<strong>不可信域</strong></td><td>T-BOX、Wi-Fi、蓝牙、OBD-II</td><td>✅ 是</td></tr>
+<tr><td>⚠️ <strong>低安全域</strong></td><td>信息娱乐 CAN（IVI）</td><td>✅ 受限</td></tr>
+<tr><td>🟡 <strong>中安全域</strong></td><td>车身 CAN（BCM、车窗、门锁）</td><td>❌ 否</td></tr>
+<tr><td>🔴 <strong>高安全域</strong></td><td>动力 CAN FD（发动机、变速箱、刹车）</td><td>❌ 否</td></tr>
+<tr><td>🟢 <strong>诊断域</strong></td><td>DoIP（OBD-II 诊断）</td><td>✅ 认证后</td></tr>
+</table>
+
+<p><strong>防火墙规则示例：</strong></p>
+<pre class="code-block">
+规则 1: 不允许 不可信域 → 动力 CAN FD（任何消息）
+规则 2: 不允许 不可信域 → 车身 CAN（除授权诊断外）
+规则 3: 允许 不可信域 → 信息娱乐 CAN（媒体流）
+规则 4: 动力 CAN FD → 车身 CAN（速度信号）允许
+规则 5: 诊断仪需证书认证后才可访问动力 CAN FD
+</pre>
+
+<h3>防御 2：入侵检测系统（IDS）</h3>
+
+<p>类似 IT 网络的"杀毒软件"，车载 IDS 监控 CAN/以太网总线上的消息流，发现异常行为：</p>
+
+<table>
+<tr><th>检测类型</th><th>检测什么</th><th>举例</th></tr>
+<tr><td><strong>频率检测</strong></td><td>某个 CAN ID 的发送频率是否异常</td><td>速度信号正常情况下每 100ms 发一次；如果突然每秒发 1000 次→可能是攻击</td></tr>
+<tr><td><strong>值域检测</strong></td><td>信号值是否超出合理范围</td><td>车速信号值从 120km/h 突然跳到 1000km/h→异常</td></tr>
+<tr><td><strong>序列检测</strong></td><td>CAN 消息的顺序是否异常</td><td>正常情况下 A→B→C 的顺序，如果跳过了 B→怀疑攻击</td></tr>
+<tr><td><strong>认证检测</strong></td><td>可疑的远程登录尝试</td><td>同一个 IP 在 1 秒内尝试 100 次登录→暴力破解</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart TB
+    subgraph CAN["CAN/CAN FD 总线"]
+        MSG1["🟢 正常速率信号 100ms"]
+        MSG2["🔴 异常高速注入信号 1ms"]
+    end
+    subgraph GW["网关/安全模块"]
+        IDS["👁️ CAN IDS 检测引擎"]
+        RULES["📋 规则库"]
+        ALERT["🚨 告警生成"]
+        ACTION["⚡ 动作执行"]
+    end
+    subgraph RESPONSE["响应"]
+        LOG["📝 记录日志到云端"]
+        BLOCK["🚫 阻断可疑节点"]
+        ISOLATE["🔒 隔离受攻击总线"]
+        NOTIFY["📱 通知车主/云端"]
+    end
+    MSG1 --> IDS
+    MSG2 --> IDS
+    RULES --> IDS
+    IDS --> ALERT
+    ALERT --> ACTION
+    ACTION --> LOG
+    ACTION --> BLOCK
+    ACTION --> ISOLATE
+    ACTION --> NOTIFY
+</div>
+
+<h3>防御 3：安全启动（Secure Boot）</h3>
+
+<p><strong>问题：</strong> 如果攻击者修改了网关的固件，替换成恶意版本，那么所有防火墙规则都形同虚设。</p>
+
+<p><strong>Secure Boot 的工作原理：</strong></p>
+
+<div class="mermaid">
+sequenceDiagram
+    participant HW as 🔲 硬件 BootROM
+    participant Boot1 as 📦 Bootloader 1&lt;br&gt;(一级引导)
+    participant Boot2 as 📦 Bootloader 2&lt;br&gt;(二级引导)
+    participant OS as 🖥️ 网关 OS/固件
+    Note over HW,OS: 安全启动链——层层验证，一环破→整体停
+    HW->>HW: 烧录在芯片内的根公钥&lt;br&gt;（不可修改的硬件密钥）
+    HW->>Boot1: 读取 Bootloader 1 及其签名
+    HW->>HW: 用根公钥验证 Boot1 签名
+    Note over HW: 签名验证通过？✅
+    HW->>Boot1: ✅ 启动 Boot1
+    Boot1->>Boot2: 读取 Bootloader 2 及其签名
+    Boot1->>Boot1: 用 Boot1 中公钥验证 Boot2 签名
+    Note over Boot1: 验证通过？✅
+    Boot1->>Boot2: ✅ 启动 Boot2
+    Boot2->>OS: 读取 OS/固件及其签名
+    Boot2->>Boot2: 用 Boot2 中公钥验证 OS 签名
+    Note over Boot2: 验证通过？✅
+    Boot2->>OS: ✅ 启动 OS
+    Note over HW,OS: 任何一步签名失败 → ❌ 停止启动 → 进入恢复模式
+</div>
+
+<p><strong>关键点：</strong></p>
+<ul>
+  <li>第一级信任根（Root of Trust）烧录在芯片硬件中，<strong>无法被软件修改</strong></li>
+  <li>每一级启动前都验证下一级的<strong>数字签名</strong></li>
+  <li>如果签名验证失败，芯片进入<strong>安全恢复模式</strong>（只接受经过签名的官方固件刷写）</li>
+  <li>确保即使攻击者拿到物理芯片，也无法运行自定义恶意固件</li>
+</ul>
+
+<h3>防御 4：安全 OTA 更新与证书管理</h3>
+
+<table>
+<tr><th>要求</th><th>实现方式</th></tr>
+<tr><td><strong>固件完整性</strong></td><td>每次 OTA 镜像必须带有 OEM 的数字签名，网关验证签名后才刷写</td></tr>
+<tr><td><strong>防回滚</strong></td><td>网关记录当前固件版本号，禁止刷写比当前版本更旧的固件（防止攻击者刷回有漏洞的老版本）</td></tr>
+<tr><td><strong>加密传输</strong></td><td>OTA 镜像全程 TLS 加密传输，防止中间人攻击</td></tr>
+<tr><td><strong>原子更新</strong></td><td>刷写过程中断电→网关能恢复到上一个可用版本（A/B 分区方案）</td></tr>
+</table>
+
+<hr>
+
+<h2>五、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>网关是汽车网络安全的唯一关口</strong></td><td>所有外部数据都必须经过网关，守住网关就守住了整车网络；网关被攻破，整辆车沦陷</td></tr>
+<tr><td><strong>2</strong></td><td><strong>用"纵深防御"替代"单点防御"</strong></td><td>防火墙+入侵检测+安全启动+安全OTA，四层防御层层递进，单层突破并不意味着整车沦陷</td></tr>
+<tr><td><strong>3</strong></td><td><strong>汽车网络安全和 IT 网络安全有本质区别</strong></td><td>汽车 CAN 总线没有认证和加密机制（30年前的协议），网关需要额外保护；攻击后果不只是"数据泄露"，而是"人命关天"</td></tr>
+</table>
+
+<hr>
+
+<h2>六、Mermaid 图示：汽车网络安全架构总览</h2>
+
+<div class="mermaid">
+flowchart TB
+    subgraph EXT["🌐 外部世界"]
+        CLOUD["☁️ OEM 云平台"]
+        ATTACKER["👾 黑客"]
+        DIAG["🔧 诊断仪 (OBD-II)"]
+        PHONE["📱 手机 App"]
+    end
+    subgraph TIER1["第一道防线：通信层安全"]
+        TBOX["📡 T-BOX (4G/5G)"]
+        BT["📶 Wi-Fi / 蓝牙"]
+        TLS["🔐 TLS / DTLS 加密通道"]
+    end
+    subgraph TIER2["第二道防线：网关安全"]
+        FW["🧱 防火墙 ACL"]
+        IDS2["👁️ 入侵检测 IDS"]
+        SB["🔒 Secure Boot"]
+        OTA["🔄 安全 OTA"]
+    end
+    subgraph TIER3["第三道防线：内部网络"]
+        CANFD["CAN FD (动力/底盘)"]
+        ETH["车载以太网 (ADAS/座舱)"]
+        CAN_BODY["CAN (车身)"]
+        LIN2["LIN (车窗/座椅)"]
+    end
+    subgraph TIER4["第四道防线：ECU 本地安全"]
+        ECU_SB["ECU Secure Boot"]
+        ECU_IDS["ECU 端入侵检测"]
+        E2E["端到端通信安全"]
+    end
+    CLOUD -->|TLS 加密| TBOX
+    ATTACKER -->|攻击| TBOX
+    ATTACKER -->|攻击| BT
+    PHONE -->|App交互| CLOUD
+    DIAG -->|直接连接| TBOX
+    TBOX -->|解密后数据| FW
+    BT -->|解密后数据| FW
+    FW -->|过滤后流量| IDS2
+    IDS2 -->|正常流量| ETH
+    IDS2 -->|正常流量| CANFD
+    IDS2 -->|正常流量| CAN_BODY
+    IDS2 -->|正常流量| LIN2
+    CANFD --> ECU_SB
+    ETH --> ECU_SB
+    CAN_BODY --> ECU_SB
+    LIN2 --> ECU_SB
+</div>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>请用自己的话解释：为什么车载网关被称为汽车的"第一道防线"？如果有人攻破了网关，他能对车做什么坏事？（不要用术语堆砌，像给一个非技术朋友解释）</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>如果你被要求给一辆车设计简单的网络安全方案，你会从哪三个层面来防御？（提示：从外部通信到内部网络逐层思考）每个层面用一句话说明你要做什么。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>有人问："家里的路由器也有防火墙，直接把家里那套安全策略搬到车上不就行了吗？" 请用你自己的话解释为什么家用 IT 防火墙不能直接用在车载网关上，汽车网络有什么特殊性。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. 2015 年 Jeep Cherokee 被远程攻击的事件说明了什么？</div>
+<label><input type="radio" name="mc1" value="A"> A. 克莱斯勒的刹车踏板设计有缺陷</label>
+<label><input type="radio" name="mc1" value="B"> B. 车载网关一旦被攻破，攻击者可以直接向 CAN 总线发送控制指令</label>
+<label><input type="radio" name="mc1" value="C"> C. Wi-Fi 密码太弱是唯一原因</label>
+<label><input type="radio" name="mc1" value="D"> D. 只要不使用 4G 网络就能完全避免此类攻击</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. 车载网关的防火墙（ACL）主要功能是什么？</div>
+<label><input type="radio" name="mc2" value="A"> A. 阻止所有 CAN 消息通过网关</label>
+<label><input type="radio" name="mc2" value="B"> B. 根据来源/目标网络域决定是否允许消息通过，特别是禁止外部域访问动力和底盘域</label>
+<label><input type="radio" name="mc2" value="C"> C. 加密所有经过网关的数据</label>
+<label><input type="radio" name="mc2" value="D"> D. 检测驾驶员是否疲劳驾驶</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. 安全启动（Secure Boot）确保了什么？</div>
+<label><input type="radio" name="mc3" value="A"> A. 每次启动车辆时，网关从云端下载最新固件</label>
+<label><input type="radio" name="mc3" value="B"> B. 网关固件在启动前经过层层签名验证，确保运行的代码来自 OEM 官方，未被篡改</label>
+<label><input type="radio" name="mc3" value="C"> C. 只有车主才能启动车辆</label>
+<label><input type="radio" name="mc3" value="D"> D. 启动后自动连接 Wi-Fi 进行安全更新</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ====== Auto-save / Load from localStorage ======
+const LS_KEY = 'teachme_lesson15';
+function saveProgress() {
+  const data = {};
+  data.f1 = document.getElementById('feynman1').value;
+  data.f2 = document.getElementById('feynman2').value;
+  data.f3 = document.getElementById('feynman3').value;
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    if (el.checked) data[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!saved) return;
+    if (saved.f1) document.getElementById('feynman1').value = saved.f1;
+    if (saved.f2) document.getElementById('feynman2').value = saved.f2;
+    if (saved.f3) document.getElementById('feynman3').value = saved.f3;
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      if (saved[el.name] === el.value) el.checked = true;
+    });
+  } catch(e) {}
+}
+// Auto-save on input change
+document.addEventListener('input', saveProgress);
+
+// ====== Submit All: MCQ grading + Feynman review ======
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS.mcq;
+  let score = 0, total = 0;
+  for (const [q, ans] of Object.entries(ANSWERS)) {
+    total++;
+    const selected = document.querySelector(`input[name="${q}"]:checked`);
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === ans) {
+      score++;
+      resultDiv.className = 'mcq-result correct';
+      resultDiv.textContent = '✅ 正确！';
+    } else {
+      const chosen = selected ? selected.value : '（未作答）';
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '❌ 错误。你的答案：' + chosen + '，正确答案：' + ans;
+    }
+  }
+
+  // Remove old score summary if exists
+  const oldScore = document.getElementById('mcq-score');
+  if (oldScore) oldScore.remove();
+
+  const scoreDiv = document.createElement('div');
+  scoreDiv.id = 'mcq-score';
+  scoreDiv.style.cssText = 'margin:.5rem 0;padding:.5rem .7rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;color:#2e7d32';
+  document.getElementById('btn-group-container').before(scoreDiv);
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+
+  // --- Copy Feynman answers for review ---
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  const f3 = document.getElementById('feynman3').value.trim();
+
+  let copyBlock = document.getElementById('copy-block');
+  if (!copyBlock) {
+    copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.5;display:none';
+    document.getElementById('btn-group-container').before(copyBlock);
+  }
+  copyBlock.style.display = 'block';
+  copyBlock.textContent = '【费曼题 Q1】\n' + (f1 || '（未作答）') + '\n\n【费曼题 Q2】\n' + (f2 || '（未作答）') + '\n\n【费曼题 Q3】\n' + (f3 || '（未作答）');
+
+  // Show hint about grading
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 15 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+
+// Load saved progress on page load
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson15',
+  title: 'Lesson 15（15:00）：车载网关的网络安全——网关如何守住汽车的第一道防线？',
+  feynman: [
+    { q: 1, ref: '车载网关是连接"外部世界"（4G/Wi-Fi/蓝牙）和"内部网络"（CAN总线）的唯一通道。所有外部数据都经过它，所以称"第一道防线"。攻破后可以：①向CAN总线发送伪造刹车/转向/加速指令→控制车辆行驶；②控制门锁/车窗/空调→干扰车身功能；③刷写恶意固件→永久驻留攻击代码；④利用4G连接把车变成僵尸网络节点。' },
+    { q: 2, ref: '第一层（入口防守）：所有外部通信使用TLS/DTLS加密，只有经过认证的云平台才能发数据到网关。第二层（中间防守）：网关内设防火墙ACL规则，禁止外部域访问动力/底盘域；部署IDS监控CAN总线异常。第三层（底层防守）：Secure Boot确保固件未被篡改；OTA更新验证数字签名；HSM隔离关键操作。三层纵深防御：一层破还有下一层。' },
+    { q: 3, ref: '不能直接搬的原因：①协议差异——IT防火墙只处理纯IP包（TCP/UDP），而汽车网络是"混合网络"（外部IP→内部CAN/LIN/以太网），防火墙需要理解多种协议并做跨协议策略；②实时性——刹车信号延迟1ms就可能出人命，IT防火墙的深度包检测（DPI）会引入不可接受的延迟；③安全后果不同——IT安全后果是数据泄露，汽车后果是人身安全；④生命周期——汽车用10~15年，需要长期安全维护，家用路由器3~5年就换了；⑤物理可达——OBD-II接口在车内，任何人都能物理连接绕过软件防火墙。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

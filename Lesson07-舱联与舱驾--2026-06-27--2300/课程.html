@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 07（23:00）：舱联与舱驾融合——从"上网"到"一个大脑"</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.code-block{background:#f3f4f8;border-radius:8px;padding:.8rem 1.2rem;font-family:"SF Mono","Consolas",monospace;font-size:.85rem;line-height:1.5;margin:.6rem 0;white-space:pre-wrap;color:#333}
+.tip-box{background:#f0f4ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.6rem 1rem;margin:.8rem 0;font-size:.9rem;color:#333}
+.quiz-section{margin-top:1.5rem}
+.q-item{margin:1.2rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.4rem;font-size:.95rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+textarea{width:100%;min-height:80px;padding:.6rem;font-size:.9rem;border:1px solid #d4d4de;border-radius:8px;resize:vertical;font-family:inherit;line-height:1.6;margin-top:.4rem;transition:border-color .15s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.1)}
+.options{margin-top:.4rem}
+.option{display:flex;align-items:flex-start;gap:.5rem;padding:.35rem 0;cursor:pointer}
+.option input[type="radio"]{margin-top:.3rem;flex-shrink:0;accent-color:#4f6ef7}
+.option label{cursor:pointer}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+.mcq-result{margin-top:.5rem;font-size:.9rem;font-weight:600}
+.mcq-correct{color:#2e7d32}
+.mcq-wrong{color:#c62828}
+.mcq-score{background:#fff3e0;border-radius:8px;padding:.5rem 1rem;margin:.5rem 0;text-align:center;font-size:.95rem;font-weight:600}
+.auto-save-note{font-size:.75rem;color:#aaa;text-align:right;margin-top:.2rem}
+.copy-block{background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:.8rem 1rem;margin:.6rem 0;font-size:.85rem;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto}
+.footer-note{margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #e8e8ee;font-size:.85rem;color:#888;text-align:center}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 07（23:00）— 2026-06-27 | 🚗 舱联与舱驾融合</div>
+  <h1>舱联与舱驾融合——从"上网"到"一个大脑"</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson06-数字车钥匙通信--2026-06-26--2242/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson08-音频通信协议--2026-06-27--2300/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+<p>你坐进一辆 2026 年的智能电动车，手机放上无线充电板，车自动认出你是谁、调好座椅和后视镜。</p>
+<p>上路后，导航在实时下载路况 → 4G/5G<br>
+你在用语音切歌 → 车载语音 + 在线音乐<br>
+后座孩子在刷视频 → 车载 WiFi 热点<br>
+车辆在后台上报状态 → 4G<br>
+OTA 在悄悄下载系统更新 → 4G/WiFi<br>
+手机数字钥匙在测距 → BLE + UWB<br>
+紧急呼叫系统待命 → 4G（独立通道）</p>
+<p><strong>一辆车里同时运行着 5~7 种无线通信链路。</strong> 它们不能互相干扰、不能抢带宽、还要保证关键通信永不掉线。这就是<strong>舱联</strong>要解决的问题。</p>
+
+<p>现在再加一层场景：</p>
+<blockquote><p>你打了一个哈欠，揉了一下眼睛。</p>
+<p>座舱系统看到了 → 调低空调、放点提神音乐<br>
+智驾系统也看到了 → 主动降速、建议进服务区</p>
+<p>但这两套系统是各管各的——座舱看到的数据和智驾看到的数据，是两个摄像头拍的两份不同的数据。</p></blockquote>
+<p>这就是<strong>舱驾融合</strong>要解决的问题。</p>
+<p>本课把这两件事放在一起讲，因为它们本质上是同一个大问题的两面：<strong>一辆智能汽车，如何让所有的"连接"和所有的"大脑"协同工作？</strong></p>
+
+<hr>
+
+<h2>二、舱联的四层网络架构</h2>
+<p>一辆车里的通信链路不是随便拉的，而是按四层架构组织：</p>
+<div class="mermaid">
+flowchart TB
+    subgraph L1["🧑 用户交互层"]
+        U1["导航 | 音乐 | 视频 | 语音 | CarPlay | 手机远程控车"]
+    end
+    subgraph L2["📡 接入层（怎么连）"]
+        U2["4G/5G | WiFi | 蓝牙/BLE | UWB | GNSS"]
+    end
+    subgraph L3["🔗 连接管理层（怎么管）"]
+        U3["多链路负载均衡 | 连接优先级 | 冗余切换<br>APN 管理 | VPN 通道 | 防火墙规则"]
+    end
+    subgraph L4["🛡️ 安全与服务质量层"]
+        U4["eCall优先通道 | OTA 带宽限速 | 数据加密<br>远程诊断通道 | 隐私数据隔离 | 证书管理"]
+    end
+    L1 --> L2 --> L3 --> L4
+</div>
+
+<h2>三、各通信链路的技术参数与用途</h2>
+<table>
+<tr><th>通信方式</th><th>频率</th><th>带宽</th><th>延迟</th><th>典型用途</th><th>关键要求</th></tr>
+<tr><td><strong>4G LTE</strong></td><td>700-2600 MHz</td><td>~150 Mbps</td><td>~50 ms</td><td>导航、音乐、远程控车</td><td>覆盖优先</td></tr>
+<tr><td><strong>5G NR</strong></td><td>3.5-39 GHz</td><td>~1 Gbps</td><td>~10 ms</td><td>高清视频、V2X、OTA</td><td>低延迟高带宽</td></tr>
+<tr><td><strong>C-V2X PC5</strong></td><td>5.9 GHz</td><td>~50 Mbps</td><td>&lt; 5 ms</td><td>车-车/车-路直连通信</td><td>超低延迟</td></tr>
+<tr><td><strong>WiFi 6/7</strong></td><td>2.4/5/6 GHz</td><td>~1.2 Gbps</td><td>~5 ms</td><td>OTA下载、车载热点</td><td>近距离高带宽</td></tr>
+<tr><td><strong>BLE</strong></td><td>2.4 GHz</td><td>~2 Mbps</td><td>~6 ms</td><td>数字钥匙、车载蓝牙</td><td>超低功耗</td></tr>
+<tr><td><strong>GNSS</strong></td><td>1.2-1.6 GHz</td><td>N/A</td><td>~1 s</td><td>定位导航</td><td>多星座支持</td></tr>
+<tr><td><strong>NFC</strong></td><td>13.56 MHz</td><td>~424 Kbps</td><td>&lt; 0.1 s</td><td>钥匙备份、近场配对</td><td>极近距离</td></tr>
+</table>
+
+<hr>
+
+<h2>四、舱联的核心挑战</h2>
+
+<h3>挑战一：多链路共存</h3>
+<p>问题：4G、WiFi、蓝牙都在车里，频率有重叠（2.4 GHz 被三四个技术共用），会互相干扰。</p>
+<p>解决方案：</p>
+<ul>
+<li><strong>MIMO 天线分集</strong> — 不同通信使用不同天线位置，物理隔离</li>
+<li><strong>时分调度</strong> — 优先级高的通信（如 eCall）先占时隙</li>
+<li><strong>共存算法</strong> — 蓝牙和 WiFi 在芯片级协调跳频序列，避免同时发</li>
+</ul>
+
+<h3>挑战二：连接冗余</h3>
+<p>问题：车在高速行驶，信号会断（隧道、山区），但导航和 eCall 不能断。</p>
+<p>解决方案：</p>
+<ul>
+<li><strong>多 SIM 冗余</strong> — 双卡双待，主卡掉线自动切到副卡（不同运营商）</li>
+<li><strong>WiFi 卸载</strong> — 到家自动切到家庭 WiFi，省流量</li>
+<li><strong>离线缓存</strong> — 导航地图按路线预下载，断网也能继续导</li>
+</ul>
+
+<h3>挑战三：带宽分配</h3>
+<p>问题：OTA 下载 5 GB 的大包，如果占满带宽，用户导航实时路况就卡了。</p>
+<p>解决方案：</p>
+<ul>
+<li><strong>QoS 优先级</strong> — 交互类（导航、语音）&gt; 流媒体 &gt; OTA 后台下载</li>
+<li><strong>后台下载限速</strong> — OTA 只占空闲带宽，不抢用户正在用的流量</li>
+<li><strong>差分更新</strong> — 只下载改动过的文件块，而不是整包重下</li>
+</ul>
+
+<hr>
+
+<h2>五、传统架构：为什么座舱和智驾"老死不相往来"？</h2>
+<p>在 2020 年之前的量产车上，座舱和智驾是<strong>两套完全独立的硬件系统</strong>：</p>
+<div class="mermaid">
+flowchart LR
+    subgraph Cockpit["🧑 座舱域"]
+        C1["座舱域控制器（Cockpit DC）"]
+        C2["中控大屏 | 仪表屏 | 语音 | 导航 | 娱乐"]
+    end
+    subgraph ADAS["🤖 智驾域"]
+        A1["智驾域控制器（ADAS DC）"]
+        A2["摄像头 | 雷达 | 地图定位 | 规控算法"]
+    end
+    Cockpit -->|"仅有 CAN/LIN 信号交互"| ADAS
+</div>
+
+<table>
+<tr><th>问题</th><th>具体表现</th></tr>
+<tr><td><strong>数据孤岛</strong></td><td>DMS 摄像头数据座舱也要用、智驾也要用，但各装各的 → 多花几百块成本</td></tr>
+<tr><td><strong>交互延迟高</strong></td><td>座舱检测到分心 → 通过 CAN 总线通知智驾 → 再反应。CAN 一帧数据往返几十毫秒</td></tr>
+<tr><td><strong>场景联动难</strong></td><td>想做"打哈欠→自动进服务区"这种跨域功能，需要两套团队协调开发</td></tr>
+<tr><td><strong>硬件成本高</strong></td><td>两块 SoC + 两块存储 + 两套电源管理 → 多花几百美金</td></tr>
+</table>
+
+<hr>
+
+<h2>六、舱驾融合：架构演进路线</h2>
+<div class="mermaid">
+flowchart LR
+    subgraph Gen1["第一阶段（2020 前）"]
+        G1["独立域控<br>座舱 = 骁龙 820A<br>智驾 = Mobileye EyeQ4"]
+    end
+    subgraph Gen2["第二阶段（2022-2024）"]
+        G2["域控互联<br>座舱 + 智驾通过<br>千兆以太网通信"]
+    end
+    subgraph Gen3["第三阶段（2024-2026）"]
+        G3["舱驾一体<br>单颗 SoC（如<br>Snapdragon Ride Flex）<br>运行多个虚拟机"]
+    end
+    subgraph Gen4["第四阶段（2027+）"]
+        G4["中央计算平台<br>全车一个大脑<br>支撑座舱 + 智驾 + 车身 + 底盘"]
+    end
+    Gen1 --> Gen2 --> Gen3 --> Gen4
+</div>
+
+<hr>
+
+<h2>七、舱驾一体的核心技术</h2>
+
+<h3>7.1 芯片层：一颗芯片跑两个世界</h3>
+<div class="mermaid">
+flowchart TB
+    subgraph Chip["骁龙 Ride Flex SoC"]
+        subgraph HV["Hypervisor 虚拟机管理"]
+            H1["🧑 座舱 VM<br>Android Automotive OS<br>仪表、中控、语音、导航"]
+            H2["🤖 智驾 VM<br>实时操作系统（RTOS）<br>感知、规划、控制"]
+        end
+        subgraph HW["硬件资源"]
+            H3["CPU（Kryo）| GPU（Adreno）| NPU（Hexagon）<br>ISP | 视频编解码 | 安全岛"]
+        end
+    end
+    H1 -->|"共享内存 / IPC"| H2
+    HW --> HV
+</div>
+
+<table>
+<tr><th>技术</th><th>作用</th></tr>
+<tr><td><strong>Hypervisor（虚拟机管理程序）</strong></td><td>在单颗 SoC 上隔离运行两个 OS。座舱跑 Android（娱乐可以死机重启），智驾跑 RTOS（安全等级高）</td></tr>
+<tr><td><strong>硬件虚拟化</strong></td><td>GPU/ISP/NPU 等硬件资源被分时共享——导航渲染不抢智驾算力</td></tr>
+<tr><td><strong>共享内存（Shared Memory）</strong></td><td>DMS 摄像头数据只采集一次，同时被座舱和智驾读取</td></tr>
+<tr><td><strong>功能安全隔离</strong></td><td>智驾侧 ASIL-D，座舱侧 QM——跑在同一颗芯片上互不干扰</td></tr>
+</table>
+
+<h3>7.2 场景联动：1+1 &gt; 2</h3>
+<table>
+<tr><th>场景</th><th>座舱做什么</th><th>智驾做什么</th><th>融合效果</th></tr>
+<tr><td><strong>疲劳驾驶检测</strong></td><td>DMS 检测到频繁闭眼、打哈欠</td><td>主动降速、建议进服务区</td><td>从提醒你升级为帮你做</td></tr>
+<tr><td><strong>变道辅助</strong></td><td>你转头看右侧后视镜</td><td>检测侧后方盲区车辆</td><td>更自然的变道时机判断</td></tr>
+<tr><td><strong>AR-HUD 导航</strong></td><td>计算导航路径</td><td>提供车道级定位</td><td>导航箭头精确投影到该走的车道</td></tr>
+<tr><td><strong>自动泊车</strong></td><td>显示全景影像 + 选车位</td><td>控制方向盘 + 油门 + 刹车</td><td>你点一下屏幕就行</td></tr>
+<tr><td><strong>OTA 升级</strong></td><td>显示升级进度 + 用户确认</td><td>备份安全参数、监控升级过程</td><td>一个升级包同时更新两个域</td></tr>
+</table>
+
+<hr>
+
+<h2>八、核心原则</h2>
+<ol>
+<li><strong>关键通信必须有冗余路径</strong> — eCall 走独立基带芯片+独立天线，哪怕车机死机了也能拨通</li>
+<li><strong>用户感知优先于后台任务</strong> — 导航延迟 &lt; 50 ms 是一条不能破的线</li>
+<li><strong>座舱可以死机，智驾绝对不能</strong> — Hypervisor 硬隔离确保娱乐宕机不影响安全</li>
+<li><strong>数据只采集一次，两端共享使用</strong> — 不再重复采购传感器</li>
+</ol>
+
+<!-- ===== 测验开始 ===== -->
+
+<hr>
+
+<div class="quiz-section">
+<h2>📝 测验</h2>
+
+<div id="mcq-score-display"></div>
+
+<div id="feynman-section">
+<h3>费曼简答题</h3>
+<p style="font-size:.9rem;color:#888;">用自己的话回答，不要用任何专业术语。</p>
+
+<div class="q-item">
+<div class="q-label"><span class="q-tag">Q1</span>请用"好比家里上网"的比喻解释：为什么一辆车需要同时用好几种方式上网，而不是只用一种？</div>
+<textarea id="feynman1" placeholder="在这里写下你的回答..."></textarea>
+</div>
+
+<div class="q-item">
+<div class="q-label"><span class="q-tag">Q2</span>紧急呼叫（eCall）系统为什么需要"独立"的通信通道？如果它和导航共用同一根天线、同一张 SIM 卡，最坏情况下会发生什么？</div>
+<textarea id="feynman2" placeholder="在这里写下你的回答..."></textarea>
+</div>
+
+<div class="q-item">
+<div class="q-label"><span class="q-tag">Q3</span>新技术让一颗芯片上同时跑着"娱乐系统"和"自动驾驶系统"。为什么这很危险？工程师用了什么方法来保证娱乐系统死机不会影响自动驾驶？</div>
+<textarea id="feynman3" placeholder="在这里写下你的回答..."></textarea>
+</div>
+
+<div class="q-item">
+<div class="q-label"><span class="q-tag">Q4</span>如果你是一家车企的工程师，你的老板说"把座舱和智驾合到一起可以省一块芯片的钱"。请解释：除了省钱，还有哪些更重要的理由值得去做舱驾融合？</div>
+<textarea id="feynman4" placeholder="在这里写下你的回答..."></textarea>
+</div>
+</div>
+
+<hr>
+
+<h3>选择题</h3>
+
+<div class="q-item">
+<div class="q-label"><span class="q-tag">1</span>一辆车里同时有多条通信链路在运行，以下哪种场景最需要"连接优先级管理"？</div>
+<div class="options">
+<div class="option"><input type="radio" name="mc1" value="A" id="mc1a"><label for="mc1a">A. 用户在用 CarPlay 打电话，同时后座在用 WiFi 刷视频</label></div>
+<div class="option"><input type="radio" name="mc1" value="B" id="mc1b"><label for="mc1b">B. 用户在用导航，同时 OTA 在后台下载更新包</label></div>
+<div class="option"><input type="radio" name="mc1" value="C" id="mc1c"><label for="mc1c">C. 手机蓝牙连着车机听歌，同时 NFC 钥匙在门把手处认证</label></div>
+<div class="option"><input type="radio" name="mc1" value="D" id="mc1d"><label for="mc1d">D. 以上所有场景都需要</label></div>
+</div>
+<div id="mc1-result" class="mcq-result"></div>
+</div>
+
+<div class="q-item">
+<div class="q-label"><span class="q-tag">2</span>在舱驾一体架构中，Hypervisor（虚拟机管理程序）的核心作用是什么？</div>
+<div class="options">
+<div class="option"><input type="radio" name="mc2" value="A" id="mc2a"><label for="mc2a">A. 让座舱和智驾共享同一个 Wi-Fi 模块</label></div>
+<div class="option"><input type="radio" name="mc2" value="B" id="mc2b"><label for="mc2b">B. 在同一颗 SoC 上隔离运行多个操作系统，保证互不干扰</label></div>
+<div class="option"><input type="radio" name="mc2" value="C" id="mc2c"><label for="mc2c">C. 将智驾的摄像头画面传输到中控大屏显示</label></div>
+<div class="option"><input type="radio" name="mc2" value="D" id="mc2d"><label for="mc2d">D. 管理整车 OTA 升级包的下载和安装</label></div>
+</div>
+<div id="mc2-result" class="mcq-result"></div>
+</div>
+
+<div class="q-item">
+<div class="q-label"><span class="q-tag">3</span>eCall 系统通常采用"独立基带芯片 + 独立天线 + 独立 SIM 卡"的设计，最主要的原因是什么？</div>
+<div class="options">
+<div class="option"><input type="radio" name="mc3" value="A" id="mc3a"><label for="mc3a">A. 为了通话质量更好</label></div>
+<div class="option"><input type="radio" name="mc3" value="B" id="mc3b"><label for="mc3b">B. 为了在主系统死机/断电时 eCall 仍然能工作</label></div>
+<div class="option"><input type="radio" name="mc3" value="C" id="mc3c"><label for="mc3c">C. 为了节省整车电耗</label></div>
+<div class="option"><input type="radio" name="mc3" value="D" id="mc3d"><label for="mc3d">D. 为了支持 5G 网络</label></div>
+</div>
+<div id="mc3-result" class="mcq-result"></div>
+</div>
+
+<div class="q-item">
+<div class="q-label"><span class="q-tag">4</span>以下哪个场景最能体现"舱驾融合"带来的 1+1&gt;2 效果？</div>
+<div class="options">
+<div class="option"><input type="radio" name="mc4" value="A" id="mc4a"><label for="mc4a">A. 用语音控制空调温度</label></div>
+<div class="option"><input type="radio" name="mc4" value="B" id="mc4b"><label for="mc4b">B. 用 360 全景影像辅助倒车入库</label></div>
+<div class="option"><input type="radio" name="mc4" value="C" id="mc4c"><label for="mc4c">C. 当驾驶员打哈欠时，座舱自动调低空调、同时智驾主动降速并建议进服务区</label></div>
+<div class="option"><input type="radio" name="mc4" value="D" id="mc4d"><label for="mc4d">D. 手机 App 远程查看车辆位置</label></div>
+</div>
+<div id="mc4-result" class="mcq-result"></div>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+</div>
+
+<p class="auto-save-note">💾 答案自动保存在浏览器中</p>
+
+</div>
+
+<div class="footer-note">
+  Lesson 07（23:00）— 舱联与舱驾融合 | 2026-06-27
+</div>
+
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div>
+
+<script>
+const LS_KEY = 'teachme_lesson07';
+const ANSWERS = { mc1:'D', mc2:'B', mc3:'B', mc4:'C' };
+
+function saveState() {
+  const state = {
+    f1: document.getElementById('feynman1').value,
+    f2: document.getElementById('feynman2').value,
+    f3: document.getElementById('feynman3').value,
+    f4: document.getElementById('feynman4').value,
+    mc1: document.querySelector('input[name="mc1"]:checked')?.value||'',
+    mc2: document.querySelector('input[name="mc2"]:checked')?.value||'',
+    mc3: document.querySelector('input[name="mc3"]:checked')?.value||'',
+    mc4: document.querySelector('input[name="mc4"]:checked')?.value||''
+  };
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function restoreState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state.f1) document.getElementById('feynman1').value = state.f1;
+    if (state.f2) document.getElementById('feynman2').value = state.f2;
+    if (state.f3) document.getElementById('feynman3').value = state.f3;
+    if (state.f4) document.getElementById('feynman4').value = state.f4;
+    ['mc1','mc2','mc3','mc4'].forEach(k => {
+      if (state[k]) {
+        const el = document.querySelector(`input[name="${k}"][value="${state[k]}"]`);
+        if (el) el.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+document.querySelectorAll('textarea, input[type="radio"]').forEach(el => {
+  el.addEventListener('input', saveState);
+  el.addEventListener('change', saveState);
+});
+
+restoreState();
+
+function submitAll() {
+  let score = 0, total = 4;
+  for (let i = 1; i <= 4; i++) {
+    const selected = document.querySelector(`input[name="mc${i}"]:checked`);
+    const resultDiv = document.getElementById(`mc${i}-result`);
+    if (selected && selected.value === ANSWERS[`mc${i}`]) {
+      score++;
+      resultDiv.innerHTML = '<span class="mcq-correct">✅ 正确！</span>';
+    } else {
+      resultDiv.innerHTML = `<span class="mcq-wrong">❌ 错误。正确答案是 ${ANSWERS[`mc${i}`]}</span>`;
+    }
+  }
+  const display = document.getElementById('mcq-score-display');
+  display.innerHTML = `<div class="mcq-score">选择题得分：${score}/${total}</div>`;
+  display.scrollIntoView({behavior:'smooth',block:'center'});
+
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  const f3 = document.getElementById('feynman3').value.trim();
+  const f4 = document.getElementById('feynman4').value.trim();
+  const copyText = `【Lesson 07 答题结果】\n\n--- 费曼题 ---\nQ1：${f1 || '（未作答）'}\n\nQ2：${f2 || '（未作答）'}\n\nQ3：${f3 || '（未作答）'}\n\nQ4：${f4 || '（未作答）'}\n\n--- 选择题 ---\n得分：${score}/${total}`;
+
+  let existing = document.getElementById('copy-block');
+  if (!existing) {
+    const div = document.createElement('div');
+    div.id = 'copy-block';
+    div.className = 'copy-block';
+    document.querySelector('.btn-group').after(div);
+  }
+  document.getElementById('copy-block').textContent = copyText;
+
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 07 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => el.innerHTML = '');
+  document.getElementById('mcq-score-display').innerHTML = '';
+  const cb = document.getElementById('copy-block');
+  if (cb) cb.remove();
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson07',
+  title: 'Lesson 07（23:00）：舱联与舱驾融合',
+  feynman: [
+    { q: 1, ref: '好比家里上网——手机用4G出门，回家自动切WiFi，看电视用有线，蓝牙听歌。如果只用一种方式，在家费流量速度还慢，出门就没网。车里也一样：导航用4G/5G保证覆盖，OTA下载用WiFi省流量，紧急呼叫用独立通道保安全。' },
+    { q: 2, ref: '最坏情况：车机死机/黑屏时，不但导航用不了，eCall也拨不出去了。独立的eCall模块安装在车身更安全的位置，有自己的备用电池，在主电源切断后还能工作。这是救命的东西，不能依赖会死机的系统。' },
+    { q: 3, ref: '危险在于娱乐系统（Android）会卡顿、死机、需要重启，如果拉上自动驾驶一起崩溃就出大事了。工程师用了Hypervisor（虚拟机）技术——像一栋公寓楼里两个独立房间，共用一个门牌号但各自有独立房门，一边炸了关上门不影响另一边。' },
+    { q: 4, ref: '省钱只是开胃菜。第一，场景联动——从"检测疲劳"到"调空调→降速→建议进服务区"完整闭环；第二，感知数据复用——一颗DMS摄像头就够了，延迟从毫秒降到纳秒；第三，算力弹性——晚上停车后GPU算力可释放给座舱玩游戏。真正价值是1+1>2。' }
+  ],
+  mcq: { mc1: 'D', mc2: 'B', mc3: 'B', mc4: 'C' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

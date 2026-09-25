@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 20（12:00）：中继攻击（Relay Attack）——为什么手机靠近才能开车门？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 20（12:00）— 2026-07-11 | 🔑 数字车钥匙通信（进阶篇）：中继攻击与防御</div>
+  <h1>中继攻击（Relay Attack）——为什么手机靠近才能开车门？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson19-座舱--2026-07-11--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson21-舱联知识--2026-07-12--0900/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>你晚上把车停在小区楼下，锁好车，上楼回家睡觉。第二天早上发现车不见了——监控显示凌晨三点，有个人拿着一个小盒子站在车旁边，另一个人拿着另一个小盒子站在你家门口，车就这么"自己"解锁、点火、开走了。</p>
+
+<p><strong>你的车钥匙明明放在客厅桌上！他们是怎么做到的？</strong></p>
+
+<p>这不是科幻片。这是真实存在的<strong>中继攻击（Relay Attack）</strong>——一种专门对付无钥匙进入系统（PKE/PEPS）的攻击方法。</p>
+
+<hr>
+
+<h2>二、中继攻击的原理——两个小偷"接力"偷车</h2>
+
+<p>传统的遥控钥匙（RKE）按一下按钮才开门，攻击难度大。但<strong>无钥匙进入（PKE/PEPS）</strong>为了便利——钥匙放口袋、靠近车门自动解锁——反而引入了一个致命弱点：</p>
+
+<div class="callout-warn">
+  <p><strong>系统只验证"钥匙是否在附近"，但不验证"有多近"。</strong></p>
+</div>
+
+<h3>图 1 — 中继攻击示意图</h3>
+
+<div class="mermaid">
+flowchart LR
+    subgraph HOME["🏠 家里"]
+        KEY["真车钥匙&lt;br&gt;正在睡觉"]
+    end
+
+    subgraph OUT["🚗 停车场"]
+        CAR["目标车辆"]
+    end
+
+    subgraph THIEF1["小偷甲（家门口）"]
+        AMP1["放大器 A&lt;br&gt;廉价射频模块"]
+    end
+
+    subgraph THIEF2["小偷乙（车旁）"]
+        AMP2["放大器 B&lt;br&gt;廉价射频模块"]
+    end
+
+    KEY -.->|"315/433MHz&lt;br&gt;信号被转发"| AMP1
+    AMP1 ==&gt;|"中继转发&lt;br&gt;几公里距离"| AMP2
+    AMP2 ==&gt;|"冒充钥匙&lt;br&gt;与车通信"| CAR
+</div>
+
+<p><strong>攻击流程：</strong></p>
+<ol>
+  <li><strong>小偷甲</strong>拿着一个信号放大器站在你家门口（或窗外），捕捉钥匙发出的微弱射频信号</li>
+  <li>放大器把信号通过<strong>无线中继</strong>（可以是几公里外的互联网）传给<strong>小偷乙</strong></li>
+  <li><strong>小偷乙</strong>拿着另一个放大器站在车旁，把信号"播放"出去</li>
+  <li>车以为钥匙就在旁边 → 解锁 → 点火 → 开走</li>
+</ol>
+
+<p><strong>关键点：</strong>小偷不需要知道钥匙的加密算法，不需要破解密码——他们只是忠实地<strong>"转发"</strong>信号。车和钥匙之间的加密通信仍然正常工作，只是通信路径被人为拉长了。</p>
+
+<hr>
+
+<h2>三、为什么传统 RKE/PKE 挡不住中继攻击？</h2>
+
+<table>
+<tr><th>系统</th><th>工作原理</th><th>能否防中继攻击？</th><th>原因</th></tr>
+<tr><td><strong>RKE（遥控钥匙）</strong></td><td>按按钮→发送固定/滚动码→解锁</td><td>✅ 基本安全</td><td>需要用户主动按按钮，攻击窗口小</td></tr>
+<tr><td><strong>PKE/PEPS（无钥匙进入）</strong></td><td>靠近→LF唤醒→双向认证→解锁</td><td>❌ 极度脆弱</td><td>钥匙被动响应，攻击者只需转发信号</td></tr>
+<tr><td><strong>手机数字钥匙（仅BLE）</strong></td><td>BLE广播→手机唤醒→认证→解锁</td><td>❌ 同样脆弱</td><td>BLE 信号可被中继，无法测距</td></tr>
+<tr><td><strong>手机数字钥匙（BLE+UWB）</strong></td><td>BLE唤醒+UWB测距→认证→解锁</td><td>✅ 安全</td><td>UWB可精确测量距离（厘米级），中继攻击会暴露</td></tr>
+</table>
+
+<p><strong>传统无钥匙系统为什么防不住？</strong></p>
+<ul>
+  <li>LF（低频，125kHz）唤醒信号<strong>穿墙能力强</strong>——小偷在门外就能唤醒客厅桌上的钥匙</li>
+  <li>射频响应信号（315/433MHz或868MHz）<strong>传输距离远</strong>——被中继后还能正常工作</li>
+  <li>系统<strong>没有距离验证机制</strong>——它只问"你是不是对的钥匙"，不问"你在多远"</li>
+</ul>
+
+<hr>
+
+<h2>四、UWB 如何终结中继攻击？</h2>
+
+<p><strong>UWB（超宽带，Ultra-Wideband）</strong> 的核心能力不是通信速度，而是<strong>精确测距</strong>。</p>
+
+<h3>图 2 — UWB 双边双向测距（DS-TWR）</h3>
+
+<div class="mermaid">
+sequenceDiagram
+    participant CAR as 车辆 UWB 锚点
+    participant KEY as 手机/钥匙 UWB 芯片
+
+    Note over CAR,KEY: 1. 车辆发送 Poll 包，记录发送时间 T1
+    CAR-&gt;&gt;KEY: Poll (T1)
+
+    Note over KEY: 2. 钥匙收到 Poll，记录到达时间 T2
+
+    Note over KEY: 3. 钥匙稍后发送 Response，记录 T3
+    KEY-&gt;&gt;CAR: Response (T3 + T2)
+
+    Note over CAR: 4. 车辆收到 Response，记录到达时间 T4
+
+    Note over CAR,KEY: 5. 车辆计算飞行时间：<br/>ToF = [(T4-T1) - (T3-T2)] / 2
+
+    Note over CAR: 6. 距离 = ToF × 光速<br/>如果距离 &lt; 2米 → 解锁<br/>如果距离 &gt; 5米 → 拒绝
+</div>
+
+<p><strong>UWB 测距的核心原理：</strong></p>
+<ol>
+  <li><strong>飞行时间（ToF, Time of Flight）：</strong> 车辆发送一个脉冲信号，精确记录发送时间 T1；钥匙收到后回复，车辆记录收到时间 T4。扣除钥匙的处理时间（T3-T2），得到信号在空中的飞行时间。</li>
+  <li><strong>距离 = 飞行时间 × 光速</strong> — 因为无线电波速度≈光速（3×10⁸ m/s），1纳秒≈30厘米。2米距离的飞行时间只有约6.7纳秒。</li>
+  <li><strong>中继攻击为什么失效：</strong> 中继器即使以光速转发，每增加1米中继线缆就会增加约3.3纳秒的飞行时间。任何物理中继都会让距离读数变大——如果车设置"距离&lt;2米才解锁"，中继攻击的距离读数可能是10米、100米，直接拒之门外。</li>
+</ol>
+
+<p><strong>关键数据：</strong></p>
+<table>
+<tr><th>参数</th><th>数值</th></tr>
+<tr><td>UWB 测距精度</td><td>±5~10 厘米</td></tr>
+<tr><td>测距更新率</td><td>10~100 Hz</td></tr>
+<tr><td>抗多径能力</td><td>极强（短脉冲不受反射影响）</td></tr>
+<tr><td>防中继攻击</td><td>✅ 物理原理级防护</td></tr>
+</table>
+
+<hr>
+
+<h2>五、工业界的防御方案——CCC 数字钥匙标准</h2>
+
+<p>CCC（Car Connectivity Consortium）制定了数字钥匙的行业标准，推荐的防御架构：</p>
+
+<h3>图 3 — CCC 数字钥匙安全架构</h3>
+
+<div class="mermaid">
+flowchart TB
+    subgraph PHONE["📱 手机端"]
+        SE["安全元件 eSE&lt;br&gt;存储私钥"]
+        BLE_PH["BLE 通信模块&lt;br&gt;建立连接"]
+        UWB_PH["UWB 测距模块&lt;br&gt;距离证明"]
+    end
+
+    subgraph CAR2["🚗 车端"]
+        BLE_CAR["BLE 模块&lt;br&gt;广播/连接"]
+        UWB_CAR["UWB 锚点（×4~6）&lt;br&gt;多天线测距"]
+        ECU["BCM/门控单元&lt;br&gt;距离验证+授权"]
+    end
+
+    BLE_PH &lt;--&gt;|"1. BLE 连接建立"| BLE_CAR
+    UWB_PH &lt;--&gt;|"2. UWB 测距（认证前）"| UWB_CAR
+    UWB_CAR --&gt;|"3. 距离报告"| ECU
+    BLE_PH --&gt;|"4. 加密认证"| ECU
+    ECU --&gt;|"5. 距离&lt;阈值→开锁"| CAR2
+</div>
+
+<p><strong>CCC 数字钥匙的"三步验证"：</strong></p>
+<ol>
+  <li><strong>BLE 连接</strong> — 手机靠近车辆时，通过 BLE 建立通信链路，交换能力信息</li>
+  <li><strong>UWB 测距</strong> — 在认证之前，先通过 UWB 精确测量手机到多个锚点的距离</li>
+  <li><strong>加密认证 + 距离验证</strong> — 只有距离在安全阈值内（通常&lt;2米），才进行加密认证和门锁动作</li>
+</ol>
+
+<hr>
+
+<h2>六、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>中继攻击的本质是"距离欺骗"</strong></td><td>小偷不破解密码，只是把钥匙的响应信号"接力"到车旁边——系统以为钥匙就在附近，实际上钥匙远在几百米外</td></tr>
+<tr><td><strong>2</strong></td><td><strong>UWB 靠"飞行时间"终结中继攻击</strong></td><td>精确测量信号从车到钥匙的往返时间 → 距离 = 时间 × 光速。任何中继都会增加飞行时间，被系统识别为"距离太远"</td></tr>
+<tr><td><strong>3</strong></td><td><strong>安全三件套：BLE 建链 + UWB 测距 + 加密认证</strong></td><td>三个步骤缺一不可。CCC 标准要求测距在认证之前完成（先证明"你在附近"，再证明"你是你"）</td></tr>
+</table>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你朋友听说中继攻击后很害怕，问你："小偷是不是能破解我车钥匙的密码？" 请用"对讲机"的比喻来解释中继攻击的原理——为什么小偷不需要知道密码也能把车开走？</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>请用"量身高"或"赛跑计时"的类比，解释 UWB 是怎么通过"飞行时间"来测量距离的。为什么这个测量方法天然就能防住中继攻击？（提示：想想如果信号绕路走，时间会变长吗？）</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>有人说："既然 UWB 这么安全，那把所有的无钥匙系统都换成 UWB 不就好了？" 请至少说出两个理由，说明为什么不能只靠 UWB——BLE 和加密认证在其中扮演什么不可替代的角色？</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. 中继攻击成功的关键原因是？</div>
+<label><input type="radio" name="mc1" value="A"> A. 破解了车钥匙的加密算法</label>
+<label><input type="radio" name="mc1" value="B"> B. 传统无钥匙系统只验证"钥匙是否在通信范围内"，不验证实际距离</label>
+<label><input type="radio" name="mc1" value="C"> C. 用大功率发射器烧坏了车辆的接收器</label>
+<label><input type="radio" name="mc1" value="D"> D. 利用了蓝牙协议的漏洞</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. UWB 测距技术能防御中继攻击的根本原因是？</div>
+<label><input type="radio" name="mc2" value="A"> A. UWB 信号加密强度比 BLE 高 100 倍</label>
+<label><input type="radio" name="mc2" value="B"> B. UWB 带宽大，能传输更复杂的认证信息</label>
+<label><input type="radio" name="mc2" value="C"> C. UWB 通过测量信号飞行时间来计算距离，任何中继都会增加飞行时间，被系统识别</label>
+<label><input type="radio" name="mc2" value="D"> D. UWB 只能在 10 米范围内通信，所以攻击者无法中继</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. CCC 数字钥匙标准推荐的防中继攻击流程中，三个步骤的正确顺序是？</div>
+<label><input type="radio" name="mc3" value="A"> A. UWB 测距 → BLE 连接 → 加密认证</label>
+<label><input type="radio" name="mc3" value="B"> B. 加密认证 → BLE 连接 → UWB 测距</label>
+<label><input type="radio" name="mc3" value="C"> C. BLE 连接 → 加密认证 → UWB 测距</label>
+<label><input type="radio" name="mc3" value="D"> D. BLE 连接 → UWB 测距 → 加密认证</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ====== Auto-save / Load from localStorage ======
+const LS_KEY = 'teachme_lesson20';
+function saveProgress() {
+  const data = {};
+  data.f1 = document.getElementById('feynman1').value;
+  data.f2 = document.getElementById('feynman2').value;
+  data.f3 = document.getElementById('feynman3').value;
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    if (el.checked) data[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!saved) return;
+    if (saved.f1) document.getElementById('feynman1').value = saved.f1;
+    if (saved.f2) document.getElementById('feynman2').value = saved.f2;
+    if (saved.f3) document.getElementById('feynman3').value = saved.f3;
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      if (saved[el.name] === el.value) el.checked = true;
+    });
+  } catch(e) {}
+}
+// Auto-save on input change
+document.addEventListener('input', saveProgress);
+
+// ====== Clear All: clear both inline MCQ results and ai-grader.js panel ======
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  // Clear textareas and radio buttons
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  // Clear inline MCQ results
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  // Clear inline result elements (legacy)
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+  // Clear ai-grader.js result panel
+  const agResults = document.getElementById('agResultsPanel');
+  if (agResults) agResults.style.display = 'none';
+  const agLocal = document.getElementById('agLocalMCQ');
+  if (agLocal) agLocal.style.display = 'none';
+  const agCopy = document.getElementById('agFeynmanCopy');
+  if (agCopy) agCopy.style.display = 'none';
+  const agHint = document.getElementById('agAIHint');
+  if (agHint) agHint.style.display = 'none';
+  const agLoading = document.getElementById('agLoading');
+  if (agLoading) agLoading.style.display = 'none';
+  const agError = document.getElementById('agError');
+  if (agError) agError.style.display = 'none';
+  const agFeynman = document.getElementById('agFeynmanResults');
+  if (agFeynman) agFeynman.style.display = 'none';
+  const agSummary = document.getElementById('agSummary');
+  if (agSummary) agSummary.style.display = 'none';
+  const agTotal = document.getElementById('agTotal');
+  if (agTotal) agTotal.style.display = 'none';
+}
+
+// Load saved progress on page load
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson20',
+  title: 'Lesson 20（12:00）：中继攻击（Relay Attack）——为什么手机靠近才能开车门？',
+  feynman: [
+    { q: 1, ref: '用"对讲机"类比：中继攻击就像两个人各拿一个对讲机——小偷甲站在你家窗外，对讲机对准钥匙；小偷乙站在车旁，对讲机对准车辆。钥匙发出的信号（你说的话）被小偷甲的对讲机收到，通过无线电传给小偷乙的对讲机，小偷乙"播放"给车听。车听到的是钥匙的"原声"（加密认证信息），所以认为钥匙就在旁边。小偷不需要知道你在说什么（破解密码），只需要把声音传过去。关键点：系统只验证"是不是正确的人在说话"，但不验证"说话的人离我有多远"。' },
+    { q: 2, ref: '用"赛跑计时"类比：UWB 测距就像车和钥匙玩"接力跑"——车喊"开始"并同时按下秒表（T1），钥匙听到后立刻往回跑（T3），车接到接力棒时按下秒表停表（T4）。扣除钥匙转身的时间（T3-T2），就是接力棒在空中的飞行时间。距离 = 时间 × 光速。中继攻击就像接力棒绕远路——不管绕的路径有多快（光速），只要多绕1米就多花3.3纳秒。车一算时间发现不对：「你明明应该跑2米，怎么花了几百米的时间？」→拒绝开门。另一种"量身高"类比：UWB 像用激光测距仪量身高——激光打过去再反射回来，一算时间就知道距离。中继攻击就像在激光路径上放了一面镜子（中继器），激光就绕远了，读数就会变长。' },
+    { q: 3, ref: '两个理由：①BLE 负责"敲门和打招呼"——UWB 功耗高、通信速率低，不适合持续监听广播。BLE 低功耗特性让它能一直监听车辆的"广播信号"，当检测到车辆在附近时才唤醒 UWB。如果没有 BLE，UWB 一直开着会严重消耗手机和车电池。②UWB 只负责"测距"，不负责"身份认证"——UWB 证明"你在附近"，但无法证明"你是正确的钥匙"。加密认证（通常基于安全元件eSE中的私钥签名）负责证明身份。只有 UWB 测距 + 加密认证两者结合，才能同时回答两个问题：1)你确实是那把正确的钥匙吗？2)你真的在附近吗？缺少任何一个，安全性都不完整。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'D' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

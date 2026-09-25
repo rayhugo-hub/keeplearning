@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 48：答案 — 车载以太网物理层</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.answer-correct{color:#2e7d32;font-weight:700}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Lesson 48：参考答案</h1>
+<p class="meta">车载以太网物理层——一根双绞线怎么"塞"进 1Gbps？</p>
+</div>
+<div class="nav-bar">
+  <a href="../Lesson47-车载以太网TSN--2026-08-30--0001/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson49-车载以太网交换机与VLAN--2026-09-04--0006/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">📖 返回课程</a>
+</div>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1：用"打电话"的类比，解释单对线上怎么做到同时收发？回声消除为什么能分清"自己的声音"和"对方的声音"？</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>单对线同时收发靠"回声消除"——自己知道自己在说什么，就能把"自己的回声"从接收信号里减掉。
+</div>
+<table>
+<tr><th>电话类比</th><th>以太网对应物</th></tr>
+<tr><td>同一条电话线</td><td>单对双绞线（收发共用）</td></tr>
+<tr><td>自己说话的声音</td><td>本端发送信号 TX</td></tr>
+<tr><td>听筒里自己的回声</td><td>漏回接收路径的 TX'</td></tr>
+<tr><td>主动"屏蔽"自己的声音</td><td>回声消除器（Echo Canceller）</td></tr>
+<tr><td>剩下的对方声音</td><td>对方发来的信号 RX</td></tr>
+</table>
+<p><strong>为什么能分清：</strong></p>
+<ol>
+<li>本端发送的信号经过混合电路上到线路，同时会<strong>漏回自己的接收路径</strong>，形成回声；</li>
+<li>但本端<strong>完全知道自己刚发了什么</strong>——发送序列是已知的（不是随机噪声）；</li>
+<li>回声消除器用"已知的发送序列"做参考，把接收信号里属于自己的部分<strong>精确减掉</strong>；</li>
+<li>剩下的就是对方发来的信号——就像你知道"这句是我自己说的"，自动屏蔽，只留对方的声音。</li>
+</ol>
+<p><strong>类比延伸：</strong>耳机主动降噪也是同一思路——噪声波形已知，就生成反相波形抵消它。回声消除能成立的关键：<strong>发送内容已知 + 信号线性叠加</strong>。</p>
+<p><strong>结论：</strong>全双工不是靠"两根线各管一个方向"，而是靠"一对线 + 知道自己在说什么"。</p>
+
+<h3>Q2：为什么车里不能用家里那根 RJ45 网线（4 对线）？从线束重量、接口尺寸、电磁干扰三个角度讲，为什么必须专门搞一套车载以太网物理层？</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>普通以太网物理层是给"办公桌"设计的，车里要的是"瘦身 + 抗造"。
+</div>
+<table>
+<tr><th>角度</th><th>普通网线的问题</th><th>车载以太网的解法</th></tr>
+<tr><td><strong>线束重量</strong></td><td>千兆要 4 对线（8 芯），整车几十上百根，线束又重又占空间</td><td>1 对线（2 芯），整车线束<strong>减重数公斤</strong></td></tr>
+<tr><td><strong>接口尺寸</strong></td><td>RJ45 宽约 16mm，摄像头、雷达装不下</td><td>小型连接器（MATEnet、H-MTD）只有<strong>几毫米</strong></td></tr>
+<tr><td><strong>电磁干扰</strong></td><td>4 对线高速并行，串扰大、辐射大；车内电机/点火/大电流全是噪声源</td><td>差分信号 + 双绞 + PAM3 紧凑频谱，辐射低、抗扰强，还要过车规 EMC 测试</td></tr>
+</table>
+<p><strong>补充车规要求：</strong>温度范围 -40℃ ~ +105℃（发动机舱更热）、十几年寿命、持续振动——这些普通网线都没设计过。</p>
+<p><strong>结论：</strong>不是"换个接口"的小改动，而是从编码（PAM3）、线对（单对）、连接器（小型化）、电磁兼容（差分+车规测试）全链条重新设计了一套物理层。</p>
+
+<h3>Q3：100BASE-T1、1000BASE-T1、10BASE-T1S 三个"兄弟"各适合什么场景？为什么速率最低的 10BASE-T1S 反而用"多点总线"而不是点对点？</h3>
+<table>
+<tr><th>标准</th><th>速率</th><th>拓扑</th><th>适合场景</th></tr>
+<tr><td><strong>100BASE-T1</strong></td><td>100 Mbps</td><td>点对点 ≤15m</td><td>诊断口、OTA、低带宽传感器（成本敏感）</td></tr>
+<tr><td><strong>1000BASE-T1</strong></td><td>1 Gbps</td><td>点对点 ≤15m</td><td>摄像头视频流、域控主干、ADAS（要大带宽）</td></tr>
+<tr><td><strong>10BASE-T1S</strong></td><td>10 Mbps</td><td>多点总线 ≤25m / 点对点 15m</td><td>灯、开关、门锁、传感器等边缘节点（替代 CAN/LIN）</td></tr>
+</table>
+<p><strong>为什么低速反而用总线：</strong></p>
+<ol>
+<li><strong>边缘节点数量多、数据量小</strong>——一个车门上好几个开关/灯，每个每秒就传几个字节；</li>
+<li><strong>点对点成本太高</strong>——如果每个节点都拉一根线到交换机，要几十根线 + 一堆交换机端口；</li>
+<li><strong>共享一条总线</strong>——最多 8 个节点挂同一根线，不需要交换机，节点 PHY 极简、成本极低；</li>
+<li><strong>本质</strong>：10BASE-T1S 是"以太网下放到末梢"——让全车从骨干到边缘都统一成以太网，替代 CAN/LIN 的布线方式。</li>
+</ol>
+<p><strong>结论：</strong>速率高低和拓扑选择是两回事——高带宽、点对点的给骨干，低速率、总线型的给末梢，各取所需。</p>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ1：车载以太网和普通以太网在物理层上最大的区别是什么？</h3>
+<p><span class="answer-correct">✅ B. 用单对双绞线 + PAM3 三电平，而不是 4 对线 + 两电平</span></p>
+<p>解析：普通千兆以太网用 4 对线（8 芯）+ 两电平 NRZ；车载以太网用 1 对线（2 芯）+ PAM3 三电平，靠"每符号装更多信息"弥补线对数的减少。A 不是"物理层区别"的本质（速率是结果不是手段）；C 车载主流是铜线双绞，光纤很少用；D 无线与车载以太网无关（那是 V2X/Wi-Fi 的事）。</p>
+
+<h3>MCQ2：PAM3（三电平）相比传统 NRZ（两电平 0/1）的优势是什么？</h3>
+<p><span class="answer-correct">✅ B. 每个符号能携带更多信息，同样的符号率下数据率更高</span></p>
+<p>解析：NRZ 每符号 1 bit；PAM3 有 -1/0/+1 三种电平，每符号约 1.58 bit——信息量多近 60%。所以 1000BASE-T1 用 750 MBd 的 PAM3 单对线就能到 1Gbps。A 抗干扰主要靠差分信号和编码增益，不是 PAM3 的直接优势；C 距离由标准规定（15m），与电平数无关；D 任何数字通信都要时钟同步。</p>
+
+<h3>MCQ3：单对线上全双工同时收发，靠的是什么技术？</h3>
+<p><span class="answer-correct">✅ C. 回声消除——接收端减去自己发送的"回声"，留下对方信号</span></p>
+<p>解析：只有一对线，收发共用，本端发送的信号会漏回接收路径形成回声。因为本端知道自己的发送序列，回声消除器把它精确减掉，剩下的就是对方信号——所以能同时双向传。A 时分复用是"轮流"，不是同时；B 半双工恰恰是不能同时；D 只有一对线，不存在"两根芯各管一个方向"。</p>
+
+</div>
+</body>
+</html>

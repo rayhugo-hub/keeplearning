@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 30：答案 — 车载摄像头与视觉感知——自动驾驶的"眼睛"如何看懂世界？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+.ans-item{margin:.3rem 0}
+.ans-label{font-weight:600;color:#2e7d32}
+.ans-label-wrong{color:#c62828}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson29-车载激光雷达--2026-07-19--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+  <a href="../Lesson31-多传感器融合算法--2026-08-01--1718/答案.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 30 — 答案</div>
+  <h1>车载摄像头与视觉感知——自动驾驶的"眼睛"如何看懂世界？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（车载摄像头 vs 行车记录仪摄像头有什么核心区别？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>你可以这样跟朋友说：行车记录仪的摄像头就像你手机的默认相机——对着强光拍，亮的地方一片白，暗的地方一片黑。但车载摄像头是"被专业训练过的相机"。</p>
+<p><strong>三个核心区别：</strong></p>
+<ul>
+<li><strong>HDR（不怕过曝）</strong>：普通摄像头进隧道时全白再全黑。车载摄像头同时"看"清隧道里面和外面的路——连续拍三张不同亮度的照片合成一张。</li>
+<li><strong>全局快门（不怕抖动）</strong>：普通摄像头拍快速转动的风扇，扇叶像果冻一样扭曲。车载摄像头拍飞快掠过的路灯柱子——每一根都是直的。</li>
+<li><strong>ISP（有个修图大师）</strong>：普通摄像头拍出来啥样就是啥样。车载摄像头里有专门的"PS 大师"实时处理——自动去噪、调色、校正畸变。</li>
+</ul>
+<p><strong>一句话总结：</strong> 行车记录仪是"拍下来留个证据"，车载摄像头是"要把图像实时发给 AI 识别——必须每张图都完美"。</p>
+</div>
+
+<h3>Q2（纯摄像头 L2 系统最危险和最安全的场景）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p><strong>最危险的三大场景：</strong></p>
+<ul>
+<li><strong>夜间无路灯的高速公路</strong>：摄像头靠环境光成像——完全黑暗就"瞎"。虽然有近红外补光但距离有限（~30m），120km/h 制动距离需要 60m+。</li>
+<li><strong>暴雨/大雾天</strong>：雨滴/雾滴散射光线，图像像蒙了毛玻璃，目标检测置信度急剧下降。</li>
+<li><strong>正对阳光或对向远光灯</strong>：强光直射导致传感器饱和（"烧屏"），几秒内什么都看不到。</li>
+</ul>
+<p><strong>完全够用的场景：</strong></p>
+<ul>
+<li><strong>白天城市道路（良好光照）</strong>：限速低、制动距离短，摄像头在好光照下分辨率高。</li>
+<li><strong>有标线的高速（白天/黄昏）</strong>：车道线清晰、前车尾灯可见——这是摄像头最擅长的结构化场景。</li>
+<li><strong>停车场（有照明）</strong>：环视摄像头 360° 全景影像完全覆盖。</li>
+</ul>
+<p><strong>关键结论：</strong> 纯摄像头方案在"好光照、好天气、结构化道路"上够用，但任何偏离"理想条件"的场景都危险。这也是为什么纯视觉路线需要巨大的数据量来训练极端场景。</p>
+</div>
+
+<h3>Q3（为什么环视用鱼眼，前视不用？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p><strong>原因一：覆盖范围不同</strong></p>
+<p>环视摄像头（装在车四周）的核心任务是泊车或低速时看到车身四周 2 米内的障碍物——需要最大覆盖范围、减少盲区。4 颗 190° 鱼眼镜头就能覆盖车身一周。</p>
+<p>前视摄像头的核心任务是高速时看清前方 100-200 米的路况——需要"看得远、看得清"，广角会牺牲远处分辨率。</p>
+<p><strong>原因二：分辨率分配</strong></p>
+<table>
+<tr><th>镜头类型</th><th>总像素</th><th>视场角</th><th>每度像素</th><th>远处细节</th></tr>
+<tr><td>鱼眼镜头</td><td>2 MP</td><td>190°</td><td>~10.5 像素/度</td><td>❌ 丢失</td></tr>
+<tr><td>普通镜头</td><td>2 MP</td><td>50°</td><td>~40 像素/度</td><td>✅ 丰富</td></tr>
+</table>
+<p><strong>互换后的问题：</strong></p>
+<ul>
+<li>鱼眼装前视→远处分辨率不足、畸变严重、算法不适配</li>
+<li>普通透镜装环视→覆盖范围不够、有盲区</li>
+</ul>
+<p><strong>一句话：</strong> 环视要"短而广"，前视要"远而精"。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ 1：车载摄像头在进出隧道时能稳定工作的核心技术是什么？</h3>
+<p><strong>正确答案：B. HDR（高动态范围）多帧合成</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 鱼眼镜头畸变校正</td><td>❌ 只针对鱼眼镜头，不是进出隧道问题的方案</td></tr>
+<tr><td>B. HDR 多帧合成</td><td>✅ 通过拍摄短/中/长三次曝光并合成，让一幅图像同时包含暗部和亮部细节</td></tr>
+<tr><td>C. 全局快门（Global Shutter）</td><td>❌ 解决的是运动果冻效应，不是动态范围问题</td></tr>
+<tr><td>D. 图像压缩算法</td><td>❌ 节省带宽/存储空间，与动态范围无关</td></tr>
+</table>
+
+<h3>MCQ 2：以下哪个<strong>不是</strong>车载摄像头相对于 LiDAR 的优势？</h3>
+<p><strong>正确答案：B. 全天候能力更强（不受雨雾影响）</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 能识别颜色和纹理</td><td>✅ 这是摄像头独有的优势——LiDAR 点云没有颜色信息</td></tr>
+<tr><td>B. 全天候能力更强</td><td>❌ <strong>不是摄像头优势</strong>——摄像头最怕恶劣天气，LiDAR 受影响小得多</td></tr>
+<tr><td>C. 分辨率更高</td><td>✅ 摄像头分辨率可达 8MP，远高于 LiDAR 线数</td></tr>
+<tr><td>D. 成本更低</td><td>✅ 确实，车载摄像头约 $30-$80，LiDAR 至少 $200 起</td></tr>
+</table>
+
+<h3>MCQ 3：以下哪种快门方式最适合运动场景下的车载摄像头？</h3>
+<p><strong>正确答案：C. 全局快门（Global Shutter）</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 滚动快门（Rolling Shutter）</td><td>❌ 逐行曝光——快速运动时图像"扭曲"（果冻效应）</td></tr>
+<tr><td>B. 电子快门（Electronic Shutter）</td><td>❌ 通用概念，包含滚动和全局两种实现</td></tr>
+<tr><td>C. 全局快门（Global Shutter）</td><td>✅ 所有像素同时曝光——运动中的物体位置一致，无果冻效应</td></tr>
+<tr><td>D. 机械快门（Mechanical Shutter）</td><td>❌ 有运动部件，汽车振动环境下不可靠</td></tr>
+</table>
+
+<hr>
+
+<p><a href="课程.html" class="back-link">← 返回课程</a></p>
+
+</div>
+</body>
+</html>

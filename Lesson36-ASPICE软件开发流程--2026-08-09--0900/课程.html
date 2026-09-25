@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 36（09:00）：ASPICE 与软件开发流程——汽车软件为什么不能像手机 App 一样"发版修 bug"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 36（09:00）— 2026-08-09 | 🚗 ASPICE 与汽车软件开发流程（V 模型 / 过程域 / 能力等级）</div>
+  <h1>ASPICE 与软件开发流程——汽车软件为什么不能像手机 App 一样"发版修 bug"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson35-车载操作系统与虚拟化--2026-08-02--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson37-BMS电池管理系统--2026-08-09--1200/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>手机 App 出 bug，厂商连夜发个新版本，用户点一下"更新"就好——没人会追究开发流程。</p>
+
+<p>但汽车不一样。假如你的车 OTA 升级后，<strong>刹车踏板响应变慢了一点点</strong>：</p>
+
+<ul>
+<li>手机：用户骂两句，回滚就是了</li>
+<li>汽车：整车厂要<strong>召回</strong>，供应商要<strong>停产调查</strong>，监管机构要<strong>追溯"这个 bug 是哪一步流程漏掉的"</strong></li>
+</ul>
+
+<p><strong>问题来了：</strong> 同样是写代码，为什么汽车软件出问题，要"查流程"而不只是"改代码"？</p>
+
+<div class="callout">
+<p><strong>答案是 ASPICE（Automotive SPICE）。</strong> 它是汽车行业评估"软件开发过程好不好"的国际标准——<strong>不考你写了什么代码，而考你怎么写代码</strong>。这一课讲清楚：<strong>ASPICE 是什么、V 模型长什么样、汽车软件为什么必须"过程正确"。</strong></p>
+</div>
+
+<hr>
+
+<h2>二、ASPICE 是什么：给"开发过程"打分</h2>
+
+<p><strong>SPICE</strong> = Software Process Improvement and Capability dEtermination（软件过程改进与能力测定）。<strong>Automotive SPICE</strong> 是专门为汽车行业裁剪的版本，由 <strong>VDA（德国汽车工业协会）</strong> 等机构维护。</p>
+
+<p><strong>一句话定义：</strong> ASPICE 是一套评估"汽车电子软件开发过程"成熟度的标准框架。</p>
+
+<p><strong>它评估的不是产品，而是过程。</strong> 类比一下：</p>
+
+<table>
+<tr><th>类比</th><th>说明</th></tr>
+<tr><td>产品检查</td><td>菜好不好吃（功能测试、整车验证）</td></tr>
+<tr><td><strong>过程评估</strong></td><td><strong>厨房干不干净、厨师有没有菜谱、有没有按菜谱做（ASPICE）</strong></td></tr>
+</table>
+
+<p><strong>为什么过程重要？</strong> 因为"一次好吃"可能是运气，"每次好吃"必须是流程。汽车软件动辄几百万行代码、几十个供应商、生命周期 10 年以上——<strong>只有过程可控，质量才可控</strong>。</p>
+
+<hr>
+
+<h2>三、V 模型：开发流程的"骨架"</h2>
+
+<p>ASPICE 最核心的框架是 <strong>V 模型（V-Model）</strong>——左边从上到下"分解"，右边从下到上"集成验证"：</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph LEFT["⬇️ 左侧：逐层分解（怎么做）"]
+        L1["需求分析<br/>（系统需求 SYS.2）"]
+        L2["系统架构设计<br/>（SYS.3）"]
+        L3["软件需求分析<br/>（SWE.1）"]
+        L4["软件架构设计<br/>（SWE.2）"]
+        L5["软件详细设计与单元实现<br/>（SWE.3 / SWE.4）"]
+    end
+    subgraph RIGHT["⬆️ 右侧：逐层验证（做对了没）"]
+        R1["整车验收测试<br/>（V&amp;V）"]
+        R2["系统集成测试<br/>（SYS.4 / SYS.5）"]
+        R3["软件集成测试<br/>（SWE.5）"]
+        R4["软件单元测试<br/>（SWE.6）"]
+    end
+    L1 -- "追溯" --&gt; R1
+    L2 -- "追溯" --&gt; R2
+    L3 -- "追溯" --&gt; R3
+    L4 -- "追溯" --&gt; R4
+</div>
+
+<p><strong>V 模型的两条铁律：</strong></p>
+
+<ol>
+<li><strong>左侧写什么，右侧测什么</strong>——左侧每一层的"需求/设计"，右侧都有对应一层的"验证/测试"来确认它</li>
+<li><strong>需求可以追溯（Traceability）</strong>——每一个测试用例都能回答"我验证的是哪条需求"，每一个需求都能回答"哪个测试覆盖了我"</li>
+</ol>
+
+<div class="callout">
+<p><strong>为什么叫 V？</strong> 因为"分解"和"集成验证"刚好形成 V 字的两条边，底部是"写代码"。</p>
+</div>
+
+<hr>
+
+<h2>四、核心过程域：HIS 范围（汽车行业必查的 16 个）</h2>
+
+<p>ASPICE 过程域很多，汽车行业客户审核时最常查的是 <strong>HIS 范围</strong>（德国 OEM 联合定义的 16 个过程域）：</p>
+
+<table>
+<tr><th>类别</th><th>过程域</th><th>干什么的</th></tr>
+<tr><td><strong>系统工程</strong></td><td>SYS.1 需求获取 / SYS.2 系统需求分析 / SYS.3 系统架构设计 / SYS.4 系统集成 / SYS.5 系统合格性测试</td><td>从"客户要什么"到"系统做出来且测过"</td></tr>
+<tr><td><strong>软件工程</strong></td><td>SWE.1 软件需求分析 / SWE.2 软件架构设计 / SWE.3 软件详细设计 / SWE.4 软件单元实现 / SWE.5 软件集成测试 / SWE.6 软件合格性测试</td><td>从"软件要什么"到"软件做出来且测过"</td></tr>
+<tr><td><strong>支持过程</strong></td><td>SUP.1 质量保证 / SUP.8 配置管理 / SUP.10 变更请求管理</td><td>质量、版本、变更都得管</td></tr>
+<tr><td><strong>管理过程</strong></td><td>MAN.3 项目管理</td><td>计划、跟踪、风险</td></tr>
+<tr><td><strong>采购过程</strong></td><td>ACQ.4 供应商监控</td><td>供应商也得按规矩来</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>记法：</strong> 上下两排（系统 5 个 + 软件 6 个）+ 支持 3 个 + 管理 1 个 + 采购 1 个 = <strong>16 个</strong>。审核就盯着这 16 个查。</p>
+</div>
+
+<hr>
+
+<h2>五、能力等级：你的过程能打几分？</h2>
+
+<p>ASPICE 用 <strong>能力等级（Capability Level, CL）</strong> 给过程打分，从 0 到 5：</p>
+
+<table>
+<tr><th>等级</th><th>名称</th><th>特征</th><th>类比</th></tr>
+<tr><td>CL0</td><td>不完整</td><td>过程没做或没做全</td><td>凭感觉做饭</td></tr>
+<tr><td>CL1</td><td>已执行</td><td>过程执行了，能出结果</td><td>会做这道菜</td></tr>
+<tr><td><strong>CL2</strong></td><td><strong>已管理</strong></td><td>过程有计划、有跟踪、有资源</td><td><strong>有菜谱、有记录、有检查</strong></td></tr>
+<tr><td><strong>CL3</strong></td><td><strong>已建立</strong></td><td>有标准化流程，全公司统一执行</td><td><strong>连锁餐厅 SOP</strong></td></tr>
+<tr><td>CL4</td><td>可预测</td><td>用数据量化管理过程</td><td>有数据指标</td></tr>
+<tr><td>CL5</td><td>持续优化</td><td>用数据持续改进</td><td>不断迭代</td></tr>
+</table>
+
+<p><strong>行业现实：</strong> 大多数 OEM 要求供应商关键过程达到 <strong>CL2（已管理）或 CL3（已建立）</strong>。CL2 意味着"<strong>做没做、谁做的、做成什么样，都有据可查</strong>"——这正是追溯性的体现。</p>
+
+<hr>
+
+<h2>六、为什么说"没有 ASPICE，功能安全就是空中楼阁"？</h2>
+
+<p>上一课学的 ISO 26262（功能安全）要求"安全活动有证据"；ASPICE 要求"开发活动有过程"。两者关系：</p>
+
+<div class="mermaid">
+flowchart LR
+    A["ISO 26262<br/>（功能安全：安全要求 + 证据）"] --&gt; C["两者结合：<br/>安全相关开发 = 合规流程 + 安全证据"]
+    B["ASPICE<br/>（开发过程：V 模型 + 追溯性）"] --&gt; C
+    C --&gt; D["量产车规软件<br/>（可信、可追溯、可认证）"]
+</div>
+
+<ul>
+<li>ISO 26262 回答"<strong>要安全到什么程度、要什么证据</strong>"</li>
+<li>ASPICE 回答"<strong>用什么流程开发，才能保证质量可追溯</strong>"</li>
+<li>两者缺一不可：<strong>流程乱 → 证据不可信 → 安全认证过不了</strong></li>
+</ul>
+
+<hr>
+
+<h2>七、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：ASPICE 考的是"过程"，不是"代码"</h3>
+<p>它评估的是开发流程是否规范、可追溯、可管理——不直接看产品好不好。<strong>过程对了，产品质量才有保障。</strong></p>
+
+<h3>📌 规则二：V 模型 = 左侧分解、右侧验证，一一对应、全程可追溯</h3>
+<p>每一层需求/设计都有对应的测试层，需求与测试之间能互相追溯。<strong>没有追溯性，就没有 ASPICE。</strong></p>
+
+<h3>📌 规则三：行业硬门槛是 CL2/CL3——"有据可查"比"技术牛"更重要</h3>
+<p>OEM 审核供应商，重点看过程是否"已管理（CL2）/已建立（CL3）"：有计划、有记录、有检查。<strong>汽车软件不靠个人英雄主义，靠流程纪律。</strong></p>
+
+</div>
+
+<hr>
+
+<h2>八、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你的朋友说："ASPICE 不就是一堆文档和流程表格吗？写代码快不就行了？" 请解释为什么汽车行业必须用 ASPICE 这类过程标准——请从<strong>产品生命周期</strong>、<strong>多供应商协作</strong>、<strong>安全与追溯</strong>三个角度讲清楚。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>请用生活类比（比如"餐厅后厨"或"盖房子"）解释：<strong>V 模型为什么左边要"逐层分解"、右边要"逐层验证"？</strong> 类比里要对应上"需求可追溯""测试对应需求""问题越早发现越便宜"这三个要点。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>为什么说"没有 ASPICE 的流程保障，ISO 26262 功能安全认证就是空中楼阁"？请解释两者各自回答什么问题、为什么必须结合。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>九、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：ASPICE（Automotive SPICE）评估的<strong>核心对象</strong>是？</div>
+<label><input type="radio" name="mc1" value="A"> A. 芯片的算力与功耗表现</label>
+<label><input type="radio" name="mc1" value="B"> B. 汽车软件开发过程的成熟度与规范性</label>
+<label><input type="radio" name="mc1" value="C"> C. 整车的碰撞安全性能</label>
+<label><input type="radio" name="mc1" value="D"> D. 零部件供应商的报价合理性</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：关于 V 模型的描述，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc2" value="A"> A. 只有左侧的"设计"重要，右侧的"测试"可以省略</label>
+<label><input type="radio" name="mc2" value="B"> B. 左侧逐层分解需求与设计，右侧逐层集成与验证，且需求与测试一一对应、可追溯</label>
+<label><input type="radio" name="mc2" value="C"> C. V 模型只适用于硬件开发，不适用于软件开发</label>
+<label><input type="radio" name="mc2" value="D"> D. 先全部写完代码，最后一次性测试就够了</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：OEM 审核供应商时最常要求的<strong>关键过程能力等级</strong>是？</div>
+<label><input type="radio" name="mc3" value="A"> A. CL0（不完整）和 CL1（已执行）</label>
+<label><input type="radio" name="mc3" value="B"> B. CL2（已管理）和 CL3（已建立）</label>
+<label><input type="radio" name="mc3" value="C"> C. CL5（持续优化）是唯一可接受的等级</label>
+<label><input type="radio" name="mc3" value="D"> D. 能力等级只跟软件规模有关，与过程管理无关</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson36',
+    title: 'Lesson 36（09:00）：ASPICE 与软件开发流程——汽车软件为什么不能像手机 App 一样"发版修 bug"？',
+    mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson36', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson36');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson36');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson36',
+  title: 'Lesson 36（09:00）：ASPICE 与软件开发流程——汽车软件为什么不能像手机 App 一样"发版修 bug"？',
+  feynman: [
+    { q: 1, ref: '三个角度：1) 产品生命周期：手机 App 生命周期一两年，汽车软件随车服役 10 年以上还要 OTA 持续升级，没有规范流程几年后没人能说清功能当初怎么实现的，无法维护；2) 多供应商协作：一辆车软件来自几十家供应商，没有统一过程标准就无法对齐接口、版本、测试；3) 安全与追溯：涉及功能安全，出问题要能追溯哪个需求、哪次变更、哪个测试漏了，ASPICE 追溯性是监管和召回调查的基础' },
+    { q: 2, ref: '盖房子类比：左边是设计蓝图（系统需求）→ 楼层图纸（架构）→ 每面墙每根梁（详细设计/单元），逐层分解；右边每盖一层就验收：地基验收、框架验收、装修验收，逐层验证且每层对应左边一层设计。需求可追溯 = 每面墙能回答对应蓝图上哪个房间；测试对应需求 = 每个验收环节有对应的设计图；问题越早发现越便宜 = 地基歪了打地基时发现改一铲土就行，盖完发现要拆楼重盖——软件同理，需求错误在设计阶段发现最便宜' },
+    { q: 3, ref: 'ISO 26262 回答"要安全到什么程度、需要什么证据"（安全目标、ASIL 等级、FMEA/FTA、安全证据）；ASPICE 回答"用什么流程开发才能保证质量可追溯"（V 模型、需求/测试追溯、配置管理、变更管理、质量保证）。两者必须结合：ISO 26262 的安全证据必须由规范流程产生，流程乱则证据不可信，认证过不了。流程乱 → 证据不可信 → 安全认证过不了' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 46：域控制器资源隔离与 QoS——一颗芯片上，凭什么"关键时刻不卡顿"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+.feynman-label{font-weight:600;margin:.8rem 0 .3rem}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 46（23:00）：域控制器资源隔离与 QoS</h1>
+<p class="meta">📅 2026-08-27 | 🚗 混合关键性 · Hypervisor 隔离 · CPU/内存/带宽 QoS | ⏰ 23:00</p>
+<div class="nav-bar">
+  <a href="../Lesson45-Classic与Adaptive混合架构--2026-08-26--2300/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson47-车载以太网TSN--2026-08-30--0001/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景</h2>
+<p>一辆舱驾一体车上，<strong>同一时刻</strong>正在发生这些事：</p>
+<ul>
+  <li>智驾系统在高速上做<strong>决策</strong>（毫秒级，出错可能出人命）；</li>
+  <li>副驾在看<strong>4K 视频</strong>（后台还在下载更新包）；</li>
+  <li>语音助手在<strong>听</strong>你说话；</li>
+  <li>仪表盘在刷新 <strong>120Hz</strong> 的画面。</li>
+</ul>
+<p>它们全都挤在<strong>同一颗芯片</strong>上——抢 CPU、抢内存、抢总线带宽。那问题来了：</p>
+<ul>
+  <li>视频下载把 CPU 占满了，<strong>智驾会不会卡顿</strong>？</li>
+  <li>一个应用写错了内存地址，<strong>会不会把仪表的数据踩坏</strong>？</li>
+  <li>娱乐流量把以太网堵死了，<strong>关键报文会不会丢</strong>？</li>
+</ul>
+<blockquote><strong>这一课讲清楚：域控制器靠"资源隔离 + QoS"，让安全关键任务和普通应用共享一颗芯片，却互不拖累——关键任务"独占 + 高优先 + 预算保障"，普通任务"尽力而为"。</strong></blockquote>
+
+<h2>二、混合关键性：为什么必须隔离？</h2>
+<h3>1. 什么是"混合关键性"（Mixed-Criticality）？</h3>
+<p>一颗芯片上，同时跑着<strong>安全关键功能</strong>（ASIL-D，如智驾决策、仪表显示）和<strong>无安全要求的功能</strong>（QM，如娱乐、OTA 下载）。不同安全等级的任务共享同一份硬件资源，这就是<strong>混合关键性</strong>场景。</p>
+<h3>2. 不隔离，会怎样"传染"？</h3>
+<table>
+<tr><th>共享资源</th><th>不隔离的后果</th><th>类比</th></tr>
+<tr><td><strong>CPU</strong></td><td>娱乐应用占满核 → 关键任务延迟抖动，错过截止时间</td><td>有人霸占电梯，急救人员上不去</td></tr>
+<tr><td><strong>内存</strong></td><td>一个应用越界写 → 踩坏关键任务的数据，系统崩溃</td><td>一户漏水，淹了整栋楼</td></tr>
+<tr><td><strong>总线带宽</strong></td><td>视频下载占满带宽 → 关键报文丢失或超时</td><td>卡车堵住高速，救护车过不去</td></tr>
+</table>
+<p><strong>结论：混合关键性的核心矛盾 = "共享"与"安全"的矛盾。解决思路就两个字——隔离。</strong></p>
+
+<h2>三、三维隔离：时间、空间、带宽</h2>
+<h3>1. 时间隔离（CPU 调度）——"排班表"</h3>
+<p><strong>管的是：任务什么时候能跑、能跑多久。</strong></p>
+<table>
+<tr><th>手段</th><th>做法</th><th>说明</th></tr>
+<tr><td><strong>固定绑核</strong>（CPU pinning）</td><td>关键 VM 的 vCPU 独占物理核</td><td>智驾独占 4 个核，娱乐永远抢不走</td></tr>
+<tr><td><strong>静态优先级</strong></td><td>关键线程用最高优先级（如 SCHED_FIFO）</td><td>高优先级任务先跑，低优先级靠边</td></tr>
+<tr><td><strong>周期预算</strong></td><td>每个周期内给任务分配固定时间窗</td><td>如每 1ms 周期，关键任务固定 0.2ms</td></tr>
+</table>
+<p><strong>类比：</strong>像医院的"手术排班表"——急诊手术永远有固定时段和最高优先权，普通门诊排队等。</p>
+<h3>2. 空间隔离（内存）——"隔断墙"</h3>
+<p><strong>管的是：任务能碰哪些内存区域。</strong></p>
+<table>
+<tr><th>手段</th><th>做法</th><th>说明</th></tr>
+<tr><td><strong>MMU 虚拟地址隔离</strong></td><td>每个 VM 有独立地址空间</td><td>互相看不见、摸不着</td></tr>
+<tr><td><strong>内存 carve-out</strong></td><td>关键 VM 独占物理内存区域</td><td>物理上划死，谁也不能动</td></tr>
+<tr><td><strong>IOMMU / SMMU</strong></td><td>限制外设 DMA 的访问范围</td><td>摄像头、网卡只能读写"自己家"的内存</td></tr>
+</table>
+<blockquote><strong>IOMMU（也叫 SMMU）特别重要：</strong>外设（摄像头、以太网控制器）用 DMA 直接读写内存，<strong>绕过 CPU</strong>。如果没有 IOMMU，一个被攻破或出错的外设可以直接读写<strong>整个内存</strong>——这是严重的安全漏洞。IOMMU 相当于给每个外设发了一张"房产证"，只许进自己家。</blockquote>
+<p><strong>类比：</strong>合租公寓里每户有独立房间，墙是实的（隔断墙）；物业还规定：快递员（外设）只能把包裹放你家门口，不能进别人房间。</p>
+<h3>3. 带宽隔离（通信）——"专用车道"</h3>
+<p><strong>管的是：数据能用多少带宽、什么时候能发。</strong></p>
+<table>
+<tr><th>手段</th><th>做法</th><th>说明</th></tr>
+<tr><td><strong>TSN 802.1Qbv</strong>（时间感知整形）</td><td>给关键流量固定时间窗</td><td>时间窗内只有关键报文能发，绝不拥堵</td></tr>
+<tr><td><strong>TSN 802.1Qav</strong>（基于信用整形）</td><td>给普通流量限速</td><td>普通流量有"信用额度"，用完就等</td></tr>
+<tr><td><strong>802.1Q 优先级队列</strong></td><td>关键报文打高优先级标签</td><td>交换机先转发高优先级</td></tr>
+<tr><td><strong>CAN 仲裁</strong></td><td>报文 ID 优先级</td><td>ID 越小优先级越高（静态设计）</td></tr>
+</table>
+<p><strong>类比：</strong>高速上的"应急车道"——救护车永远有专用通道，普通车排队但不会被堵死。</p>
+
+<h2>四、全景图：一颗舱驾一体 SoC 的隔离布局</h2>
+<div class="mermaid">
+flowchart TB
+    H["Hypervisor&lt;br&gt;（时间隔离 + 空间隔离的地基）"]
+    subgraph VM1["VM1：智驾域（ASIL-D 关键任务）"]
+        C1["vCPU 独占 4 核&lt;br&gt;（固定绑核 + 最高优先级）"]
+        M1["内存 2GB 物理独占&lt;br&gt;（carve-out 分区）"]
+    end
+    subgraph VM2["VM2：座舱域（QM 普通任务）"]
+        C2["vCPU 共享 4 核&lt;br&gt;（动态调度、尽力而为）"]
+        M2["内存 4GB 配额&lt;br&gt;（虚拟地址空间）"]
+    end
+    N["车载以太网&lt;br&gt;（TSN 时间窗 + 优先级队列）"]
+    D["外设 DMA&lt;br&gt;（IOMMU 隔离）"]
+    H --&gt; C1
+    H --&gt; C2
+    C1 -- 高优先级先跑 --&gt; N
+    C2 -- 低优先级排队 --&gt; N
+    D -. IOMMU 限制访问范围 .-&gt; M1
+    D -. IOMMU 限制访问范围 .-&gt; M2
+</div>
+<h3>QoS 的调度节奏：固定时间窗</h3>
+<div class="mermaid">
+flowchart LR
+    W1["关键任务时间窗&lt;br&gt;（智驾，固定 0.2ms，先跑）"]
+    W2["普通任务时间窗&lt;br&gt;（座舱，共享 0.6ms）"]
+    W3["后台 / 空闲&lt;br&gt;（0.2ms）"]
+    W1 -- 周期循环 --&gt; W2 -- 周期循环 --&gt; W3 -. 回到起点 .-&gt; W1
+</div>
+<p><strong>QoS（Quality of Service，服务质量）的本质：不是让所有任务都快，而是保证关键任务的关键指标——延迟有上界、带宽有下限、资源有保障。</strong></p>
+<h3>最后一道防线</h3>
+<p>万一隔离被突破（bug、攻击、硬件故障），还有 <strong>看门狗（Watchdog）+ E2E 保护 + 健康监控</strong>：发现异常 → 上报 → 降级/复位，把损失控制在最小。隔离是"预防"，监控是"兜底"。</p>
+
+<h2>五、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>隔离是"物理边界"，QoS 是"通行规则"</strong>——隔离把问题关在单间里，QoS 保证关键任务优先通行。</li>
+  <li><strong>三个维度缺一不可</strong>——时间隔离管"什么时候跑"，空间隔离管"能碰哪里"，带宽隔离管"能用多少"。</li>
+  <li><strong>关键任务"独占 + 高优先 + 预算保障"，普通任务"尽力而为"</strong>——这是混合关键性系统的黄金法则。</li>
+</ol>
+
+<hr>
+
+<h2>六、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <label class="feynman-label">Q1：用"合租公寓"的类比，解释为什么舱驾一体芯片上必须做资源隔离？如果某个"房客"（应用）出问题，隔离如何保护其他"房客"？</label>
+  <textarea id="feynman1" placeholder="在这里写下你的解释……"></textarea>
+  <label class="feynman-label">Q2："时间隔离"和"空间隔离"分别解决什么问题？用"排班表"和"隔断墙"的类比说明两者的区别——如果只做其中一种，会出什么乱子？</label>
+  <textarea id="feynman2" placeholder="在这里写下你的解释……"></textarea>
+  <label class="feynman-label">Q3：为什么说 QoS 不是"让所有任务都快"，而是"保证关键任务不被抢"？用生活里的例子说明 QoS 怎么保证"关键时刻不卡顿"。</label>
+  <textarea id="feynman3" placeholder="在这里写下你的解释……"></textarea>
+</div>
+
+<h2>七、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：混合关键性（Mixed-Criticality）场景下，资源隔离的核心目的是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. 让不同安全等级的功能共享同一芯片时，一个功能出问题不影响其他功能</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. 让所有应用运行得更快</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. 降低芯片的功耗和发热</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. 让座舱界面看起来更美观</label>
+
+  <h3>MCQ2：智驾关键任务（ASIL-D）与座舱娱乐（QM）共享一颗舱驾一体 SoC，要保证智驾毫秒级实时性，最有效的做法是？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. 把智驾和座舱的线程混在同一个核上，靠调度器随机挑选</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. 让智驾 vCPU 独占物理核并配置最高调度优先级</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 给座舱应用更高优先级，优先保证用户看视频不卡</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 降低 CPU 主频以减少发热干扰</label>
+
+  <h3>MCQ3：关于空间隔离与 IOMMU（SMMU），下列说法正确的是？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. IOMMU 的作用是给 CPU 超频</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. 内存分区之后，外设就可以随意访问全部内存</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. IOMMU 限制外设 DMA 只能访问被分配的内存区域，防止越界读写</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. 空间隔离就是把内存条从 8GB 换成 16GB</label>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 46,
+    title: '域控制器资源隔离与 QoS',
+    feynman: [],
+    mcq: { mc1: 'A', mc2: 'B', mc3: 'C' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 46,
+  title: '域控制器资源隔离与 QoS——一颗芯片上，凭什么"关键时刻不卡顿"？',
+  feynman: [
+    { q: 'Q1', ref: '合租公寓类比——每个应用/虚拟机像独立房客：有自己房间(内存空间)和作息时间(CPU时间片)，共享客厅水电(总线与外设)。没有隔离时，一个应用崩溃或越界会拖垮全系统(一户漏水淹全楼、一个人霸占电梯所有人都上不去)。有了隔离，问题被关在单间里：内存越界出不了自己的分区，关键任务有独占的核和高优先级，智驾/仪表不受影响' },
+    { q: 'Q2', ref: '时间隔离管"什么时候跑"(排班表：关键任务独占核、最高优先级、固定时间窗，保证按时执行)；空间隔离管"能碰哪里"(隔断墙：内存分区+MMU/IOMMU，越界访问被硬件拦下)。只隔时间不隔空间：内存越界照样会踩坏别人的数据；只隔空间不隔时间：关键任务会被娱乐应用抢占，延迟抖动照样发生。两者互为补充，缺一不可' },
+    { q: 'Q3', ref: 'QoS 的本质是"优先保障+资源预留"：调度上高优先级先跑(关键任务不被抢占)，通信上 TSN 固定时间窗/带宽预留(关键报文不被堵)，内存上预算保障(不因别人申请内存而失败)。它不让所有任务都快——普通任务排队等待、尽力而为；它保证关键任务在关键时刻有确定的上界(延迟、带宽)，所以"关键时刻不卡顿"。生活类比：救护车专用道、机场 VIP 通道、高铁票预留' }
+  ],
+  mcq: { mc1: 'A', mc2: 'B', mc3: 'C' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

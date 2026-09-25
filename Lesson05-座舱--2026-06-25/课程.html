@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 05：什么是智能座舱——从"交通工具"到"第三空间"</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.code-block{background:#f3f4f8;border-radius:8px;padding:.8rem 1.2rem;font-family:"SF Mono","Consolas",monospace;font-size:.85rem;line-height:1.5;margin:.6rem 0;white-space:pre-wrap;color:#333}
+.tip-box{background:#f0f4ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.6rem 1rem;margin:.8rem 0;font-size:.9rem;color:#333}
+.quiz-section{margin-top:1.5rem}
+.q-item{margin:1.2rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.4rem;font-size:.95rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+textarea{width:100%;min-height:70px;padding:.6rem;font-size:.9rem;border:1px solid #d4d4de;border-radius:8px;resize:vertical;font-family:inherit;line-height:1.6;margin-top:.4rem;transition:border-color .15s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.1)}
+.options{margin-top:.4rem}
+.option{display:flex;align-items:flex-start;gap:.5rem;padding:.35rem 0;cursor:pointer}
+.option input[type="radio"]{margin-top:.3rem;flex-shrink:0;accent-color:#4f6ef7}
+.option label{cursor:pointer}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+.footer-note{margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #e8e8ee;font-size:.85rem;color:#888;text-align:center}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 05 — 2026-06-25 | 🚗 座舱（智能座舱相关）</div>
+  <h1>什么是智能座舱——从"交通工具"到"第三空间"</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson04-T-BOX知识--2026-06-21--2133/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson06-数字车钥匙通信--2026-06-26--2242/课程.html">下一课 →</a>
+</div>
+
+<h2>一、你先感受一下这两个场景</h2>
+
+<p><strong>场景 A</strong>：你上车，插钥匙，拧，发动机响了。中控台上一个小屏幕显示时间。你想听歌，得用 USB 拷进去。导航？掏出手机夹在出风口。空调？伸手去拧旋钮。后座的孩子喊热，你够不着后排出风口。</p>
+
+<p><strong>场景 B</strong>：你拉开车门，座椅自动调到你的记忆位置，大屏亮起，上面显示"早上好☀️，今天外面 32°C"。你说"去公司"，路线就规划好了，避开拥堵，自动同步到仪表盘。空调分三区自动调温。后座的孩子说"我想看动画片"，后排屏幕自动播放。你全程手没离开方向盘。</p>
+
+<div class="tip-box"><strong>场景 B 就是智能座舱。</strong></div>
+
+<hr>
+
+<h2>二、智能座舱到底"智能"在哪？</h2>
+
+<p>智能座舱不是"把屏幕做大"，而是围绕着<strong>人</strong>重新设计了车里的一切交互方式。它有三大核心能力：</p>
+
+<h3>🧠 1. 看得见、听得懂、感知得到</h3>
+<ul>
+  <li><strong>视觉感知</strong>：摄像头识别你是车主，知道你困了（打哈欠检测）、分心了（视线偏航）</li>
+  <li><strong>语音交互</strong>：你说"我有点冷"，它调高温度，而不是让你去菜单里找空调设置</li>
+  <li><strong>手势控制</strong>：手一挥切歌、三指一捏调音量</li>
+</ul>
+
+<h3>🌐 2. 能联网、能互联</h3>
+<ul>
+  <li><strong>车机上网</strong>：实时路况、在线音乐、OTA 升级，不需要手机支架</li>
+  <li><strong>手机互联</strong>：上车前用手机开空调，下车后手机关窗</li>
+  <li><strong>车家互联</strong>：快到家的路上说一句，家里的空调先开好</li>
+</ul>
+
+<h3>🎯 3. 懂你、记住你、服务你</h3>
+<ul>
+  <li><strong>账号记忆</strong>：不同人开车，座椅、后视镜、歌单、导航偏好自动切换</li>
+  <li><strong>场景自动触发</strong>：进隧道自动关窗开内循环、离加油站自动弹出油价提醒</li>
+  <li><strong>主动建议</strong>：你每周五晚上去健身房，到点了车机问"去健身房吗？路况正常"</li>
+</ul>
+
+<hr>
+
+<h2>三、智能座舱 vs 传统座舱：一句话区别</h2>
+
+<div class="tip-box"><strong>传统座舱是"你去找功能"，智能座舱是"功能来找你"。</strong>传统车上你想调空调 → 伸手 → 找旋钮 → 拧。智能座舱你只需要说一句"太热了"。</div>
+
+<h2>四、一个简单框架理解智能座舱</h2>
+
+<div class="mermaid">
+flowchart TB
+    subgraph HMI["🧑 人机交互层"]
+        A["屏幕、语音、手势、HUD（抬头显示）"]
+    end
+    subgraph APP["📱 应用服务层"]
+        B["导航、音乐、视频、车控、游戏"]
+    end
+    subgraph NET["📡 互联通信层"]
+        C["4G/5G、蓝牙、WiFi、车家互联"]
+    end
+    subgraph HW["🔧 座舱硬件层"]
+        D["芯片（高通8295等）&lt;br&gt;屏幕、摄像头、传感器"]
+    end
+    HMI --> APP --> NET --> HW
+</div>
+
+<hr>
+
+<h2>五、测验</h2>
+
+<div class="quiz-section">
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+    <p>请用一句话向一个完全不懂车的人解释：智能座舱到底"智能"在哪？</p>
+    <textarea placeholder="用自己的话写……不用术语"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+    <p>你开车时觉得热，传统座舱和智能座舱的区别是什么？从"你做了什么"和"车做了什么"两个角度描述。</p>
+    <textarea placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+    <p>为什么说智能座舱不只是"把屏幕做大"？屏幕之外，它还改变了什么？</p>
+    <textarea placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>1</div>
+    <p>以下哪个最能体现智能座舱的"主动服务"能力？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc1" value="A" id="mc1a"><label for="mc1a">A. 中控屏从 8 寸变成了 15 寸</label></div>
+      <div class="option"><input type="radio" name="mc1" value="B" id="mc1b"><label for="mc1b">B. 快下雨了，车机问你是否要关闭天窗</label></div>
+      <div class="option"><input type="radio" name="mc1" value="C" id="mc1c"><label for="mc1c">C. 方向盘上有音量调节按钮</label></div>
+      <div class="option"><input type="radio" name="mc1" value="D" id="mc1d"><label for="mc1d">D. 仪表盘显示当前车速</label></div>
+    </div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>2</div>
+    <p>智能座舱的语音交互相比传统物理按键，最大的变化是什么？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc2" value="A" id="mc2a"><label for="mc2a">A. 语音比按键更酷、更好看</label></div>
+      <div class="option"><input type="radio" name="mc2" value="B" id="mc2b"><label for="mc2b">B. 语音不需要用户记住"功能放在哪个菜单里"</label></div>
+      <div class="option"><input type="radio" name="mc2" value="C" id="mc2c"><label for="mc2c">C. 语音响应速度比按键更快</label></div>
+      <div class="option"><input type="radio" name="mc2" value="D" id="mc2d"><label for="mc2d">D. 语音比按键更省电</label></div>
+    </div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>3</div>
+    <p>以下哪一项不是智能座舱的典型能力？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc3" value="A" id="mc3a"><label for="mc3a">A. 通过人脸识别自动调节座椅和后视镜</label></div>
+      <div class="option"><input type="radio" name="mc3" value="B" id="mc3b"><label for="mc3b">B. 在车机上刷抖音、玩游戏</label></div>
+      <div class="option"><input type="radio" name="mc3" value="C" id="mc3c"><label for="mc3c">C. 自动更换发动机机油</label></div>
+      <div class="option"><input type="radio" name="mc3" value="D" id="mc3d"><label for="mc3d">D. 检测到驾驶员打哈欠时发出提醒</label></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+</div>
+
+<div class="nav-bar" style="margin-top:1.5rem">
+  <a href="../Lesson04-T-BOX知识--2026-06-21--2133/课程.html">← 上一课</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson06-数字车钥匙通信--2026-06-26--2242/课程.html">下一课 →</a>
+</div>
+
+<div class="footer-note">做完随时问我：我的理解对不对？</div>
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY='teachme_lesson05'
+function saveProgress(){
+  const qs=document.querySelectorAll('textarea')
+  const mc1=document.querySelector('input[name="mc1"]:checked')
+  const mc2=document.querySelector('input[name="mc2"]:checked')
+  const mc3=document.querySelector('input[name="mc3"]:checked')
+  const data={
+    q1:qs[0]?.value||'', q2:qs[1]?.value||'', q3:qs[2]?.value||'',
+    mc1:mc1?.value||'', mc2:mc2?.value||'', mc3:mc3?.value||''
+  }
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data))
+}
+function restoreProgress(){
+  const raw=localStorage.getItem(STORAGE_KEY)
+  if(!raw)return
+  try{
+    const d=JSON.parse(raw)
+    const qs=document.querySelectorAll('textarea')
+    if(qs[0]&&d.q1)qs[0].value=d.q1
+    if(qs[1]&&d.q2)qs[1].value=d.q2
+    if(qs[2]&&d.q3)qs[2].value=d.q3
+    if(d.mc1){const el=document.querySelector('input[name="mc1"][value="'+d.mc1+'"]');if(el)el.checked=true}
+    if(d.mc2){const el=document.querySelector('input[name="mc2"][value="'+d.mc2+'"]');if(el)el.checked=true}
+    if(d.mc3){const el=document.querySelector('input[name="mc3"][value="'+d.mc3+'"]');if(el)el.checked=true}
+  }catch(e){}
+}
+document.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',saveProgress))
+document.querySelectorAll('input[type="radio"]').forEach(r=>r.addEventListener('change',saveProgress))
+restoreProgress()
+
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson05',
+  title: '什么是智能座舱——从"交通工具"到"第三空间"',
+  feynman: [
+    { q: 1, ref: '智能座舱就像车里有了一个会听、会看、会记住你习惯的助理。以前是你去操作车上的各种按钮，现在你跟车说一声，或者车看到你的情况，它就主动帮你去做了。' },
+    { q: 2, ref: '传统座舱：你感觉热 → 伸手去找空调开关 → 找到温度旋钮 → 拧到低温 → 手动调大风量。智能座舱：你说"有点热" → 语音识别理解意图 → 自动调低温度、增大风量。' },
+    { q: 3, ref: '屏幕大只是表面。智能座舱改变的是交互方式（从手指戳屏幕变成说话、手势）、服务方式（车主动建议而不是等你去找），以及连接能力（车和手机、家里、办公室都连在一起）。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'C' }
+};
+
+function submitAll() {
+  const correct = ANSWERS.mcq;
+  let score = 0, total = Object.keys(correct).length;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === ans) {
+      resultDiv.className = 'mcq-result correct'; resultDiv.textContent = '✅ 正确！'; score++;
+    } else {
+      resultDiv.className = 'mcq-result wrong'; resultDiv.textContent = '❌ 正确答案是：' + ans;
+    }
+  }
+  let scoreDiv = document.getElementById('mcq-score');
+  if (!scoreDiv) {
+    scoreDiv = document.createElement('div');
+    scoreDiv.id = 'mcq-score';
+    scoreDiv.style.cssText = 'margin:.8rem 0;padding:.6rem 1rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;border-left:4px solid #4caf50;';
+    document.querySelector('.btn-group').before(scoreDiv);
+  }
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+}
+</script>
+<script src="../ai-grader.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

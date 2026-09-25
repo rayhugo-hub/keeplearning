@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 51：车载以太网诊断 DoIP 进阶——诊断仪怎么隔着网关给全网 ECU"远程把脉"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+.feynman-label{font-weight:600;margin:.8rem 0 .3rem}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 51（16:22）：车载以太网诊断 DoIP 进阶</h1>
+<p class="meta">📅 2026-09-06 | 🚗 ISO 13400-2 · 车辆发现 · 路由激活 · DoIP 报文封装 · 网关转发 · ISO-TP 分段 | ⏰ 16:22</p>
+<div class="nav-bar">
+  <a href="../Lesson50-车载以太网FRER无缝冗余--2026-09-05--1027/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson52-车载以太网MACsec链路安全--2026-09-07--0001/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景</h2>
+<p>4S 店工位上，诊断仪插上 OBD 口（车载以太网）。技师要读<strong>挂在 CAN 总线深处的 BMS（电池管理系统）</strong>的故障码——它没有以太网口，和诊断仪之间隔着一道<strong>中央网关</strong>：</p>
+<div class="mermaid">
+flowchart LR
+    T["🛠️ 诊断仪&lt;br&gt;（OBD 口，车载以太网）"]
+    G["🚗 中央网关&lt;br&gt;（DoIP 网关）"]
+    B["🔌 BMS&lt;br&gt;（只有 CAN 口）"]
+    T -- "以太网 · TCP 13400" --> G
+    G -- "CAN 总线" --> B
+</div>
+<p>问题来了：<strong>诊断仪怎么知道网线上有车、是哪台车？怎么证明自己有资格发诊断？一条 UDS 指令又怎么穿过网关、变成 BMS 听得懂的 CAN 报文？</strong></p>
+<blockquote>Lesson 39 讲过 DoIP 的"是什么/为什么"——UDS 搬上以太网、OTA 的高速公路。这一课是<strong>进阶</strong>：讲"怎么实现"——<strong>找车 → 激活路由 → 封装转发</strong>三道关卡背后的机制细节。</blockquote>
+
+<h2>二、第一关：先"找到车"——车辆发现的三招</h2>
+<p>TCP 是一对一的：<strong>必须先知道对方的 IP，才能建立连接</strong>。可诊断仪插上线时，连"有没有车、车在哪个 IP"都不知道——所以第一步不能用 TCP，而是用 <strong>UDP 广播（端口 13400）</strong>"喊一嗓子"。</p>
+<table>
+<tr><th>招数</th><th>报文</th><th>谁发给谁</th><th>典型场景</th></tr>
+<tr><td>① 广播点名</td><td>0x0001 车辆识别请求</td><td>诊断仪 → 全网（UDP 广播）</td><td>4S 店：插上就问"谁在？"</td></tr>
+<tr><td>② 精确呼叫</td><td>带 VIN（0x0003）或带 EID（0x0002）的请求</td><td>诊断仪 → 指定车（UDP）</td><td>知道目标 VIN，从满场车里精确找</td></tr>
+<tr><td>③ 守株待兔</td><td>0x0004 车辆主动宣告</td><td>车 → 全网（UDP 广播）</td><td>车刚上电联网，主动广播"我在这"</td></tr>
+</table>
+<p>（EID = 实体标识，和硬件强相关，相当于车的"设备指纹"。）</p>
+<p><strong>回应</strong>：被点到的网关/DoIP 节点回一条 <strong>0x0004 车辆识别响应</strong>，里面带着三件套：<strong>VIN（17 位车架号）、自己的逻辑地址、EID</strong>。</p>
+<blockquote><strong>为什么回应里要带"逻辑地址"？</strong> 一辆车上能对话的"实体"不止一个：中央网关、带 DoIP 的域控……各自有唯一的 16 位<strong>逻辑地址</strong>。诊断仪接下来建 TCP、做路由激活，认的都是这个逻辑地址——它是 DoIP 世界里的"门牌号"。</blockquote>
+<p><strong>两个"为什么"：</strong></p>
+<ul>
+  <li><strong>为什么找车用 UDP？</strong> 广播是一对多，UDP 天然支持；报文小、丢了无所谓——再广播一次就行，不值得为它建连接、做重传。</li>
+  <li><strong>为什么宣告不"上电就喊"？</strong> 车上一堆节点同时上电，如果同时广播会撞成风暴——所以要等一小段<strong>随机延时</strong>再宣告，错开高峰。</li>
+</ul>
+<div class="mermaid">
+flowchart LR
+    T["🛠️ 诊断仪"]
+    G["🚗 DoIP 网关（车端）"]
+    T -->|"① UDP 广播 0x0001：谁在？"| G
+    T -->|"② 带 VIN/EID 精确点名"| G
+    G -->|"③ 上电后主动宣告 0x0004（车主动，不经请求）"| T
+    G -->|"回应 0x0004：VIN · 逻辑地址 · EID"| T
+</div>
+
+<h2>三、第二关："访客证"——路由激活，凭什么让你进门</h2>
+<p>找到了车、开了 TCP（还是端口 13400），能直接发诊断了吗？<strong>不能</strong>。想想看：如果任何插上网线的人都能给 BMS 发"擦除故障码""刷写"指令，那停车场里拔根线就能黑一辆车。</p>
+<p>所以 TCP 连上后的第一件事是<strong>路由激活（Routing Activation）</strong>——相当于<strong>小区门口办访客证</strong>：</p>
+<div class="mermaid">
+sequenceDiagram
+    participant T as "诊断仪"
+    participant G as "DoIP 网关"
+    T->>G: ① TCP 连接建立（端口 13400）
+    T->>G: ② 0x0005 路由激活请求（报上我的逻辑地址 0x0E00、激活类型）
+    G-->>T: ③ 0x0006 激活响应（0x00 = 成功）
+    Note over T,G: 网关把这条 TCP 连接和 0x0E00 绑定
+    Note over T,G: 此后这条连接 = 可信诊断通道
+    T->>G: ④ 0x8001 诊断消息（读 BMS 故障码）
+    G-->>T: ⑤ 0x8002 收到回执，正在转发
+</div>
+<p><strong>激活时要声明两件事：</strong></p>
+<ol>
+  <li><strong>我的逻辑地址</strong>——诊断仪通常用 0x0E00（外部测试设备的约定地址，ISO 14229-1 附录）；网关校验"这个地址有没有资格、是不是冒牌货"。</li>
+  <li><strong>激活类型</strong>——你想以什么身份进来：</li>
+</ol>
+<table>
+<tr><th>激活类型</th><th>含义</th><th>典型场景</th></tr>
+<tr><td>0x00 默认激活</td><td>不做额外认证</td><td>产线/售后基础诊断（具体策略 OEM 定）</td></tr>
+<tr><td>0x01 WWH-OBD</td><td>排放相关法规诊断</td><td>年检、环保检测（只放开排放相关服务）</td></tr>
+<tr><td>0x02 中央安全</td><td>需要安全校验/证书</td><td>OTA 刷写、解锁安全等级</td></tr>
+<tr><td>0x80~0xFE OEM 自定义</td><td>厂商自己定义</td><td>各种特殊模式</td></tr>
+</table>
+<p><strong>响应码</strong>：0x00 = 成功；非 0 = 拒绝（比如"已经有一个激活的诊断仪了""安全校验不过""请求格式错"），具体原因码由 ISO 13400-2 定义。</p>
+<p><strong>激活成功后，网关内部发生了什么？——"绑定"。</strong> 网关在内部记下一行：<strong>这条 TCP 连接 ↔ 逻辑地址 0x0E00 ↔ 已激活</strong>。此后：</p>
+<ul>
+  <li>这条连接上发来的 0x8001 诊断消息，网关才愿意解析、转发；</li>
+  <li>别的连接想冒充 0x0E00？——查无此绑定，拒绝。</li>
+</ul>
+<blockquote><strong>一句话：路由激活 = 网关给诊断仪发"访客证"，并把"人（逻辑地址）"和"门（TCP 连接）"绑在一起。</strong> 绑一次，整段诊断会话都有效，不用每条消息都验一次身——这就是 L39 说的"报名"背后的机制。</blockquote>
+<p><strong>连接"假死"了怎么办？</strong> 诊断仪可能死机、网线可能被踢掉，但 TCP 连接还半死不活地挂着。网关会发 <strong>0x0007 alive check（你还活着吗）</strong>，诊断仪必须回 <strong>0x0008</strong>；不回？网关判定失效，<strong>回收路由</strong>——把访客证作废，把位置让给下一个诊断仪。这就是 DoIP 的"保活"。</p>
+
+<h2>四、诊断消息的"信封"——DoIP 报文长什么样</h2>
+<p>找车、激活、诊断……这些消息在网线上都穿着同一件"制服"：<strong>8 字节 DoIP 头 + 载荷</strong>。</p>
+<table>
+<tr><th>字段</th><th>长度</th><th>作用</th></tr>
+<tr><td><strong>协议版本</strong></td><td>1 字节</td><td>如 0x02/0x03（对应 ISO 13400-2 的不同年份版本）</td></tr>
+<tr><td><strong>版本反码</strong></td><td>1 字节</td><td>版本号取反，接收方一眼识破"错乱/乱码"的头部</td></tr>
+<tr><td><strong>载荷类型 Payload Type</strong></td><td>2 字节</td><td><strong>这封信是什么</strong>（见下表）</td></tr>
+<tr><td><strong>载荷长度 Payload Length</strong></td><td>4 字节</td><td>后面载荷有多少字节（不含头部）</td></tr>
+</table>
+<p><strong>常用载荷类型</strong>（ISO 13400-2）：</p>
+<table>
+<tr><th>类型</th><th>报文</th><th>走什么协议</th><th>干什么</th></tr>
+<tr><td>0x0001 / 0x0002 / 0x0003</td><td>车辆识别请求（普通 / 带 EID / 带 VIN）</td><td>UDP</td><td>找车</td></tr>
+<tr><td>0x0004</td><td>车辆识别响应 / 主动宣告</td><td>UDP</td><td>报上 VIN、逻辑地址</td></tr>
+<tr><td>0x0005 / 0x0006</td><td>路由激活请求 / 响应</td><td>TCP</td><td>办访客证</td></tr>
+<tr><td>0x0007 / 0x0008</td><td>alive check 请求 / 响应</td><td>TCP</td><td>保活</td></tr>
+<tr><td><strong>0x8001</strong></td><td><strong>诊断消息</strong></td><td><strong>TCP</strong></td><td><strong>信封里装的才是 UDS 请求/响应</strong></td></tr>
+<tr><td>0x8002</td><td>诊断消息正回执</td><td>TCP</td><td>网关说"收到，正在转发"</td></tr>
+<tr><td>0x8003</td><td>诊断消息负回执</td><td>TCP</td><td>网关说"我不收"，附原因码</td></tr>
+<tr><td>0x0000</td><td>通用头部 NACK</td><td>TCP/UDP</td><td>头部就不对（版本错、长度超限），直接拒</td></tr>
+</table>
+<p><strong>0x8001 诊断消息的载荷里装着什么？</strong> 源逻辑地址（谁发的）+ 目标逻辑地址（发给谁）+ <strong>一整条 UDS 报文</strong>。注意：UDS 报文是"原样"装进去的——DoIP 只换运输方式，不改"语言"。</p>
+<p><strong>"回执"为什么重要？</strong> 这里有个容易混的点：</p>
+<ul>
+  <li><strong>TCP 的确认</strong>：只保证"字节流<strong>到网关</strong>了"——网卡收了、内核收了，仅此而已；</li>
+  <li><strong>0x8002/0x8003 回执</strong>：是网关<strong>应用层</strong>的答复——"我拆开信封看了：目标地址认不认识？路由激活了没？报文超没超长？"</li>
+</ul>
+<p>能转 → 0x8002；不能转 → 0x8003 并附原因码（如 <strong>0x02 目标地址未知、0x03 报文过大、0x05 目标不可达</strong>）。诊断仪不用干等 ECU 超时，立刻就知道"这封信送不出去、为什么"——这就是<strong>快速失败</strong>。</p>
+
+<h2>五、第三关：网关"翻译官"——从以太网到 CAN 总线</h2>
+<p>假设目标 BMS 挂在 CAN 上。网关收到 0x8001，拆开一看目标逻辑地址是 BMS，于是开始干<strong>翻译官的活</strong>。为什么不能"原样照搬"丢上 CAN？因为两边有三处不一样：</p>
+<p><strong>① 地址体系不一样 → 查路由表。</strong> DoIP 世界认"逻辑地址"，CAN 世界认"诊断 CAN ID"。网关的路由表就是一张对照表：</p>
+<table>
+<tr><th>目标逻辑地址</th><th>通往哪条总线</th><th>诊断 CAN ID</th><th>说明</th></tr>
+<tr><td>BMS（例 0x0719）</td><td>CAN2</td><td>0x719（物理寻址）</td><td>一对一，只发给 BMS</td></tr>
+<tr><td>发动机 ECU</td><td>CAN1</td><td>0x7E0</td><td>一对一</td></tr>
+<tr><td>整车（功能寻址）</td><td>所有总线</td><td>0x7DF（功能寻址）</td><td>一对多广播，如"全体报告版本号"</td></tr>
+</table>
+<p><strong>② 报文长度不一样 → ISO-TP 分段。</strong> CAN 一帧最多装 <strong>8 字节</strong>（CAN-FD 64 字节）。而一条 UDS 刷写数据动辄几百上千字节。所以要走 <strong>ISO-TP（ISO 15765-2）</strong> 拆包：单帧塞得下就直接发（≤7 字节）；塞不下就拆成 <strong>首帧（First Frame）→ 流控帧（Flow Control）→ 连续帧（Consecutive Frame）</strong> 一串发出去，BMS 收齐再拼回完整的 UDS 报文。反过来，BMS 的响应太长也要分段回来、网关重组后再装进 0x8001。</p>
+<p><strong>③ 语言不变。</strong> 翻译的是"路"，不是"话"：UDS 服务（0x22 读数据、0x2E 写数据、0x34/0x36 刷写……）从头到尾原样——BMS 执行的和诊断仪发的是同一条 UDS。</p>
+<div class="mermaid">
+flowchart TB
+    IN["以太网帧到达网关&lt;br&gt;（TCP 13400 上的 0x8001 诊断消息）"]
+    P1["拆开 DoIP 信封：取出 UDS 请求 + 目标逻辑地址"]
+    P2["查路由表：目标逻辑地址 → 哪条 CAN + 哪个诊断 ID"]
+    P3["按 ISO-TP 拆段：单帧只装 8 字节&lt;br&gt;（首帧 → 流控帧 → 连续帧）"]
+    OUT["从对应 CAN 口发出：&lt;br&gt;物理寻址（一对一）或功能寻址（广播）"]
+    ECU["BMS 收齐分段 → 重组出完整 UDS → 执行"]
+    IN --> P1 --> P2 --> P3 --> OUT --> ECU
+</div>
+<p><strong>为什么非要网关转一道？</strong> 老一代 ECU 密密麻麻挂在 CAN 上、没有以太网口，不可能为诊断全部改造；网关做"翻译官"，一套 DoIP 入口就能服务全车所有总线——这也是<strong>中央网关</strong>在诊断架构里的核心价值。</p>
+
+<h2>六、把一条诊断请求的完整旅程串起来</h2>
+<p>诊断仪读 BMS 故障码（UDS 0x19 读故障码）的全程：</p>
+<div class="mermaid">
+sequenceDiagram
+    participant T as "🛠️ 诊断仪"
+    participant G as "🚗 中央网关（DoIP 网关）"
+    participant B as "🔌 BMS（挂在 CAN2）"
+    Note over T,G: 找车：UDP 广播 0x0001 → 网关回 0x0004（VIN + 逻辑地址）
+    Note over T,G: 建 TCP（13400）→ 0x0005 路由激活 → 0x0006 成功，绑定
+    T->>G: 0x8001 诊断消息（源 0x0E00 → 目标 BMS，UDS 0x19）
+    G-->>T: 0x8002 正回执（收下了，正在转发）
+    G->>B: 查路由表 → CAN2 发 0x719：UDS 0x19（ISO-TP 分段）
+    B-->>G: 分段响应 → 网关重组
+    G->>T: 0x8001 诊断响应（UDS 0x19 的应答，装回 DoIP 信封）
+</div>
+<ol>
+  <li><strong>找车</strong>：诊断仪 UDP 广播 0x0001，网关回 0x0004，报上 VIN 和逻辑地址；</li>
+  <li><strong>开门</strong>：诊断仪向网关的 IP:13400 建 TCP，发 0x0005 路由激活，网关回 0x0006 成功，并把连接和逻辑地址绑定；</li>
+  <li><strong>送信</strong>：0x8001 诊断消息上路，网关先回 0x8002"收到"，再查路由表翻译；</li>
+  <li><strong>翻译</strong>：逻辑地址 → CAN 诊断 ID，长报文按 ISO-TP 拆段送上 CAN2；</li>
+  <li><strong>返回</strong>：BMS 的响应分段回来，网关重组、装进 0x8001，原路送回诊断仪。</li>
+</ol>
+
+<h2>七、诊断流量在车载网络里的"地位"</h2>
+<p>把 L47 以来的"车载以太网深度系列"串一遍：<strong>TSN（L47）让关键帧准点 → PHY（L48）把帧变成电信号 → 交换机（L49）分流隔离 → FRER（L50）让关键帧断一条路也不丢</strong>。诊断/OTA 流量在队列里排哪？——<strong>尽力而为</strong>：</p>
+<table>
+<tr><th>流量</th><th>可靠性怎么保证</th><th>开 FRER？</th></tr>
+<tr><td>转向/制动控制指令</td><td>发送端双发（FRER）+ TSN 调度</td><td>✅ 开</td></tr>
+<tr><td>摄像头视频流</td><td>丢帧可容忍、可恢复</td><td>❌ 不开</td></tr>
+<tr><td><strong>诊断 / OTA 刷写</strong></td><td><strong>TCP 重传兜底 + UDS 超时重试</strong></td><td><strong>❌ 不开</strong></td></tr>
+</table>
+<ul>
+  <li><strong>诊断不需要 FRER</strong>：它走 TCP，丢了会重传；UDS 层还有超时重试（比如 0x36 传输数据可以断点续传）。给诊断开 FRER 纯属浪费带宽。</li>
+  <li><strong>但诊断可能"欺负"关键流</strong>：OTA 一刷写就是几十 MB 连续数据。如果它和转向指令抢同一个出口队列，转向就得排队——所以要用 L49 的流分类/VLAN 把诊断、OTA 关进<strong>低优先级队列</strong>，必要时还要限速监管（TSN 家族里的 <strong>802.1Qci / PSFP 每流监管</strong>就是干这个的，后续课程会深入）。</li>
+  <li><strong>和 L39 呼应</strong>：OTA 的下载段走 HTTPS 到 TBOX，刷写段由 TBOX 当"内部诊断仪"，用 DoIP 把固件喂给各 ECU——<strong>DoIP 是 OTA 落地的最后几公里</strong>。</li>
+</ul>
+
+<h2>八、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>先找车、再敲门、后送信</strong>——UDP 找车（0x0001/0x0004）→ TCP 上路由激活（0x0005/0x0006）拿"访客证"→ 绑定后的连接才能发 0x8001 诊断消息。少一步都进不了门。</li>
+  <li><strong>UDP 负责"问"，TCP 负责"送"</strong>——找车是一对多广播，丢了再问一次；诊断消息要按序不丢，必须走 TCP；网关回 0x8002/0x8003 是应用层回执（告诉你能不能转），和 TCP 的字节确认是两回事。</li>
+  <li><strong>网关是翻译官，不是快递员</strong>——UDS 是"语言"，原样不变；要翻译的是"路"：逻辑地址 → CAN 诊断 ID、长报文 → ISO-TP 分段、一对一物理寻址 → 一对多功能寻址。没有路由表，诊断仪连 BMS 的门都找不到。</li>
+</ol>
+
+<h2>九、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <h3>Q1：用"去陌生小区找朋友"打比方，讲一讲：为什么诊断仪不能一插上网线就直接发诊断指令？"路由激活"相当于进门前的什么手续？为什么办好一次之后，后面反复进出就不用再办了？（提示：激活后网关把什么和什么"绑"在了一起？）</h3>
+  <textarea id="feynman1" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q2：找车用 UDP 广播、发诊断用 TCP，同样是"通信"，为什么选不同的协议？把两种消息各自的特点讲清楚（对方是谁知不知道、丢了怎么办、消息大不大）。另外：诊断消息明明已经跑在 TCP 上了，为什么网关还要回一个 0x8002"收到了"的回执？TCP 的确认和这个回执有什么不一样？</h3>
+  <textarea id="feynman2" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q3（进阶）：中央网关要把一条几百字节的 UDS 刷写数据送到只会说 CAN 的 ECU，中间要解决哪几件"翻译"的事？如果网关图省事，把整个以太网帧原封不动塞进 CAN，会发生什么？（提示：CAN 一帧能装多少数据？长报文怎么拆怎么拼？"逻辑地址"和"CAN 诊断 ID"是一回事吗？）</h3>
+  <textarea id="feynman3" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+
+<h2>十、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：诊断仪接入车载以太网后，想先搞清楚"网线上有没有车、是哪台车"，于是发车辆识别请求。为什么这件事用 UDP 广播（端口 13400），而不是直接建立 TCP 连接？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. UDP 不走确认重传，所以比 TCP 快得多，找车要的就是快</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. TCP 是一对一的连接，必须先知道对方的 IP 才能连；此刻诊断仪连"有没有车、车在哪"都不知道，UDP 广播可以一次问遍全网，谁在谁回答</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. UDP 报文不会被防火墙拦截，而 TCP 的 13400 端口在车上默认是关闭的</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. UDP 专门用来传短报文，TCP 只能传长报文，找车报文太短只能用 UDP</label>
+  <div class="mcq-result" id="mc1-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ2：路由激活成功后，网关内部发生了什么变化？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. 网关把"这条 TCP 连接"和诊断仪声明的逻辑地址绑定，此后这条连接上发来的诊断消息才被解析并按目标地址转发</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. 网关把整车所有 ECU 的故障码一次性拷给诊断仪，之后诊断仪不用再逐个去问</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 网关把这条 TCP 连接升级成加密通道，所有诊断报文从此自动加密传输</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 网关给诊断仪分配一个临时 VIN，用于后续 OTA 下载的身份认证</label>
+  <div class="mcq-result" id="mc2-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ3：诊断仪想读挂在 CAN 总线上的 BMS 的故障码，请求经 DoIP 到达中央网关后，网关不能把报文"原样照搬"地丢上 CAN，为什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. 因为 CAN 帧没有源地址和目的地址，报文根本送不到 BMS</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. 因为 DoIP 和 CAN 上的 UDS 报文内容完全不同，网关必须把 UDS 翻译成别的诊断协议</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. 因为网关必须先向云端服务器申请转发许可，批准后才能上 CAN</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. 因为 CAN 单帧最多装 8 字节（CAN-FD 64 字节），长 UDS 报文必须按 ISO-TP 拆成多帧发送、BMS 收齐再重组；同时要把"目标逻辑地址"翻译成 BMS 的诊断 CAN ID</label>
+  <div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 51,
+    title: '车载以太网诊断DoIP进阶',
+    feynman: [],
+    mcq: { mc1: 'B', mc2: 'A', mc3: 'D' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 51,
+  title: '车载以太网诊断 DoIP 进阶——诊断仪怎么隔着网关给全网 ECU"远程把脉"？',
+  feynman: [
+    { q: 'Q1', ref: '去陌生小区找朋友类比——把车想成有门禁的小区，网关是门卫。①为什么不能直接发诊断：小区不允许陌生人直接进楼挨家挨户发号施令——如果任何插上网线的人都能给 BMS 发擦码/刷写指令，停车场里拔根线就能黑一辆车。必须先证明我是谁、来干什么。②路由激活 = 门口登记办访客证：诊断仪报上自己的逻辑地址（我是哪号访客，外部诊断仪常用 0x0E00）和激活类型（以什么身份来：默认/WWH-OBD/中央安全/OEM 自定义），门卫（网关）校验资格——地址认不认识、安全认证过没过。③为什么办好一次就够了：办好后门卫把访客证和本人绑定——网关把这条 TCP 连接和逻辑地址绑在一起并标记为已激活，此后这条连接上来的诊断消息一看绑定就知道是持证访客，不用每条消息都重新验身。会话结束、连接断开、或长期不回 alive check 被判死，绑定才解除、访客证作废——位置让给下一个诊断仪。' },
+    { q: 'Q2', ref: '①找车为什么用 UDP：此刻连有没有车、是哪台车、IP 是多少都不知道——要的是"一对多广播、谁在谁回答"，UDP 天然支持广播；报文小，丢了也无所谓，再广播一次就行，不值得为它建连接做重传。②发诊断为什么用 TCP：目标明确（有逻辑地址），消息大（刷写几百上千字节甚至更大），要求按序、不丢、不重——TCP 是可靠字节流，自动确认重传、保证顺序，还能承载整个会话的双向长消息。③为什么 TCP 之上还要 0x8002 回执：TCP 的确认只说明"字节流到了网卡/内核缓冲区"，是运输层的"信送到收发室"；0x8002 是网关应用层拆开信封检查后的答复——目标地址我认识、路由已激活、报文不超长，我收下并转发。TCP 永远无法表达"这个目标逻辑地址我不认识"这种诊断语义，所以必须有一层应用回执。④没有回执会怎样：诊断仪只能干等 ECU 超时，而且分不清是信在路上丢了还是网关拒收；有了 0x8002/0x8003（附原因码：目标未知 0x02/报文过大 0x03/不可达 0x05），立刻知道送没送出去、为什么——快速失败。' },
+    { q: 'Q3', ref: '网关要干三件翻译的活：①地址翻译——DoIP 认 16 位逻辑地址，CAN 认诊断 CAN ID，网关查路由表把目标逻辑地址映射成"哪条 CAN 总线 + 哪个诊断 ID"（如 BMS → CAN2 的 0x719）；②长度翻译——CAN 单帧最多装 8 字节（CAN-FD 64 字节），几百字节的 UDS 报文必须按 ISO-TP 拆段：单帧装得下就直接发（≤7 字节），装不下按"首帧（带总长度）→ 流控帧（对方允许我发多少）→ 连续帧（一帧帧发）"一串送出，ECU 收齐再重组；ECU 的长响应也要分段回来、由网关重组后装进 0x8001；③寻址方式翻译——物理寻址一对一，功能寻址一对多（0x7DF 广播给一组 ECU）。如果原封不动塞进 CAN：一帧根本装不下会被截断；就算硬塞进去，BMS 只认 CAN ID、不认以太网帧头和逻辑地址，帧到了总线上也到不了 BMS 的诊断应用，全是噪音；而且 100M 以太网的洪流会淹没 1M 的 CAN 总线，还要做速率适配。注意：UDS 服务本身一字不改——翻译的是"路"，不是"话"。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'A', mc3: 'D' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 31（17:18）：多传感器融合算法——三双"眼睛"如何合成一双"慧眼"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 31（17:18）— 2026-08-01 | 🚗 多传感器融合算法</div>
+  <h1>多传感器融合算法——三双"眼睛"如何合成一双"慧眼"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson30-车载摄像头与视觉感知--2026-07-21--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson32-车载信息安全--2026-08-01--1718/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>深夜，暴雨，高速。你的车以 100km/h 巡航。前方 80 米处有一辆没开尾灯的事故车横在路中间。</p>
+
+<ul>
+<li><strong>摄像头</strong>：雨滴散射光线，图像像蒙了毛玻璃——它"看见了"一团模糊的轮廓，但不敢确定那是什么</li>
+<li><strong>毫米波雷达</strong>：穿透雨雾毫无压力，稳稳测出"前方 79.3 米有金属反射物"——但它分不清那是车、是护栏还是桥上铁皮</li>
+<li><strong>LiDAR</strong>：点云稀疏，雨滴产生大量噪点，但依稀能看出一个"宽 1.8 米、高 1.5 米"的实体</li>
+</ul>
+
+<p><strong>问题来了：</strong> 任何一个传感器单独看，都不够自信。但你的车却果断触发 AEB 紧急制动，稳稳刹停。它凭什么这么"确信"？</p>
+
+<div class="callout">
+<p><strong>答案是多传感器融合（Sensor Fusion）。</strong> 三个传感器单独都是"偏科生"，但把它们的数据放在一起"商量"，系统就能得到任何一个传感器都给不出的高置信度结论。这是 L2+ 以上自动驾驶的"感知大脑"。想知道它们怎么"商量"的？往下看。</p>
+</div>
+
+<hr>
+
+<h2>二、为什么要融合？——每个传感器都是"偏科生"</h2>
+
+<p>把三兄弟的"性格"摆在一起：</p>
+
+<table>
+<tr><th>维度</th><th>摄像头（Lesson 30）</th><th>毫米波雷达</th><th>LiDAR（Lesson 29）</th></tr>
+<tr><td>强项</td><td>语义：这是什么（车/人/标志/颜色）</td><td>测距测速：多快、多远（多普勒）</td><td>几何：精确的 3D 位置和形状</td></tr>
+<tr><td>弱项</td><td>无光/雨雾失效、测距靠"猜"</td><td>无语义、角分辨率低（分不清轮廓）</td><td>稀疏、无颜色、雨雾噪点多、贵</td></tr>
+<tr><td>失效模式</td><td>光照/天气</td><td>金属多径反射（护栏、隧道）</td><td>恶劣天气、远距离稀疏</td></tr>
+<tr><td>成本</td><td>低（$30-80）</td><td>中（$50-200）</td><td>高（$200-5000+）</td></tr>
+</table>
+
+<p><strong>核心洞察：</strong> 三兄弟的<strong>失效场景几乎不重叠</strong>。摄像头怕的（黑天雨雾），雷达不怕；雷达怕的（多径反射），摄像头和 LiDAR 能纠偏。融合的本质是<strong>用冗余换可靠</strong>——任何一个传感器"掉线"，系统仍然安全。</p>
+
+<hr>
+
+<h2>三、融合的三个层次——从"拼数据"到"拼结论"</h2>
+
+<p>融合不是简单地把数据倒在一起，业界按抽象程度分为三个层次：</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph L1["层次一：数据级融合"]
+        D1["原始像素 + 原始点云 + 原始回波<br>逐像素/逐点对齐后合并<br>信息最全，但计算量巨大"]
+    end
+    subgraph L2["层次二：特征级融合"]
+        F1["各自先提取特征（目标框/点云聚类）<br>再把特征列表合并、关联、去重<br>主流方案，兼顾信息量与算力"]
+    end
+    subgraph L3["层次三：决策级融合"]
+        C1["每个传感器独立出结论<br>再投票/加权表决<br>最鲁棒，但细节信息丢失"]
+    end
+    D1 --&gt; F1
+    F1 --&gt; C1
+</div>
+
+<h3>三种层次的通俗理解</h3>
+
+<table>
+<tr><th>层次</th><th>打个比方</th><th>优点</th><th>缺点</th><th>车载使用</th></tr>
+<tr><td>数据级</td><td>三张照片叠在一起看</td><td>信息零丢失</td><td>算力爆炸、对齐要求苛刻</td><td>❌ 极少</td></tr>
+<tr><td>特征级</td><td>三个人各自圈出"疑似目标"，再对名单</td><td>信息与算力平衡</td><td>目标关联（谁和谁是同一个）容易出错</td><td>✅ 主流</td></tr>
+<tr><td>决策级</td><td>三个人各自表态"刹/不刹"，再举手表决</td><td>最抗单个传感器故障</td><td>融合前细节已丢失</td><td>⚡ 常用兜底</td></tr>
+</table>
+
+<hr>
+
+<h2>四、融合的两大"地基"：空间对齐 + 时间同步</h2>
+
+<p>任何融合算法，前提都是：<strong>"摄像头里的那个像素"和"雷达里的那个点"说的是同一个物理物体</strong>。这需要两步：</p>
+
+<h3>① 空间对齐（外参标定）</h3>
+
+<p>每个传感器的坐标系原点不同（装在车头/车顶/后视镜），要先通过标定求出<strong>外参矩阵（旋转 R + 平移 t）</strong>，把所有传感器数据变换到同一个车身坐标系：</p>
+
+<div class="mermaid">
+flowchart LR
+    CAM["摄像头坐标系<br>(2D 像素)"] --&gt;|"外参 R,t"| BODY["车身坐标系<br>(统一基准)"]
+    RADAR["雷达坐标系<br>(3D 球坐标)"] --&gt;|"外参 R,t"| BODY
+    LIDAR["LiDAR 坐标系<br>(3D 点云)"] --&gt;|"外参 R,t"| BODY
+    BODY --&gt; FUSION["融合算法"]
+</div>
+
+<p>标定不准的后果很直观：摄像头说"前方 50 米有行人"，雷达说"前方 48 米有目标"——如果两个坐标系没对齐，融合算法会把它们当成<strong>两个目标</strong>，虚警频出。</p>
+
+<h3>② 时间同步</h3>
+
+<ul>
+<li>摄像头 30fps（33ms 一帧）、雷达 20fps（50ms 一帧）、LiDAR 10fps（100ms 一帧）</li>
+<li>一辆 100km/h 的车，100ms 内移动 <strong>2.8 米</strong></li>
+<li>如果不做时间同步，融合时把"0ms 的雷达数据"和"100ms 的摄像头数据"当同一时刻用，位置误差可达米级</li>
+</ul>
+
+<p><strong>工程做法：</strong> 所有传感器数据打上<strong>硬件时间戳</strong>，融合前按时间戳插值/外推到同一时刻（常用"最近邻 + 线性插值"），或者用预测模型把所有数据推到"当前时刻"。</p>
+
+<hr>
+
+<h2>五、核心算法：卡尔曼滤波——"预测 + 修正"的循环</h2>
+
+<p>特征级融合最经典的算法是<strong>卡尔曼滤波（Kalman Filter）</strong>。它不神秘，本质就是一个无限循环的"预测-修正"：</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph PRED["预测步 (先验)"]
+        P1["用运动模型外推：<br>上一帧位置 + 速度 × Δt<br>→ 预测本帧位置"]
+    end
+    subgraph UPD["更新步 (后验)"]
+        U1["拿传感器实测值<br>与预测值加权平均<br>权重 = 各自不确定度"]
+    end
+    P1 --&gt; U1
+    U1 --&gt; P1
+</div>
+
+<h3>用一个"猜球"的例子讲透</h3>
+
+<ol class="ol-decimal">
+<li><strong>预测</strong>：你闭着眼，根据球上一秒的速度猜它现在在哪——猜的位置有误差（不确定度大）</li>
+<li><strong>测量</strong>：你睁开眼瞄一眼，传感器给了个实测位置——测量也有误差（比如雨雾天误差大）</li>
+<li><strong>融合</strong>：卡尔曼滤波做的事就是<strong>按不确定度加权平均</strong>：谁更可信，就多信谁
+  <ul>
+  <li>雨雾天：摄像头误差大 → 权重小，多信雷达</li>
+  <li>晴天：摄像头误差小 → 权重大</li>
+  </ul>
+</li>
+<li><strong>循环</strong>：融合结果作为下一轮的"上一帧"，继续预测→测量→修正</li>
+</ol>
+
+<div class="callout-warn">
+<p><strong>为什么叫"滤波"？</strong> 因为它能把传感器数据里的<strong>噪声（毛刺）滤掉</strong>，输出的轨迹平滑且贴合真实运动。这是单传感器永远做不到的。</p>
+</div>
+
+<hr>
+
+<h2>六、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：融合的本质是"取长补短"，不是"求平均"</h3>
+<p>平均是"三个臭皮匠各说各话取中间值"；融合是"谁在这个场景更可信就多听谁的"。雨雾天多信雷达，晴天多信摄像头——<strong>权重随场景动态变化</strong>，这才是融合的灵魂。</p>
+
+<h3>📌 规则二：没有"空间对齐 + 时间同步"，融合就是灾难</h3>
+<p>坐标系没对齐 → 一个目标被当成两个；时间没同步 → 位置差好几米。<strong>标定和同步是融合的地基</strong>，地基不稳，算法再高级也是空中楼阁。</p>
+
+<h3>📌 规则三：冗余不是浪费，是安全的底线</h3>
+<p>纯视觉方案赌的是"数据够多、算法够强"；多传感器融合赌的是"任何单一传感器失效，系统仍安全"。L3 以上法规要求有<strong>独立的冗余感知通道</strong>——这就是融合存在的法规级理由。</p>
+
+</div>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>请用"三个盲人摸象"或者你自己编的比喻，向一个 12 岁小孩解释：为什么摄像头、雷达、LiDAR 三个传感器要"一起用"，而不是挑一个最厉害的单独用？他们各自"摸"到了大象的哪一部分？</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>卡尔曼滤波的"预测-修正"循环，用你生活中的例子（比如追踪一个在人群里跑动的小朋友）讲一遍。为什么"预测 + 测量"比"只看测量"更准？</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>如果一辆车的摄像头和 LiDAR 标定没做好（坐标系没对齐），实际开车时会出什么危险情况？请至少说出两种具体场景。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：多传感器融合的三个层次中，目前车载量产方案最主流的是哪一种？</div>
+<label><input type="radio" name="mc1" value="A"> A. 数据级融合——原始像素和点云直接合并</label>
+<label><input type="radio" name="mc1" value="B"> B. 特征级融合——各自提取目标后关联合并</label>
+<label><input type="radio" name="mc1" value="C"> C. 决策级融合——各自出结论后投票表决</label>
+<label><input type="radio" name="mc1" value="D"> D. 云端融合——所有数据上传服务器处理</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：关于卡尔曼滤波，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc2" value="A"> A. 它把三个传感器的测量值简单求平均</label>
+<label><input type="radio" name="mc2" value="B"> B. 它只依赖测量值，不用运动模型</label>
+<label><input type="radio" name="mc2" value="C"> C. 它根据"预测不确定度"和"测量不确定度"动态加权，谁更可信多信谁</label>
+<label><input type="radio" name="mc2" value="D"> D. 它只在离线标定时用一次，行车中不参与</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：夜间暴雨场景下，融合系统应该如何处理三个传感器的权重？</div>
+<label><input type="radio" name="mc3" value="A"> A. 摄像头权重最高（它看得最清楚）</label>
+<label><input type="radio" name="mc3" value="B"> B. 三个传感器权重始终相同</label>
+<label><input type="radio" name="mc3" value="C"> C. 降低摄像头权重、提高毫米波雷达权重，LiDAR 适当降权（雨雾噪点多）</label>
+<label><input type="radio" name="mc3" value="D"> D. 完全禁用摄像头，只用 LiDAR</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson31',
+    title: 'Lesson 31（17:18）：多传感器融合算法',
+    mcq: { mc1: 'B', mc2: 'C', mc3: 'C' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson31', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson31');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson31');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson31',
+  title: 'Lesson 31（17:18）：多传感器融合算法——三双"眼睛"如何合成一双"慧眼"？',
+  feynman: [
+    { q: 1, ref: '三个盲人摸象：摸腿=毫米波雷达（测距测速但分不清是什么），摸耳朵=LiDAR（形状精确但无语义），摸肚子=摄像头（有颜色语义但怕黑怕雨雾）。每个传感器都有瞎子时刻，三者失效场景不重叠，一起用任何时刻至少两个清醒。不存在最厉害的单传感器' },
+    { q: 2, ref: '预测步=根据上一秒位置和速度猜现在在哪（误差大）；测量步=扫一眼实测位置（也有误差）；融合步=按误差大小动态加权，谁可信多信谁；循环=融合结果作为下一轮起点。只靠测量会忽左忽右（噪声大），只靠预测会越偏越远（误差累积），预测给连续性、测量给纠偏，两者互补' },
+    { q: 3, ref: '危险场景：1) 虚警幽灵刹车——同一段护栏被当成两个目标，空旷路频繁触发AEB；2) 真实目标关联失败被漏检，AEB触发时机算错（纵向距离错位）；3) 目标ID频繁切换，TTC碰撞时间计算基于断裂轨迹无法准确判断' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'C' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

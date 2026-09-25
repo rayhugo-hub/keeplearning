@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 47：车载以太网 TSN 时间敏感网络——关键报文凭什么"准点到"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+.feynman-label{font-weight:600;margin:.8rem 0 .3rem}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 47（00:01）：车载以太网 TSN 时间敏感网络</h1>
+<p class="meta">📅 2026-08-30 | 🚗 时间同步 802.1AS · 时间感知整形 Qbv · 信用整形 Qav · 帧抢占 Qbu | ⏰ 00:01</p>
+<div class="nav-bar">
+  <a href="../Lesson46-域控制器资源隔离与QoS--2026-08-27--2300/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson48-车载以太网物理层PHY--2026-09-01--0005/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景</h2>
+<p>一辆舱驾一体车上，<strong>同一根以太网线</strong>里跑着这些流量：</p>
+<ul>
+  <li>智驾摄像头流：每秒产生 <strong>几 GB</strong> 视频数据；</li>
+  <li>底盘控制报文：<strong>必须 1ms 内</strong>从传感器传到执行器；</li>
+  <li>语音助手：人耳对延迟极敏感，<strong>超过 100ms 就觉得卡</strong>；</li>
+  <li>娱乐视频 + OTA 下载包：永远在抢带宽。</li>
+</ul>
+<p>普通以太网的态度是：<strong>"尽力而为"（best-effort）</strong>——数据到了交换机就排队，谁排到谁先走，堵车时大家一起等。</p>
+<p>于是问题来了：</p>
+<ul>
+  <li>摄像头大流量把交换机缓存塞满，<strong>底盘控制报文会不会迟到</strong>？</li>
+  <li>视频下载把带宽占完，<strong>语音会不会卡顿</strong>？</li>
+  <li>最要命的是：<strong>迟到的延迟是多长时间，没人说得准</strong>——100ms 还是 1s？</li>
+</ul>
+<blockquote><strong>这一课讲清楚：TSN（Time-Sensitive Networking，时间敏感网络）给普通以太网装上"同步时钟 + 红绿灯 + 专用车道"，让关键报文延迟<strong>可预测、有上界</strong>——说好 1ms 到，就一定能 1ms 到。</strong></blockquote>
+
+<h2>二、为什么普通以太网"不准时"？</h2>
+<h3>1. 以太网的"尽力而为"基因</h3>
+<p>以太网诞生于办公网络：共享线缆、谁想发就发（CSMA/CD），后来变成交换机 + 缓存队列。它的设计目标是"<strong>别丢数据</strong>"，从来没承诺过"<strong>多久能到</strong>"。</p>
+<h3>2. 延迟来自哪里？</h3>
+<table>
+<tr><th>环节</th><th>造成什么延迟</th><th>是否可控</th></tr>
+<tr><td><strong>排队延迟</strong></td><td>报文进交换机缓存队列，前面有大流量就得等</td><td>❌ 最不可控</td></tr>
+<tr><td><strong>转发延迟</strong></td><td>交换机查表、转发（存储转发要收完整帧）</td><td>✅ 固定</td></tr>
+<tr><td><strong>链路延迟</strong></td><td>电信号在线上跑</td><td>✅ 固定（~5ns/m）</td></tr>
+<tr><td><strong>串行化延迟</strong></td><td>帧一位一位发出去要时间</td><td>✅ 与速率相关</td></tr>
+</table>
+<p><strong>关键：排队延迟是"变量"</strong>——普通流量一多，关键报文排队时间暴涨，而且无法预测。</p>
+<h3>3. 车载场景为什么忍不了？</h3>
+<ul>
+  <li>底盘控制：延迟 10ms 以上 → 车辆动态变差；</li>
+  <li>ADAS 融合：摄像头流延迟抖动 → 目标位置错位；</li>
+  <li>音频：延迟抖动 → 爆音、卡顿。</li>
+</ul>
+<blockquote><strong>结论：普通以太网"大概率能到，但说不准什么时候到"。汽车要的是"一定能到，且说好几点到就几点到"。TSN 就是干这个的。</strong></blockquote>
+
+<h2>三、TSN 是什么：一组让以太网"准时"的标准</h2>
+<p><strong>TSN 不是一项技术，而是一整套 IEEE 802.1 标准族</strong>，目标：在标准以太网上，为关键流量提供<strong>有界的延迟、极低的抖动、零丢包</strong>。</p>
+<p>三块基石：</p>
+<table>
+<tr><th>基石</th><th>标准</th><th>一句话作用</th><th>类比</th></tr>
+<tr><td><strong>① 时间同步</strong></td><td>802.1AS（gPTP）</td><td>全网节点共用一个"手表"，精度亚微秒</td><td>高铁调度中心统一时间</td></tr>
+<tr><td><strong>② 调度整形</strong></td><td>802.1Qbv / Qav / Qbu</td><td>给关键流量"定时放行 + 专用通道"</td><td>红绿灯 + 专用车道 + 应急车道</td></tr>
+<tr><td><strong>③ 流预留</strong></td><td>802.1Qcc / Qat</td><td>发车前先"订票"，预留带宽</td><td>高铁订票，保证有位</td></tr>
+</table>
+
+<h2>四、基石一：时间同步（802.1AS gPTP）</h2>
+<h3>1. 为什么必须先同步时间？</h3>
+<p>Qbv 的"时间窗"、时间戳测量、多传感器融合——<strong>全都依赖全网节点对"现在几点"有一致的认识</strong>。各走各的表，时间窗就会错位。</p>
+<h3>2. gPTP 怎么同步？</h3>
+<ul>
+  <li>全网选一个 <strong>Grandmaster（主时钟）</strong>——通常是最准的那个节点（如带 GNSS 授时的域控）；</li>
+  <li>主时钟逐跳向下分发时间：交换机 A 收到"现在 10:00:00.000000100"，算出链路延迟，校准自己的时钟；</li>
+  <li>报文携带 <strong>精确时间戳</strong>，接收方知道"这帧是什么时候发的"。</li>
+</ul>
+<div class="mermaid">
+flowchart LR
+    GM["Grandmaster 主时钟&lt;br&gt;（域控，GNSS 授时）"]
+    SW1["交换机 A"]
+    SW2["交换机 B"]
+    EC1["摄像头（时间戳 12:34:56.000001）"]
+    EC2["底盘 ECU（校准后时钟）"]
+    GM -- 时间分发 + 链路延迟校准 --&gt; SW1 -- 逐跳同步 --&gt; SW2
+    SW2 -- 精确时间戳 --&gt; EC1
+    SW2 -- 时钟校准 --&gt; EC2
+</div>
+<h3>3. 精度有多高？</h3>
+<p>gPTP 在网桥逐跳同步后，端到端时钟偏差可做到 <strong>百纳秒级（&lt;1μs）</strong>——比普通 NTP（毫秒级）精确几千倍。</p>
+
+<h2>五、基石二：调度整形（Qbv / Qav / Qbu）</h2>
+<p>这是 TSN 的核心——<strong>用三种手段让流量"分时错峰"</strong>。</p>
+<h3>1. Qbv：时间感知整形（Time-Aware Shaper）——"红绿灯"</h3>
+<ul>
+  <li>每个端口配一张 <strong>门控列表（GCL, Gate Control List）</strong>，像一个循环播放的节目表；</li>
+  <li>时间窗内：<strong>只有关键流量开门放行</strong>，普通流量全被"红灯"拦住；</li>
+  <li>周期循环：关键窗 → 普通窗 → 关键窗……</li>
+</ul>
+<div class="mermaid">
+flowchart LR
+    W1["时间窗 1：关键流量&lt;br&gt;（底盘控制，开门 100μs）"]
+    W2["时间窗 2：普通流量&lt;br&gt;（视频/OTA，开门 900μs）"]
+    W3["时间窗 3：音频流&lt;br&gt;（语音，开门 50μs）"]
+    W1 -- 周期循环 --&gt; W2 -- 周期循环 --&gt; W3 -. 回到起点 .-&gt; W1
+</div>
+<p><strong>效果：</strong>关键报文的时间窗<strong>固定</strong>，永远不会被普通流量挤掉——延迟有上界，抖动趋近于零。</p>
+<h3>2. Qav：信用整形（Credit-Based Shaper）——"限速器"</h3>
+<ul>
+  <li>普通流量（音视频流）有个"信用额度"，发一帧扣一点，额度用完就<strong>闭嘴等</strong>；</li>
+  <li>效果：AVB 音视频流<strong>不会一次爆发</strong>把交换机缓存塞爆，保证平滑。</li>
+</ul>
+<h3>3. Qbu：帧抢占（Frame Preemption）——"应急车道"</h3>
+<ul>
+  <li>普通大帧（如 1500 字节的视频帧）发送途中，<strong>紧急小帧可以插队</strong>；</li>
+  <li>大帧先暂停，让小帧先过，再续传——物理层支持（802.3br）；</li>
+  <li>效果：关键小报文<strong>不用等大帧发完</strong>，延迟再降一级。</li>
+</ul>
+<table>
+<tr><th>整形器</th><th>管什么流量</th><th>手段</th><th>类比</th></tr>
+<tr><td><strong>Qbv</strong></td><td>时间关键流（控制、同步）</td><td>固定时间窗放行</td><td>红绿灯定时放行</td></tr>
+<tr><td><strong>Qav</strong></td><td>AVB 音视频流</td><td>信用额度限速</td><td>限速器 / 单双号限行</td></tr>
+<tr><td><strong>Qbu</strong></td><td>紧急小报文 vs 普通大帧</td><td>大帧让路</td><td>应急车道插队</td></tr>
+</table>
+
+<h2>六、基石三：流预留（802.1Qcc / Qat）——"订票制"</h2>
+<ul>
+  <li>关键数据流发送前，先向网络<strong>申请预留</strong>：路径、带宽、延迟要求；</li>
+  <li>交换机逐跳确认"我能保证"后，<strong>签署承诺</strong>；</li>
+  <li>预留成功后，这条流<strong>端到端延迟有合同保证</strong>。</li>
+</ul>
+<p><strong>类比：</strong>高铁订票——出发前确认有座，上车才不慌；普通流量是"站票"，有位就坐，没位站着。</p>
+
+<h2>七、全景图：TSN 怎么保证"准点到"</h2>
+<div class="mermaid">
+flowchart TB
+    subgraph SRC["发送端（摄像头 / 底盘传感器）"]
+        A1["关键流：控制报文&lt;br&gt;（时间戳 + 高优先级）"]
+        A2["普通流：视频 / OTA&lt;br&gt;（低优先级）"]
+    end
+    subgraph SW["TSN 交换机"]
+        B1["802.1AS 时钟同步&lt;br&gt;（全网统一时间）"]
+        B2["Qbv 门控列表&lt;br&gt;（关键时间窗放行）"]
+        B3["Qav 信用整形&lt;br&gt;（普通流限速）"]
+        B4["Qbu 帧抢占&lt;br&gt;（大帧让路）"]
+    end
+    subgraph DST["接收端（域控 / 底盘 ECU）"]
+        C1["关键流：1ms 内到达 ✅"]
+        C2["普通流：尽力而为"]
+    end
+    A1 --&gt; B2 --&gt; C1
+    A2 --&gt; B3 --&gt; C2
+    B1 -. 同步基础 .-&gt; B2
+    B4 -. 紧急插队 .-&gt; B2
+</div>
+<p><strong>一句话总结：</strong> TSN = 标准以太网 + 全网同步时钟（AS）+ 定时放行（Qbv）+ 限速（Qav）+ 插队（Qbu）+ 订票（Qcc）——让关键流量延迟<strong>可证明、有上界</strong>。</p>
+
+<h2>八、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>TSN 不是提速，是"确定性"</strong>——它不让网络更快，而是让关键流量的延迟<strong>可预测、有上界、零丢包</strong>。</li>
+  <li><strong>时间同步是一切的地基</strong>——没有 802.1AS 的亚微秒级同步，Qbv 时间窗、时间戳、融合算法全都会错位。</li>
+  <li><strong>分工明确：Qbv 定时放行（红绿灯）、Qav 限速（限速器）、Qbu 插队（应急车道）、Qcc 订票（高铁票）</strong>——各管一类流量，组合起来保证关键报文准点到。</li>
+</ol>
+
+<hr>
+
+<h2>九、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <label class="feynman-label">Q1：用"城市交通"的类比，解释为什么普通以太网会"堵车迟到"，TSN 又是怎么保证关键"车辆"准点到站的？</label>
+  <textarea id="feynman1" placeholder="在这里写下你的解释……"></textarea>
+  <label class="feynman-label">Q2：为什么 TSN 必须先做全网时间同步？如果各个节点的"表"走得不一样快，Qbv 的"红绿灯"时间窗会出什么问题？</label>
+  <textarea id="feynman2" placeholder="在这里写下你的解释……"></textarea>
+  <label class="feynman-label">Q3：Qbv（红绿灯）、Qav（限速器）、Qbu（应急车道）三个机制分别解决什么类型流量的什么问题？只用其中一种，能不能满足车载需求？</label>
+  <textarea id="feynman3" placeholder="在这里写下你的解释……"></textarea>
+</div>
+
+<h2>十、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：TSN 解决的核心问题是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. 提高以太网的总带宽</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. 让关键流量的延迟可预测、有上界、零丢包</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. 降低以太网的成本</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. 让所有流量都变快</label>
+
+  <h3>MCQ2：802.1AS（gPTP）在 TSN 里的作用是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. 给报文加密</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. 把全网节点时钟同步到亚微秒级</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 划分虚拟局域网（VLAN）</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 压缩视频数据</label>
+
+  <h3>MCQ3：Qbv 时间感知整形（红绿灯）的工作方式是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. 所有流量轮询发送，人人平等</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. 按门控列表定时放行——关键流量在固定时间窗内独占发送</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. 只给报文打上优先级标签，不做任何时间控制</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. 关闭交换机缓存，强制直通转发</label>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 47,
+    title: '车载以太网 TSN 时间敏感网络',
+    feynman: [],
+    mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 47,
+  title: '车载以太网 TSN 时间敏感网络——关键报文凭什么"准点到"？',
+  feynman: [
+    { q: 'Q1', ref: '城市交通类比——普通以太网像没有信号灯的十字路口：所有车(报文)到路口就挤成一团排队，大货车(视频帧)堵在路口时，救护车(关键控制报文)也只能等着，而且等多久完全看运气(排队延迟不可预测)。TSN 的改造：①全城统一校时(802.1AS，所有信号灯按同一个钟走)；②红绿灯(门控列表)：高峰期给救护车固定绿灯时间窗，其他车一律红灯；③应急车道(帧抢占)：救护车来了大货车先靠边；④限速(信用整形)：大货车限流错峰，别堵死路口。结果：关键车辆(报文)有固定通行时段+专用通道，说几分钟到就几分钟到(延迟有上界)。' },
+    { q: 'Q2', ref: 'Qbv 时间窗是按绝对时刻开关的(如每 1ms 周期，100-200μs 只放行关键流)。如果各节点时钟不同步，发送端以为到了关键窗开始发，交换机却还停在普通窗/窗已错过，关键帧就会被红灯拦住或插进普通流里——时间窗完全错位，调度失效。类比：两个城市高铁时刻表必须按同一个标准时间排，一个城市快 5 分钟，所有换乘全乱。所以 gPTP 先把全网同步到亚微秒级，所有门控表才能对齐执行。' },
+    { q: 'Q3', ref: 'Qbv(红绿灯)管时间关键流：用固定时间窗独占发送，保证延迟上界——适合底盘控制、同步报文这类必须准时的流量；Qav(限速器)管 AVB 音视频流：用信用额度限速，防止突发流量堵死交换机——适合音视频这类量大但对抖动容忍度较高的流量；Qbu(应急车道)管紧急小帧：大帧发一半可以被打断，小帧插队先走——适合偶发的紧急报文(如故障告警)。只用一种不够：只有 Qbv 没有 Qav，普通流量无法无界爆发?不行，Qav 管住普通流才能保证关键窗内不拥堵；没有 Qbu，紧急小帧要等当前大帧发完；三者组合才能覆盖"准时+平滑+紧急"三类需求，加上 Qcc 订票从端到端保证。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

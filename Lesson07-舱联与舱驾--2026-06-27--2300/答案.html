@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 07：答案 — 舱联与舱驾融合</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+  <div class="meta">Lesson 07 — 答案</div>
+  <h1>舱联与舱驾融合——参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<div class="q-label">Q1（"好比家里上网"比喻）</div>
+<div class="ref-box">好比你家上网不是只用一种方式——手机用 4G 出门也能用，回家自动切 WiFi 速度快又省钱，看电视用有线更稳定，蓝牙耳机听歌不用线。如果只用一种方式：只用 4G → 在家费流量速度还慢；只用 WiFi → 出门就没网。车里也一样：导航用 4G/5G 保证覆盖，OTA 下载用 WiFi 省流量快，紧急呼叫用独立通道保安全——各有所长，组合使用才靠谱。</div>
+
+<div class="q-label">Q2（eCall 独立通道）</div>
+<div class="ref-box">如果 eCall 和导航共用同一套通信系统，最坏情况下：车机死机/黑屏/系统崩溃时，不但导航用不了，eCall 也拨不出去了。交通事故中车机很可能损坏（撞击导致主板断裂、屏幕碎裂），但独立的 eCall 模块可以安装在车身结构更安全的位置（比如 A 柱内、座椅下方），有自己的备用电池，在车辆主电源切断后还能工作一段时间。这就是为什么法规要求 eCall 必须是"独立"的——关键时候救命的东西不能依赖会死机的系统。</div>
+
+<div class="q-label">Q3（娱乐系统和自动驾驶同芯片的危险）</div>
+<div class="ref-box">危险在于：娱乐系统（座舱）是跑在 Android 上的，大家都知道手机用久了会卡、会死机、会需要重启。如果把自动驾驶和这种会死机的系统放在同一颗芯片上，万一娱乐系统崩溃了把自动驾驶也拉下水，那就出大事了。工程师用了"虚拟机"技术——就好比一栋公寓楼里有两个完全独立的住户，共用一个门牌号（同一颗芯片），但有自己独立的房门（虚拟机隔离）。娱乐系统那边炸了（死机），系统会自动重启，就像把那个房间的门一关就行了，不会影响到隔壁自动驾驶的房间。技术上这叫 Hypervisor，它给每个"住户"分配专用的 CPU 核心、内存空间和硬件资源，互相完全隔离。</div>
+
+<div class="q-label">Q4（除了省钱还有什么理由做舱驾融合）</div>
+<div class="ref-box">省钱只是开胃菜，真正的大餐是：
+<ol>
+<li><strong>场景联动</strong>——单独座舱只能"提醒你累了"，单独智驾只能"自动保持车道"，但合在一起就能做到"检测到疲劳→调低空调→播放提神音乐→自动降低巡航速度→建议进服务区"这条完整的闭环。</li>
+<li><strong>感知数据复用</strong>——本来要买两颗 DMS 摄像头（一颗给座舱看疲劳，一颗给智驾做驾驶员监控），融合后一颗就够了，数据不用跨域传输，延迟从几十毫秒降到纳秒级。</li>
+<li><strong>算力弹性</strong>——白天开导航时智驾用 GPU 渲染车道线，晚上停车后这些 GPU 算力可以释放给座舱做游戏、看视频。算力不浪费。</li>
+</ol>
+所以说，省钱只是顺带的，真正价值是"1+1&gt;2"的整体智能水平提升。</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th style="width:60px">题号</th><th>答案</th><th>解析</th></tr>
+<tr><td>1</td><td><strong>D</strong></td><td>连接优先级管理在舱联系统里无处不在。打电话需要低延迟不卡顿（CarPlay 通话），后座刷视频是高带宽请求，导航必须实时更新，OTA 下载是大带宽后台任务，蓝牙音乐和 NFC 钥匙也有各自的实时性要求。一个成熟的舱联系统会为每条链路分配合适的优先级和带宽。</td></tr>
+<tr><td>2</td><td><strong>B</strong></td><td>Hypervisor 是舱驾一体架构的基石技术。它允许多个操作系统虚拟化地共享同一颗物理芯片的 CPU/GPU/NPU 等资源，同时保证安全隔离。座舱的 Android 系统和智驾的 RTOS 系统在 Hypervisor 层上互不感知、互不干扰——哪怕座舱死机了，智驾也毫发无伤。</td></tr>
+<tr><td>3</td><td><strong>B</strong></td><td>eCall 是一级安全功能，法规明确要求其独立于主车机系统。独立基带芯片意味着车机 Android 系统死机了也不影响 eCall；独立天线保证在事故中即使主天线损坏也能通信；独立 SIM 卡确保不会因为主 SIM 卡欠费/故障而无法拨通紧急电话。这是一个"fail-safe（失效安全）"的设计思路。</td></tr>
+<tr><td>4</td><td><strong>C</strong></td><td>这是一个典型的"跨域联动"场景，需要座舱（检测到打哈欠→调低空调→放提神音乐→改变氛围灯）和智驾（降低设定车速→规划进服务区路线→打开转向灯准备变道）同时协作完成。单一座舱最多提醒"累了请休息"，单独智驾最多保持车道，两者合在一起才能完成"感知-决策-行动"完整的闭环。</td></tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

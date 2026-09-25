@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 25（21:00）：UDS 统一诊断服务——维修工是怎么"读懂"你的车的？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+.struct-box{background:#f8f9fb;border:1px solid #e0e0e6;border-radius:8px;padding:.6rem .8rem;margin:.6rem 0;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;line-height:1.6;overflow-x:auto}
+.struct-box .hl{color:#c62828;font-weight:600}
+.struct-box .hl2{color:#2e7d32;font-weight:600}
+.struct-box .hl3{color:#4f6ef7;font-weight:600}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 25（21:00）— 2026-07-17 | 🚗 车载诊断协议：UDS（ISO 14229）</div>
+  <h1>UDS 统一诊断服务——维修工是怎么"读懂"你的车的？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson24-车载以太网TSN--2026-07-14--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson26-AUTOSAR汽车开放系统架构--2026-07-18--2100/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你的<strong>仪表盘亮起了发动机故障灯（MIL）</strong>。你开到 4S 店，维修工拿出一台笔记本大小的诊断仪，往车上的 OBD 接口一插。不到 30 秒，屏幕上显示：</p>
+
+<div class="callout">
+  <p><strong>"P0301 — 1 号气缸检测到失火，累计 47 次，最近一次发生在引擎水温 92°C 时。"</strong></p>
+</div>
+
+<p>维修工敲了几下键盘，又打了几个命令，10 分钟后故障码清掉了，系统自检通过。</p>
+
+<p><strong>问题：诊断仪和你的车之间到底在"说"什么语言？为什么一个通用的插口就能读取所有品牌的汽车的故障？如果诊断仪想"刷写"ECU 的新固件，它和 ECU 之间又该怎么对话？</strong></p>
+
+<div class="callout">
+  <p>这就是本节课的核心：<strong>UDS（Unified Diagnostic Services，统一诊断服务）</strong>——全球汽车 ECU 用来做诊断、配置、刷写的标准"对话协议"。</p>
+</div>
+
+<hr>
+
+<h2>二、UDS 是什么？</h2>
+
+<p>UDS 是 <strong>ISO 14229</strong> 定义的一套<strong>应用层诊断协议</strong>。它不是一根线、一个接口，而是规定：</p>
+
+<div class="callout">
+  <p><strong>"当诊断仪（Tester）向 ECU 发一个字节 X，ECU 应该回什么字节 Y，以及这串字节对应的物理意义。"</strong></p>
+</div>
+
+<table>
+<tr><th>概念</th><th>说明</th></tr>
+<tr><td>协议全称</td><td>Unified Diagnostic Services (ISO 14229)</td></tr>
+<tr><td>通信方式</td><td><strong>请求-响应模型</strong>：Tester（诊断仪）发请求 → ECU（电子控制单元）回响应</td></tr>
+<tr><td>传输层</td><td>可跑在 CAN 上（UDSonCAN，ISO 15765-3）或以太网上（DoIP，ISO 13400）</td></tr>
+<tr><td>行业地位</td><td><strong>全球主流 OEM 统一使用</strong>（以前各厂商各有一套私有协议，UDS 将其统一）</td></tr>
+<tr><td>用在哪</td><td>产线终检、4S 店诊断、OBD 年检、OTA 刷写、远程诊断</td></tr>
+</table>
+
+<p>UDS 定义了 <strong>6 大类 26 种服务</strong>，每类服务有一个 <strong>SID（Service IDentifier，服务标识符）</strong>——就是一个 8 位字节。</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph UDS_SCOPE["UDS 六大服务类型"]
+        DIAG["🔍 诊断管理&lt;br&gt;会话控制、ECU 复位、安全访问"]
+        DATA["📊 数据服务&lt;br&gt;读取/写入 DID、故障码"]
+        IO["🔌 I/O 控制&lt;br&gt;输入输出信号控制"]
+        ROUT["⚙️ 例程控制&lt;br&gt;执行/停止内部例程"]
+        UPLD["📦 固件上传/下载&lt;br&gt;刷写新程序"]
+        TIME["⏱️ 时间同步&lt;br&gt;时钟同步服务"]
+    end
+</div>
+
+<hr>
+
+<h2>三、UDS 的"一问一答"通信模型</h2>
+
+<h3>3.1 消息结构</h3>
+
+<p>一条 UDS 消息由以下部分组成（以 UDSonCAN 为例）：</p>
+
+<pre class="code-block">
+┌──────────┬──────────┬─────────────┐
+│ PCI      │ SID      │ Data        │
+│ (协议控制) │ (服务ID)  │ (参数/数据)   │
+│ 1~3 字节  │ 1 字节   │ 0~4095 字节  │
+└──────────┴──────────┴─────────────┘
+</pre>
+
+<p><strong>关键规则：</strong></p>
+<ul>
+  <li><strong>请求</strong>：Tester 发送 <span class="code">SID + 子功能/参数</span></li>
+  <li><strong>肯定响应</strong>：ECU 回复 <span class="code">(SID + 0x40) + 数据</span>（如请求 <span class="code">0x10</span>，响应 <span class="code">0x50</span>）</li>
+  <li><strong>否定响应</strong>：ECU 回复 <span class="code">0x7F + SID + NRC</span>（如 <span class="code">0x7F 0x10 0x22</span>，表示"条件不正确"）</li>
+</ul>
+
+<div class="mermaid">
+sequenceDiagram
+    participant T as "🔧 诊断仪 (Tester)"
+    participant E as "⚙️ ECU"
+
+    Note over T,E: 一条完整的 UDS 对话
+
+    T-&gt;&gt;E: 📨 请求：0x10 0x03&lt;br&gt;(诊断会话控制 → 扩展会话)
+    E--&gt;&gt;T: ✅ 肯定响应：0x50 0x03 0x00 0x32 0x01 0xF4&lt;br&gt;(进入扩展会话，P2 超时 500ms，P2* 超时 5000ms)
+
+    T-&gt;&gt;E: 📨 请求：0x22 0xF1 0x90&lt;br&gt;(读取 DID F190→ 读取 VIN 码)
+    E--&gt;&gt;T: ✅ 肯定响应：0x62 0xF1 0x90 ...&lt;br&gt;(返回 VIN 号)
+
+    T-&gt;&gt;E: 📨 请求：0x2E 0xF1 0x82 + 数据&lt;br&gt;(写入 DID F182→ 配置参数)
+    E--&gt;&gt;T: ✅ 肯定响应：0x6E 0xF1 0x82&lt;br&gt;(写入成功)
+
+    T-&gt;&gt;E: 📨 请求：0x11 0x01&lt;br&gt;(ECU 复位 → 硬复位)
+    E--&gt;&gt;T: ✅ 肯定响应：0x51 0x01&lt;br&gt;(复位前确认)
+    Note over E: 🔄 ECU 重新启动
+</div>
+
+<h3>3.2 否定响应码（NRC）</h3>
+
+<p>当 ECU 无法执行请求时，它不会沉默——而是返回<strong>否定响应</strong>，并附上一个<strong>NRC（Negative Response Code）</strong>告诉 Tester 具体原因。</p>
+
+<table>
+<tr><th>NRC</th><th>名称</th><th>含义</th><th>典型场景</th></tr>
+<tr><td><strong>0x10</strong></td><td>GR</td><td>一般拒绝</td><td>不支持该服务</td></tr>
+<tr><td><strong>0x11</strong></td><td>SNS</td><td>服务不支持</td><td>请求的 SID 不存在</td></tr>
+<tr><td><strong>0x12</strong></td><td>SNF</td><td>子功能不支持</td><td>SID 正确但子功能不存在</td></tr>
+<tr><td><strong>0x13</strong></td><td>IMLF</td><td>消息长度错误或格式错误</td><td>少发了参数</td></tr>
+<tr><td><strong>0x22</strong></td><td>CNC</td><td>条件不正确</td><td>不在正确的会话模式</td></tr>
+<tr><td><strong>0x24</strong></td><td>RSE</td><td>请求序列错误</td><td>需要先做安全访问再写数据</td></tr>
+<tr><td><strong>0x31</strong></td><td>ROOR</td><td>请求超出范围</td><td>DID 或数据值超出允许范围</td></tr>
+<tr><td><strong>0x33</strong></td><td>SAD</td><td>安全访问被拒绝</td><td>安全访问密钥错误</td></tr>
+<tr><td><strong>0x36</strong></td><td>LNOK</td><td>上传下载未授权</td><td>刷写流程中先请求下载</td></tr>
+</table>
+
+<div class="callout-warn">
+  <p><strong>一条完整性规则：</strong></p>
+  <p><strong>每一个 UDS 请求，ECU 都必须回复</strong>——要么是肯定响应，要么是否定响应 + NRC。绝对不能"不回复"。这确保了诊断仪永远不会"悬空"等待。</p>
+</div>
+
+<hr>
+
+<h2>四、三种诊断会话</h2>
+
+<p>UDS 定义了三种标准的<strong>诊断会话</strong>，"会话"决定了 Tester 可以做什么操作。</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph SESSIONS["UDS 三种诊断会话"]
+        DEF["🟢 Default（默认会话）&lt;br&gt;SID: 0x01&lt;br&gt;只读：读故障码、读 VIN&lt;br&gt;不能写、不能刷写"]
+        EXT["🟡 Extended（扩展会话）&lt;br&gt;SID: 0x03&lt;br&gt;可写：写 DID、IO 控制&lt;br&gt;需要安全访问"]
+        PROG["🔴 Programming（编程会话）&lt;br&gt;SID: 0x02&lt;br&gt;刷写：下载/上传固件&lt;br&gt;需要安全访问"]
+    end
+
+    DEF -- "0x10 0x03" --&gt; EXT
+    DEF -- "0x10 0x02" --&gt; PROG
+    EXT -- "0x10 0x01" --&gt; DEF
+    PROG -- "0x10 0x01" --&gt; DEF
+    PROG -. "0x10 0x03" .-&gt; EXT
+    EXT -. "0x10 0x02" .-&gt; PROG
+</div>
+
+<table>
+<tr><th>会话</th><th>SID 子功能</th><th>允许的操作</th><th>典型场景</th></tr>
+<tr><td><strong>Default</strong> (0x01)</td><td>上电默认</td><td>读取故障码(DTC)、读取 VIN、读取版本号</td><td>正常行驶、年检 OBD 扫描</td></tr>
+<tr><td><strong>Programming</strong> (0x02)</td><td><span class="code">0x10 0x02</span></td><td>刷写固件、上传/下载数据块</td><td>OTA 升级、4S 店刷写</td></tr>
+<tr><td><strong>Extended</strong> (0x03)</td><td><span class="code">0x10 0x03</span></td><td>读写 DID、IO 控制、例程控制</td><td>配置参数、高级诊断</td></tr>
+</table>
+
+<div class="callout-warn">
+  <p><strong>为什么不能所有操作都在 Default 会话完成？</strong></p>
+  <p>安全。如果任何人在 Default 模式下就能刷写固件，恶意设备插上 OBD 口就能把刹车控制器的固件改掉——后果不堪设想。<strong>层级递进的会话 = 层级递进的权限控制。</strong></p>
+</div>
+
+<hr>
+
+<h2>五、常见 UDS 服务速查</h2>
+
+<p>以下 7 个服务覆盖了 90% 的日常诊断场景：</p>
+
+<table>
+<tr><th>SID</th><th>服务名称</th><th>作用</th><th>请求示例</th><th>肯定响应</th></tr>
+<tr><td><strong>0x10</strong></td><td>DiagnosticSessionControl</td><td>切换会话</td><td><span class="code">10 03</span> → 扩展会话</td><td><span class="code">50 03</span></td></tr>
+<tr><td><strong>0x11</strong></td><td>ECUReset</td><td>复位 ECU</td><td><span class="code">11 01</span> → 硬复位</td><td><span class="code">51 01</span></td></tr>
+<tr><td><strong>0x19</strong></td><td>ReadDTCInformation</td><td>读取故障码</td><td><span class="code">19 02</span> → 读当前故障</td><td><span class="code">59 02 + 数据</span></td></tr>
+<tr><td><strong>0x14</strong></td><td>ClearDiagnosticInformation</td><td>清除故障码</td><td><span class="code">14 FF FF FF FF</span></td><td><span class="code">54</span></td></tr>
+<tr><td><strong>0x22</strong></td><td>ReadDataByIdentifier</td><td>读取 DID（VIN、版本）</td><td><span class="code">22 F1 90</span> → 读 VIN</td><td><span class="code">62 F1 90 + 数据</span></td></tr>
+<tr><td><strong>0x2E</strong></td><td>WriteDataByIdentifier</td><td>写入 DID（配置参数）</td><td><span class="code">2E F1 82 + 数据</span></td><td><span class="code">6E F1 82</span></td></tr>
+<tr><td><strong>0x27</strong></td><td>SecurityAccess</td><td>安全访问（解锁）</td><td>请求种子 → 回复密钥</td><td><span class="code">67 + 数据</span></td></tr>
+</table>
+
+<div class="callout">
+  <p><strong>小技巧：</strong> 肯定响应的 SID = 请求 SID + <span class="code">0x40</span>。知道请求 SID，就能算出响应 SID：</p>
+  <ul>
+    <li><span class="code">0x10</span> → <span class="code">0x50</span></li>
+    <li><span class="code">0x22</span> → <span class="code">0x62</span></li>
+    <li><span class="code">0x2E</span> → <span class="code">0x6E</span></li>
+    <li><span class="code">0x11</span> → <span class="code">0x51</span></li>
+  </ul>
+</div>
+
+<hr>
+
+<h2>六、三条规则总结</h2>
+
+<div class="rule-box">
+  <p><strong>1. 一问一答，永不沉默</strong>——Tester 发请求（SID + 参数），ECU 必须回复：肯定响应 = <span class="code">SID+0x40 + 数据</span>，否定响应 = <span class="code">0x7F + SID + NRC</span></p>
+</div>
+<div class="rule-box">
+  <p><strong>2. 三级会话，逐级授权</strong>——Default（只读）→ Programming（刷写）/ Extended（写入），权限逐级提升，切换会话后才能做相应操作</p>
+</div>
+<div class="rule-box">
+  <p><strong>3. 所有操作通过 SID 组织</strong>——读数据用 <span class="code">0x22</span>，写数据用 <span class="code">0x2E</span>，读故障用 <span class="code">0x19</span>，清故障用 <span class="code">0x14</span>，复位用 <span class="code">0x11</span>——每个 SID 对应一类操作，整齐划一</p>
+</div>
+
+<div class="callout">
+  <p><strong>UDS 的精髓：</strong> 它定义了一套<strong>统一的"汽车诊断语言"</strong>——不管你是丰田、大众还是比亚迪的 ECU，诊断仪插上 OBD 口，发同一个 SID 就能做同一件事。这是汽车行业从"各自为政"走向"标准统一"的经典范例。</p>
+</div>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p>用你自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>（想象你讲给一个修车师傅或一个司机朋友听）：</p>
+
+<div class="question">
+<p class="q-label">Q1</p>
+<p>你朋友的车亮了发动机故障灯，他问你："4S 店那个机器插上去就能读出'哪个气缸失火、发生了多少次'——它是怎么知道这些信息的？" 请用<strong>一问一答</strong>的类比来解释 UDS 通信模型。不要用"SID""PCI""DID"这些术语。</p>
+<textarea id="fq1" placeholder="用你自己的话回答..."></textarea>
+</div>
+
+<div class="question">
+<p class="q-label">Q2</p>
+<p>UDS 有三种诊断会话（Default、Programming、Extended）。为什么不能设计成一个"万能会话"——什么都能做？请用<strong>权限和安全的类比</strong>来说明为什么需要分级会话。可以拿"小区门禁"或"公司门卡"来打比方。</p>
+<textarea id="fq2" placeholder="用你自己的话回答..."></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group">
+<p class="q-label">1. 在 UDS 中，如果 ECU 收到一个它无法执行的服务请求，它会怎么做？</p>
+<label><input type="radio" name="mc1" value="A"> A. 直接忽略该请求，不回复任何消息</label>
+<label><input type="radio" name="mc1" value="B"> B. 回复一个否定响应，包含 0x7F + 请求 SID + NRC 码</label>
+<label><input type="radio" name="mc1" value="C"> C. 回复一个空白的肯定响应，不包含数据</label>
+<label><input type="radio" name="mc1" value="D"> D. 自动重启并重新进入 Default 会话</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<p class="q-label">2. 以下哪个是 UDS 肯定响应的 SID 与请求 SID 之间的正确关系？</p>
+<label><input type="radio" name="mc2" value="A"> A. 肯定响应 SID = 请求 SID + 0x01</label>
+<label><input type="radio" name="mc2" value="B"> B. 肯定响应 SID = 请求 SID + 0x40</label>
+<label><input type="radio" name="mc2" value="C"> C. 肯定响应 SID = 请求 SID × 2</label>
+<label><input type="radio" name="mc2" value="D"> D. 肯定响应 SID = 请求 SID 的最后 4 位取反</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<p class="q-label">3. 为什么某些 UDS 服务（如 WriteDataByIdentifier 0x2E）不能在 Default 会话（SID 0x01）下执行？</p>
+<label><input type="radio" name="mc3" value="A"> A. Default 会话的带宽不足以传输写入数据</label>
+<label><input type="radio" name="mc3" value="B"> B. Default 会话只能读取数据，不能写入——防止未授权的参数修改</label>
+<label><input type="radio" name="mc3" value="C"> C. Default 会话只支持 CAN 总线，不支持以太网传输</label>
+<label><input type="radio" name="mc3" value="D"> D. Default 会话下 ECU 处于低功耗模式，无法响应写请求</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a class="btn btn-outline" href="答案.html">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除答案</button>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson24-车载以太网TSN--2026-07-14--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson26-AUTOSAR汽车开放系统架构--2026-07-18--2100/课程.html">下一课 →</a>
+</div>
+
+</div><!-- /container -->
+
+<script>
+(function() {
+  'use strict';
+
+  const LS_KEY = 'teachme_lesson25';
+
+  // === MCQ correct answers ===
+  const CORRECT = { mc1: 'B', mc2: 'B', mc3: 'B' };
+
+  // === Save progress ===
+  function saveProgress() {
+    const data = {};
+    document.querySelectorAll('textarea').forEach(function(el) {
+      data[el.id] = el.value;
+    });
+    document.querySelectorAll('input[type="radio"]').forEach(function(el) {
+      if (el.checked) data[el.name] = el.value;
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  }
+
+  // === Load progress ===
+  function loadProgress() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(LS_KEY));
+      if (!saved) return;
+      Object.keys(saved).forEach(function(key) {
+        var el = document.getElementById(key);
+        if (el && el.tagName === 'TEXTAREA') { el.value = saved[key]; return; }
+        var radios = document.querySelectorAll('input[name="' + key + '"]');
+        if (radios.length) {
+          radios.forEach(function(r) { if (r.value === saved[key]) r.checked = true; });
+        }
+      });
+    } catch(e) {/* ignore */}
+  }
+
+  // === Auto-save on change ===
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('textarea, input[type="radio"]')) saveProgress();
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.matches('textarea')) saveProgress();
+  });
+
+  // === Submit all (inline fallback) ===
+  window.submitAll = function() {
+    var score = 0;
+    var total = Object.keys(CORRECT).length;
+
+    // Grade MCQs
+    Object.entries(CORRECT).forEach(function(entry) {
+      var q = entry[0];
+      var ans = entry[1];
+      var selected = document.querySelector('input[name="' + q + '"]:checked');
+      var resultDiv = document.getElementById(q + '-result');
+      if (!resultDiv) return;
+      if (selected && selected.value === ans) {
+        resultDiv.className = 'mcq-result correct';
+        resultDiv.textContent = '✅ 正确！';
+        score++;
+      } else {
+        resultDiv.className = 'mcq-result wrong';
+        resultDiv.textContent = selected ? '❌ 错误。正确答案是 ' + ans : '❌ 未选择。正确答案是 ' + ans;
+      }
+    });
+
+    // Show MCQ score
+    var existingScore = document.getElementById('mcq-score');
+    if (existingScore) existingScore.remove();
+    var scoreDiv = document.createElement('div');
+    scoreDiv.id = 'mcq-score';
+    scoreDiv.style.cssText = 'margin:.5rem 0;padding:.7rem 1rem;background:#f0faf0;border-radius:8px;font-size:.9rem;border-left:4px solid #2e7d32;';
+    scoreDiv.innerHTML = '<strong>📊 选择题得分：' + score + '/' + total + '</strong>';
+    var btnGroup = document.querySelector('.btn-group');
+    if (btnGroup) btnGroup.after(scoreDiv);
+
+    // Build Feynman text for copy
+    var feynmanText = '=== Lesson 25 费曼答案 ===\n\n';
+    document.querySelectorAll('textarea').forEach(function(el) {
+      var label = el.closest('.question');
+      var qLabel = label ? label.querySelector('.q-label') : null;
+      feynmanText += (qLabel ? qLabel.textContent : el.id) + '\n';
+      feynmanText += (el.value.trim() || '(未填写)') + '\n\n';
+    });
+    feynmanText += '=== 选择题 ===\n得分: ' + score + '/' + total;
+
+    var copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'margin:.5rem 0;padding:.7rem 1rem;background:#f4f4f8;border-radius:8px;font-size:.85rem;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto';
+    copyBlock.textContent = feynmanText;
+    var hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 25 评分</strong>」';
+
+    if (scoreDiv) {
+      scoreDiv.after(copyBlock);
+      copyBlock.after(hint);
+    } else if (btnGroup) {
+      btnGroup.after(copyBlock);
+      copyBlock.after(hint);
+    }
+  };
+
+  window.clearAll = function() {
+    if (!confirm('确定清除所有已保存的答案？')) return;
+    localStorage.removeItem(LS_KEY);
+    document.querySelectorAll('textarea').forEach(function(el) { el.value = ''; });
+    document.querySelectorAll('input[type="radio"]').forEach(function(el) { el.checked = false; });
+    document.querySelectorAll('.mcq-result').forEach(function(el) { el.className = 'mcq-result'; el.style.display = 'none'; });
+    var scoreDiv = document.getElementById('mcq-score');
+    if (scoreDiv) scoreDiv.remove();
+    var copyBlock = document.getElementById('copy-block');
+    if (copyBlock) copyBlock.remove();
+    var hint = document.getElementById('feynman-score-hint');
+    if (hint) hint.remove();
+  };
+
+  window.addEventListener('DOMContentLoaded', loadProgress);
+})();
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson25',
+  title: 'Lesson 25（21:00）：UDS 统一诊断服务——维修工是怎么"读懂"你的车的？',
+  feynman: [
+    { q: 1, ref: '用"你问我答"类比：你进了一家公司，前台（ECU）是唯一知道所有信息的人。你（Tester）每次问问题，前台都必须回答。你说"我的工号是多少？"→ 前台回答"你的工号是 A-1024"（读 DID）。你说"把来访人数改成 47"→ 前台检查权限后回答"已修改"（写 DID）。你说"重启系统"→ 前台说"已确认，正在重启"（ECU 复位）。你说"开门"→ 前台说"不行，你没有门禁卡"（否定响应 + NRC）。关键规则：(1) 每次只能问一个问题（原子性）；(2) 前台必须回答——永远不沉默；(3) 回答要么是肯定（没问题，这是你要的信息），要么是否定（不行，因为...）（否定响应 + NRC）。4S 店读故障码 = 先发"进入扩展会话"（获得更高权限）→ 再发"读故障码"（读 DTC）→ ECU 回复"有 47 次失火记录"→ 再发"清除故障码"→ ECU 清掉。整个过程就是一问一答，格式写在 ISO 14229 里' },
+    { q: 2, ref: '用"公司门卡"类比：Default = 大厅访客卡——只能在大厅看公告栏（读 VIN）、看楼层指引（读版本号），不能进任何办公室。Extended = 员工卡——可以进自己工位（读/写配置参数），可以调试设备（IO 控制），不能进机房。Programming = 管理员卡——可以进机房（刷写固件），可以改系统配置（上传下载），什么门都能开。为什么不能只要一张"万能卡"？三个原因：(1) 安全——如果 OBD 口一插就是"管理员权限"，恶意攻击者插个 ELM327 就能改刹车固件。层级递进 + 安全访问（Security Access 0x27）相当于进机房要指纹+卡+密码三重验证。(2) 防误操作——如果修理工只想读故障码但诊断仪在编程模式，一个不小心点了复位或写参数，ECU 可能变砖。三级会话 = 每把工具都有保险锁。(3) 与车况关联——Default 是行车状态，不能做刷写；只有停车后才能切换到高级会话。三级会话天然把"行驶中能做什么"和"停车维修时能做什么"分开了' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

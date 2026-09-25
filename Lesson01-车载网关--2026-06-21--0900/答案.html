@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 01 标准答案 — 车载网关——汽车网络的"交通警察"</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e;margin-bottom:.3rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1.5rem}
+.nav-bar{display:flex;gap:1rem;margin-bottom:1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.1rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+.q-card{margin:.8rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.3rem;font-size:.9rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+.q-question{font-size:.85rem;color:#666;margin-bottom:.4rem}
+.q-answer{font-size:.9rem;padding:.5rem .7rem;background:#f0fdf4;border-left:3px solid #16a34a;border-radius:4px;color:#1a1a2e}
+.mcq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.6rem;margin-top:.4rem}
+.mcq-item{padding:.6rem .7rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:.85rem}
+.mcq-item strong{color:#16a34a}
+.mcq-item .explain{display:block;margin-top:.3rem;font-size:.8rem;color:#666;line-height:1.5}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.back-link{display:inline-flex;align-items:center;gap:.4rem;margin-top:1.5rem;padding:.5rem 1rem;background:#4f6ef7;color:#fff;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:500;transition:background .15s}
+.back-link:hover{background:#3d5ce5}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<h1>📖 标准答案</h1>
+<p class="meta">Lesson 01（09:00）— 车载网关——汽车网络的"交通警察"</p>
+
+<h2>费曼简答题</h2>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+  <div class="q-question">为什么汽车需要装一个"网关"？不能直接把所有电子设备用同一种线连起来吗？</div>
+  <div class="q-answer">汽车里不同的电子设备用的是不同"语言"——有的用 CAN 总线（适合发动机、刹车这样的重要部件），有的用 LIN（适合车窗座椅这种简单设备），有的用以太网（适合中控屏、摄像头大量数据传输）。网关就像翻译官，让这些说不同语言的设备能互相沟通。如果只用同一种线，对简单的设备太浪费，对要求高速的设备又不够快。</div>
+</div>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+  <div class="q-question">如果汽车里没有网关，你能不能想象一下会出什么问题？举个具体的例子。</div>
+  <div class="q-answer">假如没有网关，每个网络各自成了"孤岛"：你按左前门的按键，右边车窗不会动，因为 LIN 网络上的信号没办法传到其他网络。更可怕的是，如果所有网络直接连在一起，一个娱乐系统的故障可能会导致刹车系统也受影响——没有网关的隔离作用，安全问题非常严重。</div>
+</div>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+  <div class="q-question">"智能网关能 OTA 升级"是什么意思？为什么这个功能对电动车很重要？</div>
+  <div class="q-answer">"OTA 升级"就是像手机系统更新一样，汽车不用去 4S 店，通过网络就能收到软件升级包。智能网关收到后，把它交给对应的 ECU 进行更新。对电动车来说特别重要，因为很多新功能（辅助驾驶优化、电池管理策略改进）都需要通过 OTA 来部署，车主不需要专门跑一趟维修站。</div>
+</div>
+
+<hr>
+
+<h2>选择题</h2>
+
+<div class="mcq-grid">
+  <div class="mcq-item">
+    <strong>Q1</strong> 车载网关最重要的作用？<br>
+    ✅ <strong>B</strong>. 连接不同网络，并在它们之间转发和翻译消息
+    <span class="explain">车载网关的核心功能是连接不同总线网络并进行协议转换和消息转发。提供 Wi-Fi、控制车窗、记录轨迹都不是主要职责。</span>
+  </div>
+  <div class="mcq-item">
+    <strong>Q2</strong> CAN→以太网的"车门锁信号"需要什么步骤？<br>
+    ✅ <strong>A</strong>. 网关将 CAN 报文转换为以太网报文并转发
+    <span class="explain">信号从 CAN 总线到以太网必须经过网关完成协议转换和路由转发。不能直连（电气特性不同），LIN 不能转发以太网信号。</span>
+  </div>
+  <div class="mcq-item">
+    <strong>Q3</strong> 以下哪个说法正确？<br>
+    ✅ <strong>B</strong>. 智能网关与传统网关最大的区别之一是增加了防火墙和 OTA 能力
+    <span class="explain">A 错在不同网络用不同协议；C 错在网关有防火墙；D 错在燃油车也有网关。</span>
+  </div>
+</div>
+
+<a href="课程.html" class="back-link">← 返回课程</a>
+
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

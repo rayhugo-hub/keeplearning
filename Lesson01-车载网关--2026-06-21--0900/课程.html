@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 01 (09:00)：车载网关——汽车网络的"交通警察"</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.code-block{background:#f3f4f8;border-radius:8px;padding:.8rem 1.2rem;font-family:"SF Mono","Consolas",monospace;font-size:.85rem;line-height:1.5;margin:.6rem 0;white-space:pre-wrap;color:#333}
+.tip-box{background:#f0f4ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.6rem 1rem;margin:.8rem 0;font-size:.9rem;color:#333}
+.mermaid-container{display:flex;justify-content:center;margin:1.2rem 0;padding:.8rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2;overflow-x:auto}
+.example-flow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.3rem;margin:.8rem 0;padding:.6rem .8rem;background:#fafafc;border-radius:8px;border:1px solid #ececf2;font-size:.8rem;text-align:center}
+.example-flow .node{padding:.3rem .6rem;border-radius:6px;font-weight:600;white-space:nowrap}
+.example-flow .node.key{background:#eef1fe;color:#4f6ef7;border:1px solid #c7d2fe}
+.example-flow .node.ctrl{background:#fef3c7;color:#b45309;border:1px solid #fde68a}
+.example-flow .node.eth{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+.example-flow .node.motor{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.example-flow .arrow{color:#999;font-weight:700;font-size:1rem}
+.quiz-section{margin-top:1.5rem}
+.q-item{margin:1.2rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.4rem;font-size:.95rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+textarea{width:100%;min-height:70px;padding:.6rem;font-size:.9rem;border:1px solid #d4d4de;border-radius:8px;resize:vertical;font-family:inherit;line-height:1.6;margin-top:.4rem;transition:border-color .15s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.1)}
+.options{margin-top:.4rem}
+.option{display:flex;align-items:flex-start;gap:.5rem;padding:.35rem 0;cursor:pointer}
+.option input[type="radio"]{margin-top:.3rem;flex-shrink:0;accent-color:#4f6ef7}
+.option label{cursor:pointer}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+.result{margin-top:.6rem;padding:.5rem .7rem;border-radius:8px;display:none;font-size:.85rem;font-weight:500}
+.result.show{display:block}
+.result.correct{background:#f0fdf4;color:#16a34a}
+.result.wrong{background:#fef2f2;color:#dc2626}
+.answers-box{margin-top:1.5rem;padding:1.2rem;background:#fefce8;border:1px solid #fde68a;border-radius:10px;display:none;font-size:.9rem;line-height:1.7}
+.answers-box.show{display:block}
+.answers-box h3{margin-top:0;font-size:1rem}
+.answers-box p{margin:.4rem 0}
+.footer-note{margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #e8e8ee;font-size:.85rem;color:#888;text-align:center}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 01 (09:00) — 2026-06-21 | 🚗 车载网络</div>
+  <h1>车载网关——汽车网络的"交通警察"</h1>
+</div>
+
+<div class="nav-bar">
+  <span class="nav-disabled">← 上一课</span>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson02-车载传感器--2026-06-21--1500/课程.html">下一课 →</a>
+</div>
+
+<h2>一、什么是车载网关？</h2>
+<p>现代汽车里有几十个电子控制单元（ECU）——发动机控制、刹车系统、车窗、座椅、空调、娱乐系统……它们各自"说"着不同的语言。</p>
+<ul style="margin:.4rem 0 .4rem 1.2rem;line-height:1.8">
+  <li><strong>CAN 总线</strong>——控制区域网络，用于动力总成、车身控制</li>
+  <li><strong>LIN 总线</strong>——本地互联网络，用于车窗、座椅等低速设备</li>
+  <li><strong>FlexRay</strong>——用于制动、转向等安全关键系统</li>
+  <li><strong>车载以太网</strong>——用于信息娱乐、自动驾驶数据流</li>
+</ul>
+<p><strong>车载网关（Gateway）就是连接这些不同网络的"中枢交换机"。</strong>它的工作就像一位交通警察站在十字路口：确保来自不同方向的消息能正确、安全地到达目的地。</p>
+
+<div class="mermaid-container">
+<pre class="mermaid">
+graph TD
+    CAN["CAN总线<br/>(动力/车身)"] --> GW["🚦 车载网关<br/>协议转换 · 路由转发<br/>防火墙 · 诊断管理"]
+    LIN["LIN总线<br/>(车窗/座椅)"] --> GW
+    FR["FlexRay<br/>(制动/转向)"] --> GW
+    ETH["车载以太网<br/>(座舱/智驾)"] --> GW
+    GW --> OTA["OTA远程升级"]
+    GW --> DIAG["OBD诊断接口"]
+</pre>
+</div>
+
+<hr>
+
+<h2>二、车载网关的四大核心功能</h2>
+
+<h3>1. 协议转换</h3>
+<p>不同总线网络使用不同的数据帧格式、速率和电气特性。网关必须能在它们之间"翻译"消息。</p>
+<div class="tip-box">
+  <strong>CAN → 以太网 举例</strong>：一条 CAN 总线上发出"左前车窗下降 50%"的信号（CAN ID 0x123，数据 8 字节），网关将其解析、重新封装为以太网 UDP 报文，发送给座舱域控制器。
+</div>
+
+<h3>2. 路由转发</h3>
+<p>网关根据消息的目标地址和路由表，决定将消息转发到哪个网络。不是所有消息都需要跨网络——网关只转发必要的信号，减少网络拥堵。</p>
+
+<h3>3. 防火墙与安全隔离</h3>
+<p>网关是汽车网络安全的第一道防线：阻断非授权的跨网络访问、过滤异常报文防止攻击、隔离安全关键域（制动、转向）与非安全域（娱乐）。</p>
+
+<h3>4. 网络管理与诊断</h3>
+<p>网关负责监控各个网络的状态，管理 ECU 的唤醒与休眠，同时作为车辆的"诊断入口"，让维修人员通过 OBD-II 接口读取全车故障码。</p>
+
+<hr>
+
+<h2>三、传统网关 vs 智能网关</h2>
+
+<table>
+  <tr><th>特性</th><th>传统网关</th><th>智能网关</th></tr>
+  <tr><td>协议支持</td><td>CAN / LIN / 少量 FlexRay</td><td>CAN FD / 以太网 / FlexRay</td></tr>
+  <tr><td>路由能力</td><td>固定路由表</td><td>动态路由 + 深度包检测</td></tr>
+  <tr><td>防火墙</td><td>无</td><td>状态防火墙 + 入侵检测</td></tr>
+  <tr><td>OTA 升级</td><td>不支持</td><td>支持空中升级</td></tr>
+  <tr><td>处理能力</td><td>单核 MCU，几十 MHz</td><td>多核 SoC，GHz 级别</td></tr>
+  <tr><td>典型车型</td><td>传统燃油车</td><td>智能电动车（2023+）</td></tr>
+</table>
+
+<hr>
+
+<h2>四、一个完整的例子：车窗升降信号如何跨网络传输</h2>
+<p>按下左前门上的车窗按键，降下右后车窗：</p>
+
+<ol style="margin:.4rem 0 .4rem 1.2rem;line-height:1.8">
+  <li><strong>左前门开关</strong> 发出 LIN 总线信号："右后车窗下降"</li>
+  <li><strong>LIN 节点</strong> → <strong>车身域控制器</strong>（LIN 总线）</li>
+  <li><strong>车身域控制器</strong> 将信号转发到 <strong>CAN 总线</strong>（车身 CAN）</li>
+  <li><strong>网关</strong> 监听到 CAN 信号，检查路由表："右后车窗"目标为<strong>座舱域控</strong>（位于以太网上）</li>
+  <li><strong>网关</strong> 将 CAN 报文转换为 <strong>以太网 UDP 报文</strong>，发送给座舱域控</li>
+  <li><strong>座舱域控</strong> 解析后，通过 CAN 或 LIN 直接控制右后车窗电机</li>
+</ol>
+
+<div class="example-flow">
+  <span class="node key">按键开关</span>
+  <span class="arrow">►</span>
+  <span class="node ctrl">车身域控制器</span>
+  <span class="arrow">►</span>
+  <span class="node eth">🚦 网关</span>
+  <span class="arrow">►</span>
+  <span class="node ctrl">座舱域控</span>
+  <span class="arrow">►</span>
+  <span class="node motor">车窗电机</span>
+</div>
+
+<hr>
+
+<h2>五、测验</h2>
+
+<div class="quiz-section">
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+    <p>为什么汽车需要装一个"网关"？不能直接把所有电子设备用同一种线连起来吗？</p>
+    <textarea placeholder="用自己的话写……不用术语"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+    <p>如果汽车里没有网关，你能不能想象一下会出什么问题？举个具体的例子。</p>
+    <textarea placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+    <p>"智能网关能 OTA 升级"是什么意思？为什么这个功能对电动车很重要？</p>
+    <textarea placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>1</div>
+    <p>以下哪项是车载网关最重要的作用？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc1" value="A" id="mc1a"><label for="mc1a">A. 给汽车提供 Wi-Fi 热点</label></div>
+      <div class="option"><input type="radio" name="mc1" value="B" id="mc1b"><label for="mc1b">B. 连接不同网络，并在它们之间转发和翻译消息</label></div>
+      <div class="option"><input type="radio" name="mc1" value="C" id="mc1c"><label for="mc1c">C. 控制车窗升降</label></div>
+      <div class="option"><input type="radio" name="mc1" value="D" id="mc1d"><label for="mc1d">D. 记录行车轨迹</label></div>
+    </div>
+    <div class="result" id="res1"></div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>2</div>
+    <p>CAN 总线上的一条"车门锁信号"要去到以太网上的座舱域控，需要经过哪个步骤？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc2" value="A" id="mc2a"><label for="mc2a">A. 网关将 CAN 报文转换为以太网报文并转发</label></div>
+      <div class="option"><input type="radio" name="mc2" value="B" id="mc2b"><label for="mc2b">B. 直接用一根网线把 CAN 控制器和座舱域控连起来</label></div>
+      <div class="option"><input type="radio" name="mc2" value="C" id="mc2c"><label for="mc2c">C. LIN 总线会自动转发</label></div>
+      <div class="option"><input type="radio" name="mc2" value="D" id="mc2d"><label for="mc2d">D. 不需要网关，数据自己会跨网络传输</label></div>
+    </div>
+    <div class="result" id="res2"></div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>3</div>
+    <p>以下哪个说法是正确的？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc3" value="A" id="mc3a"><label for="mc3a">A. 所有车载网络都使用同一种通信协议</label></div>
+      <div class="option"><input type="radio" name="mc3" value="B" id="mc3b"><label for="mc3b">B. 智能网关与传统网关最大的区别之一是增加了防火墙和 OTA 能力</label></div>
+      <div class="option"><input type="radio" name="mc3" value="C" id="mc3c"><label for="mc3c">C. 网关只负责转发信息，不做安全检查</label></div>
+      <div class="option"><input type="radio" name="mc3" value="D" id="mc3d"><label for="mc3d">D. 燃油车不需要网关</label></div>
+    </div>
+    <div class="result" id="res3"></div>
+  </div>
+
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+</div>
+
+<div class="nav-bar" style="margin-top:1.5rem">
+  <span class="nav-disabled">← 上一课</span>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson02-车载传感器--2026-06-21--1500/课程.html">下一课 →</a>
+</div>
+
+<div class="footer-note">做完随时问我：我的理解对不对？</div>
+
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div>
+
+<script>
+// 自动保存答题进度
+const STORAGE_KEY='teachme_lesson01'
+function saveProgress(){
+  const qs=document.querySelectorAll('textarea')
+  const mc1=document.querySelector('input[name="mc1"]:checked')
+  const mc2=document.querySelector('input[name="mc2"]:checked')
+  const mc3=document.querySelector('input[name="mc3"]:checked')
+  const data={
+    q1:qs[0]?.value||'',
+    q2:qs[1]?.value||'',
+    q3:qs[2]?.value||'',
+    mc1:mc1?.value||'',
+    mc2:mc2?.value||'',
+    mc3:mc3?.value||''
+  }
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data))
+}
+// 恢复答题进度
+function restoreProgress(){
+  const raw=localStorage.getItem(STORAGE_KEY)
+  if(!raw)return
+  try{
+    const d=JSON.parse(raw)
+    const qs=document.querySelectorAll('textarea')
+    if(qs[0]&&d.q1)qs[0].value=d.q1
+    if(qs[1]&&d.q2)qs[1].value=d.q2
+    if(qs[2]&&d.q3)qs[2].value=d.q3
+    if(d.mc1){const el=document.querySelector(`input[name="mc1"][value="${d.mc1}"]`);if(el)el.checked=true}
+    if(d.mc2){const el=document.querySelector(`input[name="mc2"][value="${d.mc2}"]`);if(el)el.checked=true}
+    if(d.mc3){const el=document.querySelector(`input[name="mc3"][value="${d.mc3}"]`);if(el)el.checked=true}
+  }catch(e){}
+}
+// 绑定自动保存
+document.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',saveProgress))
+document.querySelectorAll('input[type="radio"]').forEach(r=>r.addEventListener('change',saveProgress))
+// 页面加载时恢复
+restoreProgress()
+
+// === 提交评分函数 ===
+function submitAll(){
+  const mc1=document.querySelector('input[name="mc1"]:checked')
+  const mc2=document.querySelector('input[name="mc2"]:checked')
+  const mc3=document.querySelector('input[name="mc3"]:checked')
+  const ans=window.LESSON_ANSWERS.mcq
+  function check(name,resId,selected,correct){
+    const el=document.getElementById(resId)
+    if(!selected){el.textContent='❌ 请选择一个选项';el.className='result show wrong';return}
+    if(selected===correct){el.textContent='✅ 正确！';el.className='result show correct'}
+    else{el.textContent='❌ 错误。正确答案是 '+correct;el.className='result show wrong'}
+  }
+  check('mc1','res1',mc1?.value,ans.mc1)
+  check('mc2','res2',mc2?.value,ans.mc2)
+  check('mc3','res3',mc3?.value,ans.mc3)
+  saveProgress()
+}
+
+// === AI 评分数据 ===
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson01',
+  title: '车载网关——汽车网络的"交通警察"',
+  feynman: [
+    { q: 1, ref: '汽车里不同的电子设备用不同语言——CAN、LIN、以太网。网关像翻译官让它们沟通。只用一种线：对简单设备太浪费，对高速设备又不够快。' },
+    { q: 2, ref: '没有网关，各网络成孤岛：按左前门键右后窗不会动。更危险的是娱乐系统故障可能影响刹车——没有隔离。' },
+    { q: 3, ref: 'OTA升级就是汽车像手机一样在线更新软件。智能网关接收升级包分发给各ECU。电动车很多新功能（智驾、电池管理）靠OTA部署，不用跑4S店。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'A', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

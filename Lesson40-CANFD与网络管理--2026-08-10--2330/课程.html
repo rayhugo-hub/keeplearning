@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 40（23:30）：CAN FD / CAN XL 与网络管理——总线怎么"提速"？ECU 怎么"睡觉"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 40（23:30）— 2026-08-10 | 🚗 CAN 家族深挖（经典 CAN 的瓶颈 / CAN FD / CAN XL / AUTOSAR NM 网络管理）</div>
+  <h1>CAN FD / CAN XL 与网络管理——总线怎么"提速"？ECU 怎么"睡觉"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson39-以太网SOMEIP与DoIP--2026-08-10--2300/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <span class="nav-disabled">下一课 →</span>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你的手机导航 App 显示"前方拥堵 2 公里，预计通过时间 8 分钟"——这句话背后，车里的传感器、摄像头、地图数据在<strong>疯狂地交换信息</strong>。</p>
+
+<p>再想一个问题：<strong>你锁车离开后，车里的 ECU 是全部保持开机吗？</strong> 当然不是——如果所有控制器 24 小时通电，一晚上电瓶就亏空了。车会<strong>"睡觉"</strong>，需要时再<strong>"醒来"</strong>。</p>
+
+<p>这一课回答两个问题：</p>
+
+<ol>
+<li><strong>老一代 CAN 总线带宽不够用了，怎么提速？</strong>（CAN FD、CAN XL）</li>
+<li><strong>几十个 ECU 怎么协调"一起睡、一起醒"，既不耗电又不误事？</strong>（AUTOSAR 网络管理 NM）</li>
+</ol>
+
+<div class="callout">
+<p><strong>这一课讲清楚：</strong>经典 CAN 的瓶颈在哪、CAN FD/CAN XL 改了什么、网络管理如何让 ECU 智能休眠唤醒。</p>
+</div>
+
+<hr>
+
+<h2>二、经典 CAN 的瓶颈：为什么"老将"不够用了？</h2>
+
+<p>你已经在 Lesson 9 学过经典 CAN：<strong>多主、广播、仲裁</strong>，可靠性极高。但智能汽车时代，它有两个硬伤：</p>
+
+<table>
+<tr><th>瓶颈</th><th>经典 CAN</th><th>带来的问题</th></tr>
+<tr><td><strong>数据太少</strong></td><td>一帧最多 <strong>8 字节</strong></td><td>一个雷达目标列表就要好几帧，甚至十几帧</td></tr>
+<tr><td><strong>速度太慢</strong></td><td>最高 <strong>1 Mbps</strong></td><td>自动驾驶/座舱的数据量动辄几十 Mbps，根本装不下</td></tr>
+</table>
+
+<p><strong>打个比方：</strong> 经典 CAN 就像一条<strong>窄巷子</strong>——只能并排走两辆自行车（8 字节），而且<strong>全巷限速 30</strong>（1 Mbps）。车多了就堵，运货量还小。</p>
+
+<table>
+<tr><th>场景</th><th>需要的数据量</th><th>经典 CAN 的表现</th></tr>
+<tr><td>发动机转速</td><td>几个字节，周期发</td><td>绰绰有余 ✅</td></tr>
+<tr><td>摄像头原始数据</td><td>几 Mbps 起</td><td>完全无能为力 ❌</td></tr>
+<tr><td>OTA 刷写</td><td>几百 MB ~ 几个 GB</td><td>刷到天荒地老 ❌</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>一句话：</strong> 经典 CAN 适合"小数据、高可靠"的控制信号；面对智能汽车的海量数据，必须升级。</p>
+</div>
+
+<hr>
+
+<h2>三、CAN FD：给"窄巷子"加宽 + 分段提速</h2>
+
+<p><strong>CAN FD（CAN with Flexible Data-rate，可变数据速率 CAN）</strong> 是对经典 CAN 的<strong>向后兼容升级</strong>，核心就两个改进：</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph 经典CAN["🚲 经典 CAN 帧"]
+        A1["仲裁段 + 控制段<br/>（限速 1 Mbps）"]
+        A2["数据场：最多 8 字节"]
+        A3["固定速率，全帧 1 Mbps"]
+        A1 --> A2 --> A3
+    end
+    subgraph CANFD["🚗 CAN FD 帧"]
+        B1["仲裁段 + 控制段<br/>（仍限速 1 Mbps，兼容）"]
+        B2["数据场：最多 64 字节"]
+        B3["数据段：可切换到更高波特率<br/>（如 5 Mbps）"]
+        B1 --> B2 --> B3
+    end
+</div>
+
+<h3>改进一：数据场从 8 字节 → 最多 64 字节（"加宽"）</h3>
+
+<ul>
+<li>一帧能装 <strong>8 倍</strong>的数据：雷达目标列表一帧搞定，不用拆成十几帧</li>
+<li>帧数量减少 → <strong>总线负载降低</strong>，多出来的带宽留给其他节点</li>
+</ul>
+
+<h3>改进二：数据段波特率可变（"分段提速"）</h3>
+
+<ul>
+<li>帧的<strong>前半段</strong>（仲裁 + 控制）保持 1 Mbps——为了和经典 CAN <strong>共存兼容</strong></li>
+<li>帧的<strong>后半段</strong>（数据 + CRC）切换到 <strong>2~8 Mbps</strong>——装数据时全速跑</li>
+</ul>
+
+<div class="callout">
+<p><strong>关键洞察：为什么不在仲裁段也提速？</strong> 因为仲裁需要所有节点"同时"比较 ID——速度必须全网一致；而数据段是"发完就完"，不需要同步比较，可以各自飙高速。<strong>"要协作的地方慢、要干活的地方快"——这就是 CAN FD 的设计哲学。</strong></p>
+</div>
+
+<p><strong>实际效果：</strong> 假设经典 CAN 发 10 帧数据要 1 毫秒，CAN FD 可能 <strong>1 帧就装完，还更快</strong>——总线上被释放的带宽可以用来发更多新功能（ADAS 数据、多屏互联）。</p>
+
+<hr>
+
+<h2>四、CAN FD 与经典 CAN：同一条总线上的"混住"</h2>
+
+<p><strong>好消息：CAN FD 节点和经典 CAN 节点可以在同一条总线上共存</strong>——因为仲裁段协议完全一致。但有个<strong>重要细节</strong>：</p>
+
+<table>
+<tr><th>节点类型</th><th>收到 CAN FD 帧</th><th>收到经典 CAN 帧</th></tr>
+<tr><td>经典 CAN 节点</td><td>不识别（按错误帧处理）⚠️</td><td>正常接收 ✅</td></tr>
+<tr><td>CAN FD 节点</td><td>正常接收 ✅</td><td>正常接收 ✅</td></tr>
+</table>
+
+<p><strong>所以总线设计时要注意：</strong> 只要总线里有<strong>任何一个</strong>经典 CAN 节点，就<strong>不能发 CAN FD 帧</strong>（它会把 FD 帧当成错误帧，破坏总线）——要么全车升级 CAN FD，要么经典节点只参与"经典 CAN 区域"。</p>
+
+<div class="callout">
+<p><strong>一句话：</strong> CAN FD 是"加宽提速的 CAN"，但要整车节点都支持才能用上它的全部能力——这是升级时的关键约束。</p>
+</div>
+
+<hr>
+
+<h2>五、CAN XL：把"窄巷子"直接修成"高速路"</h2>
+
+<p>CAN FD 已经不错了，但自动驾驶时代数据量继续暴涨。<strong>CAN XL（CAN eXtra Long）</strong> 是下一代：数据场<strong>最多 2048 字节</strong>、速率<strong>最高 10 Mbps+</strong>，还能承载 <strong>以太网帧</strong>（让低速总线直接和以太网"对话"）。</p>
+
+<table>
+<tr><th>对比</th><th>经典 CAN</th><th>CAN FD</th><th>CAN XL</th></tr>
+<tr><td>数据场</td><td>8 字节</td><td>64 字节</td><td><strong>2048 字节</strong></td></tr>
+<tr><td>最高速率</td><td>1 Mbps</td><td>8 Mbps</td><td><strong>10 Mbps+</strong></td></tr>
+<tr><td>与经典 CAN 共存</td><td>—</td><td>仲裁段兼容</td><td>需更复杂适配</td></tr>
+<tr><td>定位</td><td>传统控制</td><td>当前主流升级</td><td><strong>面向未来，可与以太网桥接</strong></td></tr>
+</table>
+
+<div class="callout">
+<p><strong>一句话：</strong> CAN 家族的演进路线就是"加宽 + 提速"——CAN FD 是今天的现实，CAN XL 是明天的方向，但两者的设计思路一脉相承。</p>
+</div>
+
+<hr>
+
+<h2>六、AUTOSAR 网络管理（NM）：让 ECU 学会"睡觉"</h2>
+
+<p>带宽解决了，另一个问题来了：<strong>几十个 ECU，怎么协调休眠唤醒？</strong></p>
+
+<p><strong>场景：</strong> 你锁车走人。如果每个 ECU 各自为政——有的睡、有的醒，会发生什么？</p>
+
+<ul>
+<li>有的 ECU <strong>永远不睡</strong> → 电瓶慢慢亏空 ❌</li>
+<li>有的 ECU <strong>醒太早</strong> → 浪费电 ❌</li>
+<li>有的 ECU <strong>该醒不醒</strong> → 功能失灵（比如远程解锁，网关睡了谁干活？）❌</li>
+</ul>
+
+<p><strong>AUTOSAR NM（Network Management，网络管理）</strong> 就是来解决这个问题的：<strong>让全网 ECU 协调一致地"入睡"和"唤醒"。</strong></p>
+
+<h3>NM 的核心：三状态状态机</h3>
+
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> BusSleep: 整车休眠
+    BusSleep --> NetworkMode: 收到唤醒请求<br/>（总线信号/本地事件）
+    NetworkMode --> NetworkMode: 周期性发送 NM 报文<br/>（"我还醒着，需要网络"）
+    NetworkMode --> PrepareBusSleep: 本节点请求休眠
+    PrepareBusSleep --> BusSleep: 等待超时，无新请求
+    PrepareBusSleep --> NetworkMode: 期间又收到网络请求
+    note right of NetworkMode: 只要有一个节点<br/>"不想睡"，全网保持醒
+</div>
+
+<table>
+<tr><th>状态</th><th>干什么</th><th>类比</th></tr>
+<tr><td><strong>Bus-Sleep（总线休眠）</strong></td><td>所有 ECU 低功耗，几乎不通信</td><td>全宿舍熄灯睡觉 🌙</td></tr>
+<tr><td><strong>Network Mode（网络模式）</strong></td><td>全网正常通信，节点周期发 NM 报文"刷存在感"</td><td>宿舍有人在学习，灯亮着 💡</td></tr>
+<tr><td><strong>Prepare Bus-Sleep（准备休眠）</strong></td><td>本节点想睡了，发"我想睡"的 NM 报文，等别人回应</td><td>说"我要关灯了，还有人要用吗？" 🕯️</td></tr>
+</table>
+
+<p><strong>关键机制：</strong></p>
+
+<ol>
+<li><strong>唤醒</strong>：任何节点收到唤醒事件（解锁、开门、总线信号）→ 全网从 Bus-Sleep 进入 Network Mode</li>
+<li><strong>NM 报文</strong>：网络模式里，每个节点<strong>周期性发 NM 报文</strong>——既是"我还活着"，也是"我还需要网络"</li>
+<li><strong>协调入睡</strong>：节点想睡时进入 <strong>Prepare Bus-Sleep</strong>，发"请求休眠"报文；如果<strong>还有其他节点</strong>在发 NM 报文（表示还有工作要做）→ 回到 Network Mode；等<strong>全网都安静了</strong>，才一起睡</li>
+<li><strong>局部网络（PN）</strong>：更高级的玩法——<strong>只唤醒需要的部分网络</strong>。比如远程锁车只唤醒车身域，不唤醒座舱和 ADAS，<strong>省电更精细</strong></li>
+</ol>
+
+<div class="mermaid">
+sequenceDiagram
+    participant A as ECU-A（网关）
+    participant B as ECU-B（车身控制器）
+    participant C as ECU-C（座舱）
+    Note over A,C: 整车休眠（Bus-Sleep）
+    A->>A: 收到"远程解锁"请求
+    A->>B: 唤醒总线（发唤醒信号）
+    B-->>A: NM 报文：我醒了
+    C-->>A: NM 报文：我醒了
+    Note over A,C: 进入 Network Mode，正常通信
+    Note over A,C: 工作完成，无人需要网络
+    A->>B: NM 报文：我想睡了（Prepare Bus-Sleep）
+    A->>C: NM 报文：我想睡了
+    Note over A,C: 等待周期结束，无新请求
+    Note over A,C: 一起回到 Bus-Sleep 🌙
+</div>
+
+<div class="callout">
+<p><strong>一句话：</strong> AUTOSAR NM 就是整车的"宿舍管理员"——谁都能喊醒大家（唤醒），但入睡必须"全网同意"（协调休眠），谁还醒着灯就不灭。</p>
+</div>
+
+<hr>
+
+<h2>七、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：经典 CAN 的瓶颈是"8 字节数据 + 1 Mbps 限速"，CAN FD 用"加宽 + 分段提速"解决</h3>
+<p>CAN FD 数据场 8→64 字节，数据段波特率可升到 8 Mbps；仲裁段保持 1 Mbps 以兼容经典 CAN。<strong>"要协作的地方慢、要干活的地方快"。</strong></p>
+
+<h3>📌 规则二：CAN FD 与经典 CAN 同总线共存有条件——有经典节点就不能发 FD 帧</h3>
+<p>经典 CAN 节点不识别 CAN FD 帧，会当错误帧处理。<strong>升级 CAN FD 必须整车节点同步支持</strong>，否则只能降级用经典帧。</p>
+
+<h3>📌 规则三：AUTOSAR NM 让 ECU "唤醒容易、入睡要全网同意"</h3>
+<p>三状态：Bus-Sleep（睡）→ Network Mode（醒，周期发 NM 报文）→ Prepare Bus-Sleep（想睡，等全网确认）。<strong>谁需要网络谁就"刷存在感"，全网安静才一起睡；局部网络（PN）还能精细到只唤醒需要的域。</strong></p>
+
+</div>
+
+<hr>
+
+<h2>八、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>用<strong>"窄巷子拓宽 + 分段限速"</strong>的类比，给一个没学过汽车电子的人讲清楚：经典 CAN 的瓶颈是什么？CAN FD 做了哪两个关键改进（数据场、波特率）？为什么<strong>仲裁段不能提速</strong>、只有数据段可以？</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>用<strong>"宿舍熄灯"</strong>的流程类比 AUTOSAR NM 的三个状态（Bus-Sleep / Network Mode / Prepare Bus-Sleep）：谁可以"开灯"（唤醒）？为什么"关灯"（入睡）必须<strong>全网同意</strong>？如果有一个节点睡着了、另一个还醒着，会出什么问题？</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>整车通信为什么要<strong>分层</strong>——底盘/车身控制走 CAN FD，多媒体/ADAS 数据走以太网（SOME/IP）？结合<strong>成本、实时性、数据量</strong>三个角度分析，并说说 CAN XL 的"能承载以太网帧"意味着什么？</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>九、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：关于 CAN FD 相比经典 CAN 的关键改进，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc1" value="A"> A. 数据场从 8 字节提升到最多 64 字节，数据段可切换到更高波特率</label>
+<label><input type="radio" name="mc1" value="B"> B. 完全取消了 ID 仲裁机制，改用 TCP 传输</label>
+<label><input type="radio" name="mc1" value="C"> C. 只提高了波特率，数据长度不变</label>
+<label><input type="radio" name="mc1" value="D"> D. 帧格式完全改变，无法与经典 CAN 节点同总线共存</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：在 AUTOSAR NM 中，节点准备进入休眠、等待确认全网"都没事"的中间状态是？</div>
+<label><input type="radio" name="mc2" value="A"> A. Bus-Sleep（总线休眠）</label>
+<label><input type="radio" name="mc2" value="B"> B. Prepare Bus-Sleep（准备休眠）</label>
+<label><input type="radio" name="mc2" value="C"> C. Wakeup（唤醒）</label>
+<label><input type="radio" name="mc2" value="D"> D. Repeat Message（重复报文）</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：为什么有了车载以太网（SOME/IP），整车仍然保留 CAN FD 总线？最<strong>本质</strong>的原因是？</div>
+<label><input type="radio" name="mc3" value="A"> A. CAN FD 的带宽比以太网高</label>
+<label><input type="radio" name="mc3" value="B"> B. CAN FD 成本低、实时性确定性好，适合底盘/车身控制类小数据周期报文</label>
+<label><input type="radio" name="mc3" value="C"> C. CAN FD 不需要任何线束</label>
+<label><input type="radio" name="mc3" value="D"> D. 以太网无法传输诊断报文</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson40',
+    title: 'Lesson 40（23:30）：CAN FD / CAN XL 与网络管理——总线怎么"提速"？ECU 怎么"睡觉"？',
+    mcq: { mc1: 'A', mc2: 'B', mc3: 'B' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson40', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson40');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson40');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson40',
+  title: 'Lesson 40（23:30）：CAN FD / CAN XL 与网络管理——总线怎么"提速"？ECU 怎么"睡觉"？',
+  feynman: [
+    { q: 1, ref: '窄巷子类比：经典 CAN 就像一条窄巷子——数据场最多 8 字节（只能并排走两辆自行车），总线最高 1 Mbps（全巷限速 30）。CAN FD 两个改进：①数据场加宽到 64 字节（把巷子拓宽 8 倍，一帧装 8 倍数据）；②数据段波特率可切到 2~8 Mbps（出巷子上高速）。为什么仲裁段不能提速？因为仲裁是全网节点同时比较报文 ID，速度必须全网一致，否则判断不同步会出错；数据段是"发完就完"的单向输出，不需要和别人同步，可以各自飙高速。设计哲学："要协作的地方慢、要干活的地方快"' },
+    { q: 2, ref: '宿舍熄灯类比：Bus-Sleep=全宿舍熄灯睡觉（所有 ECU 低功耗等待唤醒）；Network Mode=有人在学习灯亮着（全网通信，每个节点周期发 NM 报文刷存在感）；Prepare Bus-Sleep=最后一个人问"我要关灯了还有人要用吗"（节点想睡，发请求休眠报文等确认）。谁可以开灯？任何节点收到唤醒事件（解锁、开门、总线信号）→ 一呼百应，全网醒。为什么入睡要全网同意？如果各自睡各自的，会出现"醒着的节点发的报文没人收（目标睡了）"和"睡着的错过唤醒"两种故障；所以想睡的节点发请求休眠报文，只要还有任何节点在发 NM 报文就回到 Network Mode，全网安静才一起睡。一个睡一个醒的问题：功能失败（远程解锁网关睡了锁解不开）+ 唤醒延迟破坏实时性（安全相关功能绝不能出现）' },
+    { q: 3, ref: '分层原因：成本——CAN 控制器接口便宜、线束简单，以太网 PHY/交换芯片贵；实时性——CAN 仲裁+固定周期延迟可预测（微秒~毫秒级），以太网尽力而为高负载会抖动；数据量——控制信号几个字节就够，视频/雷达点云需要 Mbps~Gbps。全用以太网成本高+实时性难保证（制动信号延迟 1ms 和 10ms 天差地别）；全用 CAN 带宽不够。分层=用最合适的工具干最合适的活。CAN XL 能承载以太网帧的意义：传统上 CAN 域和以太网域是两个世界靠网关转换，CAN XL 能直接把以太网帧装进 CAN 帧传，低速总线和以太网原生互通，网关转换开销大幅降低——"以太网到门口、CAN XL 进房间"，整车网络架构更灵活' }
+  ],
+  mcq: { mc1: 'A', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

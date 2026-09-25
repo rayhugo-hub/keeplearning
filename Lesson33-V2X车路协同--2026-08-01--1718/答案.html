@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 33：答案 — V2X 与 C-V2X 车路协同——汽车如何"看见"看不见的角落？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+.ans-item{margin:.3rem 0}
+.ans-label{font-weight:600;color:#2e7d32}
+.ans-label-wrong{color:#c62828}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson32-车载信息安全--2026-08-01--1718/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson34-车辆运动控制--2026-08-01--1800/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 33 — 答案</div>
+  <h1>V2X 与 C-V2X 车路协同——汽车如何"看见"看不见的角落？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（摄像头已经能看见了，为什么还要 V2X？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>用"被大楼挡住的十字路口"讲：摄像头/雷达/LiDAR 只能"看"<strong>直线视线内</strong>的东西——大楼把侧向来车挡住了，再好的传感器也是"睁眼瞎"。这是<strong>物理遮挡</strong>问题，不是传感器性能问题。</p>
+<p><strong>V2X 补上的短板：</strong></p>
+<table>
+<tr><th>短板</th><th>车载传感器</th><th>V2X</th></tr>
+<tr><td>视线遮挡</td><td>❌ 大楼/弯道/前车挡住就看不见</td><td>✅ 广播位置，穿透遮挡</td></tr>
+<tr><td>探测距离</td><td>摄像头几十到两百米</td><td>直连可达 ~1km</td></tr>
+<tr><td>反应时间</td><td>看到→识别→决策，耗时较长</td><td>提前收到对方意图，多出几百 ms 反应时间</td></tr>
+<tr><td>感知范围</td><td>只看"现在"的物理世界</td><td>还能收到"意图"（对方要转弯/刹车）</td></tr>
+</table>
+<p><strong>一句话：</strong> 传感器负责"看见眼前的世界"，V2X 负责"知道看不见的世界"。两者是互补关系，不是替代关系——V2X 给系统多争取的几百毫秒，往往就是"刹得住"和"刹不住"的区别。</p>
+</div>
+
+<h3>Q2（C-V2X 为什么必须"双模"？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<table>
+<tr><th>模式</th><th>特点</th><th>必须用它的场景</th><th>为什么不能替代</th></tr>
+<tr><td><strong>PC5 直连</strong></td><td>不经过基站、时延 10-20ms、距离 ~1km</td><td>前车急刹预警、十字路口碰撞预警（需要 &lt;100ms 时延）</td><td>Uu 蜂窝要经基站转发，时延几百 ms 起步，急刹场景车都撞上了消息还没到</td></tr>
+<tr><td><strong>Uu 蜂窝</strong></td><td>广覆盖、高带宽、连云端</td><td>高精地图下载（GB 级数据）、实时路况、OTA</td><td>PC5 直连带宽有限，且只覆盖 ~1km 局部范围，地图/路况需要全网数据</td></tr>
+</table>
+<p><strong>为什么不能只靠一种？</strong></p>
+<ul>
+<li><strong>只用 PC5</strong>：安全消息没问题，但地图/路况/OTA 这些"海量数据 + 广覆盖"任务做不了——直连带宽不够、距离太近</li>
+<li><strong>只用 Uu</strong>：安全消息的时延扛不住——基站转发 + 回程网络，端到端时延远超 100ms，且基站故障/盲区时安全功能直接失效</li>
+</ul>
+<p><strong>一句话：</strong> PC5 负责"快"（毫秒级安全），Uu 负责"全"（海量数据广覆盖）。两者互补，缺一不可。</p>
+</div>
+
+<h3>Q3（"广播"意味着什么？安全吗？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p><strong>广播的含义：</strong> 每辆车周期性（如 10Hz）把自己的 BSM 消息（位置/速度/航向）发到公共频段，<strong>范围内的所有设备都能收到</strong>——不需要"点对点建立连接"，就像对讲机喊话，谁都能听。</p>
+<p><strong>安全性问题与对策：</strong></p>
+<table>
+<tr><th>风险</th><th>具体威胁</th><th>V2X 的对策</th></tr>
+<tr><td><strong>防伪造</strong></td><td>黑客伪造一条"前方急刹"消息，诱导后车误刹；或伪造"幽灵车"制造混乱</td><td><strong>数字签名</strong>：每条 BSM 都带发送者的数字证书签名，接收方验签通过才采信。没有合法证书的伪造消息直接被丢弃（联想到 Lesson 32 的 SecOC 思路）</td></tr>
+<tr><td><strong>隐私</strong></td><td>广播位置 = 车辆行踪被跟踪，暴露车主住址/习惯</td><td><strong>假名机制</strong>：车辆使用"匿名证书"广播，证书定期轮换（如每 5 分钟换一个假名），且证书由可信机构（PKI 体系）签发，只有执法机构依法才能追溯真实身份</td></tr>
+</table>
+<p><strong>一句话：</strong> 广播不等于裸奔——V2X 天生设计了"证书 + 签名 + 假名轮换"的安全体系，让消息"人人可听、但无人能伪造、无人能追踪"。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ 1：哪个场景对时延要求<strong>最严格</strong>？</h3>
+<p><strong>正确答案：B. 前车急刹预警（V2V）</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 下载高精地图更新包</td><td>❌ 数据量大但"慢一点没关系"的任务，走 Uu 蜂窝即可</td></tr>
+<tr><td>B. 前车急刹预警（V2V）</td><td>✅ 安全关键场景，要求 &lt;100ms 端到端时延，必须 PC5 直连</td></tr>
+<tr><td>C. 远程查看车辆状态</td><td>❌ 非实时任务，百毫秒级延迟完全可接受</td></tr>
+<tr><td>D. 获取实时路况拥堵指数</td><td>❌ 统计性信息，秒级更新即可</td></tr>
+</table>
+
+<h3>MCQ 2：关于 PC5 直连模式，正确的是？</h3>
+<p><strong>正确答案：C. 不经过基站，车与车/路侧直接通信，时延 10-20ms</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 必须经过 5G 基站才能通信</td><td>❌ PC5 直连恰恰是<strong>不经过基站</strong>的侧行链路</td></tr>
+<tr><td>B. 通信距离可达几十公里</td><td>❌ PC5 覆盖约 1km 级别，不是几十公里（广覆盖是 Uu 的活）</td></tr>
+<tr><td>C. 不经过基站，时延 10-20ms</td><td>✅ PC5 直连时延 10-20ms，满足安全场景，类似"对讲机"广播</td></tr>
+<tr><td>D. 只支持 V2N 场景</td><td>❌ PC5 负责 V2V/V2I/V2P，V2N 走 Uu 蜂窝</td></tr>
+</table>
+
+<h3>MCQ 3：V2V"鸡生蛋"难题的冷启动路径？</h3>
+<p><strong>正确答案：B. 先大规模部署路侧设施（V2I），再通过法规推动新车标配 V2X</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 只靠车主自愿加装 OBU 设备</td><td>❌ 渗透率增长极慢，"鸡生蛋"问题永远解不开</td></tr>
+<tr><td>B. 先部署路侧设施，再法规推动标配</td><td>✅ 路侧设施由政府/运营商统一部署，先让 V2I 产生价值；再靠法规强制新车标配，V2V 渗透率随之上升——这是中国和欧盟的实际路径</td></tr>
+<tr><td>C. 等 6G 技术成熟后再推广</td><td>❌ 拖延战术，V2X 的核心问题（渗透率）不是技术代际能解决的</td></tr>
+<tr><td>D. 用手机 App 模拟 V2X 功能</td><td>❌ 手机精度、时延、安全证书体系都不满足车规要求，只能做演示</td></tr>
+</table>
+
+<hr>
+
+<p><a href="课程.html" class="back-link">← 返回课程</a></p>
+
+</div>
+</body>
+</html>

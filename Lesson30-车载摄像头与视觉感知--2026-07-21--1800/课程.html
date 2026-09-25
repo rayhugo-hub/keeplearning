@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 30（18:00）：车载摄像头与视觉感知——自动驾驶的"眼睛"如何看懂世界？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 30（18:00）— 2026-07-21 | 🚗 车载摄像头与视觉感知</div>
+  <h1>车载摄像头与视觉感知——自动驾驶的"眼睛"如何看懂世界？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson29-车载激光雷达--2026-07-19--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson31-多传感器融合算法--2026-08-01--1718/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你开着一辆带 L2+ 辅助驾驶的车在高速上行驶。仪表盘显示"车道保持已激活"，你的双手轻轻搭在方向盘上。突然前方隧道入口处光线骤暗——从大太阳底下瞬间进入黑洞洞的隧道。</p>
+
+<p><strong>问题来了：</strong></p>
+
+<ul>
+<li>你的眼睛需要几秒钟才能适应这个亮度变化（瞳孔收缩/放大需要时间）</li>
+<li>那车载摄像头呢？它有没有"瞳孔"来应对这种瞬间的亮度剧变？</li>
+<li>为什么有些车在进出隧道时会突然丢失车道线，而有些车稳如泰山？</li>
+</ul>
+
+<div class="callout">
+<p><strong>答案是车载摄像头的动态范围（HDR）和自动曝光技术。</strong> 摄像头不是"人眼"，它用专门的图像信号处理器（ISP）来应对极端光照场景。摄像头是 L2/L2+ 级自动驾驶最核心的传感器——成本低、信息丰富，但受光照和天气影响大。想知道它到底怎么"看"的？往下看。</p>
+</div>
+
+<hr>
+
+<h2>二、车载摄像头有哪些类型？——各司其职的"眼睛家族"</h2>
+
+<p>一辆主流 L2+ 智能汽车通常搭载 <strong>8-12 颗摄像头</strong>，分布在车身四周：</p>
+
+<h3>按安装位置和用途分类</h3>
+
+<table>
+<tr><th>类型</th><th>安装位置</th><th>典型数量</th><th>视场角</th><th>分辨率</th><th>用途</th></tr>
+<tr><td>前视摄像头</td><td>前挡风玻璃内侧（后视镜后方）</td><td>1-3 颗</td><td>28°~120°</td><td>2~8 MP</td><td>车道线、交通标志、行人、车辆检测</td></tr>
+<tr><td>环视摄像头</td><td>车头/尾/两侧后视镜下方</td><td>4 颗</td><td>190°（鱼眼）</td><td>1~2 MP</td><td>360° 全景影像、泊车辅助</td></tr>
+<tr><td>侧视摄像头</td><td>B 柱或翼子板</td><td>2 颗</td><td>50°~90°</td><td>1~2 MP</td><td>盲区监测（BSD）、变道辅助</td></tr>
+<tr><td>后视摄像头</td><td>牌照灯附近</td><td>1-2 颗</td><td>130°~170°</td><td>1~2 MP</td><td>倒车影像、后方交通穿行预警</td></tr>
+<tr><td>DMS 摄像头</td><td>方向盘柱/仪表盘</td><td>1 颗</td><td>60°</td><td>0.3~1 MP</td><td>驾驶员监控（疲劳/分心检测）</td></tr>
+<tr><td>OMS 摄像头</td><td>车顶中央</td><td>1 颗</td><td>180°</td><td>1~2 MP</td><td>后排儿童/宠物检测、遗忘提醒</td></tr>
+</table>
+
+<h3>关键参数对比</h3>
+
+<div class="mermaid">
+flowchart LR
+    subgraph FISHEYE["鱼眼镜头 190°"]
+        FOV1["环视摄像头<br>看得广但畸变大<br>短距离 &lt;5m"]
+    end
+    subgraph NORMAL["普通镜头 50°-120°"]
+        FOV2["前视/侧视摄像头<br>平衡型<br>中距离 5-80m"]
+    end
+    subgraph TELE["长焦镜头 28°"]
+        FOV3["前视远距离<br>看得远但视野窄<br>远距离 &gt;80m"]
+    end
+    FISHEYE --- CENTER["视场角 (FOV) 分布"]
+    NORMAL --- CENTER
+    TELE --- CENTER
+</div>
+
+<hr>
+
+<h2>三、车载摄像头是怎么"看"的？——从光子到目标框</h2>
+
+<h3>完整的图像处理流水线</h3>
+
+<div class="mermaid">
+flowchart LR
+    LENS["镜头 (Lens)<br>聚光/滤光"] --&gt; CMOS["CMOS Sensor<br>光电转换<br>RAW 数据"]
+    CMOS --&gt; ISP["ISP 图像处理<br>去噪/HDR/校正/压缩"]
+    ISP --&gt; PERCEPTION["感知算法<br>识别/跟踪"]
+    PERCEPTION --&gt; PLAN["规划控制<br>决策/执行"]
+</div>
+
+<h3>关键环节详解</h3>
+
+<p><strong>① 镜头（Lens）</strong></p>
+<ul>
+<li>把真实世界的光线聚焦到 CMOS 感光面上</li>
+<li>不同的畸变校正、滤光片（IR-cut）、防眩光涂层</li>
+<li>鱼眼镜头因广角会产生明显的桶形畸变，必须软件校正</li>
+</ul>
+
+<p><strong>② CMOS 图像传感器</strong></p>
+<ul>
+<li>把光信号转换为电信号（每个像素一个光电二极管）</li>
+<li>关键参数：<strong>像素尺寸</strong>（越大感光越好，但分辨率降低）</li>
+<li>三种快门方式：</li>
+</ul>
+
+<table>
+<tr><th>快门类型</th><th>原理</th><th>优点</th><th>缺点</th><th>车载使用</th></tr>
+<tr><td>滚动快门 (Rolling)</td><td>逐行曝光</td><td>成本低</td><td>快速运动时图像"扭曲"（果冻效应）</td><td>❌ 不推荐</td></tr>
+<tr><td>全局快门 (Global)</td><td>整帧同时曝光</td><td>无果冻效应</td><td>感光略差，成本稍高</td><td>✅ 主流选择</td></tr>
+</table>
+
+<p><strong>③ ISP（图像信号处理器）</strong></p>
+<ul>
+<li>这是车载摄像头的"隐形大脑"</li>
+<li>关键功能：自动曝光（AE）、自动白平衡（AWB）、自动对焦（AF）</li>
+<li><strong>HDR（高动态范围）</strong>：连续拍 2-3 张不同曝光时间的图像合成一张——同时看到暗处和亮处的细节</li>
+<li>去噪（Denoise）：运动物体 vs 静态物体的去噪策略不同</li>
+</ul>
+
+<h3>HDR 工作流程</h3>
+
+<div class="mermaid">
+flowchart LR
+    SHORT["短曝光 1/8000s<br>暗部细节清楚<br>天空过曝"] --&gt; HDR
+    MID["中曝光 1/2000s<br>适中亮度"] --&gt; HDR
+    LONG["长曝光 1/500s<br>亮部细节清楚<br>暗部过暗"] --&gt; HDR
+    HDR["HDR 合成"] --&gt; RESULT["一张同时看清<br>暗处和亮处的图"]
+</div>
+
+<h3>典型 ISP 处理效果</h3>
+
+<table>
+<tr><th>场景</th><th>普通摄像头（无 ISP 优化）</th><th>车载摄像头（HDR ISP）</th></tr>
+<tr><td>进出隧道</td><td>隧道内全黑，隧道外过曝</td><td>隧道内外同时可见</td></tr>
+<tr><td>夜间对向远光灯</td><td>一片白茫茫</td><td>灯光区域压暗，其他区域正常</td></tr>
+<tr><td>雨夜积水反光</td><td>眩光严重，车道线消失</td><td>去眩光后车道线仍然可见</td></tr>
+</table>
+
+<hr>
+
+<h2>四、摄像头 vs LiDAR：谁更重要？</h2>
+
+<table>
+<tr><th>维度</th><th>摄像头</th><th>LiDAR</th></tr>
+<tr><td>识别车道线/交通灯</td><td>✅ 天生就能</td><td>❌ 纯点云无颜色信息</td></tr>
+<tr><td>测距精度</td><td>❌ 靠算法估（双目/单目深度估计）</td><td>✅ 直接测量（cm 级）</td></tr>
+<tr><td>夜间能力</td><td>❌ 需要近红外补光</td><td>✅ 自发光，不受影响</td></tr>
+<tr><td>分辨率</td><td>✅ 高清（2MP ~ 8MP）</td><td>❌ 稀疏（~128 线）</td></tr>
+<tr><td>颜色/纹理识别</td><td>✅ 丰富</td><td>❌ 无</td></tr>
+<tr><td>成本</td><td>✅ 极低（~$30-$80）</td><td>❌ 高（$200-$5000+）</td></tr>
+<tr><td>受天气影响</td><td>❌ 雨雾雪严重影响</td><td>⚡ 影响较小</td></tr>
+</table>
+
+<p><strong>结论：</strong> 摄像头提供"语义"（这是什么），LiDAR 提供"几何"（它在哪里、多远）。可靠的自动驾驶感知 = 摄像头 + LiDAR + 毫米波雷达的三者融合。</p>
+
+<hr>
+
+<h2>五、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：车载摄像头是"看得见但猜距离"的传感器</h3>
+<p>摄像头像素再高，也只是 2D 图像。要获得 3D 信息，要么用双目视差法（类似人的两只眼），要么用 AI 单目深度估计。它看不见"距离"——它是用算法"猜"出来的。</p>
+
+<h3>📌 规则二：HDR + ISP 是车载摄像头"不怕过曝"的秘密</h3>
+<p>通过多帧合成（短/中/长曝光）和专门的 ISP 芯片，车载摄像头可以在进出隧道、对向远光灯等极端光照场景下稳定工作。一台车最多可能有 3 颗独立的 ISP 芯片同时工作。</p>
+
+<h3>📌 规则三：8-12 颗摄像头各司其职，没有一颗能包打天下</h3>
+<p>前视看远（车道线/障碍物），环视看近（泊车/盲区），DMS 看人（驾驶员状态）。每颗镜头的视场角、分辨率、安装位置都是针对性设计的。未来的趋势是"复用"——用一颗高分辨率宽视场摄像头覆盖多个功能。</p>
+
+</div>
+
+<hr>
+
+<h2>六、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你正在跟一个完全不懂技术的朋友吃饭。他问："现在的汽车摄像头能看见什么？跟行车记录仪的摄像头有什么区别？" 请用通俗的话解释车载摄像头和普通记录仪摄像头在 HDR、全局快门、ISP 这三个方面的核心区别。不要用术语堆砌！</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>如果一个 L2 辅助驾驶系统只靠摄像头（没有 LiDAR 和毫米波雷达），你觉得它在什么场景下最危险？为什么？什么场景下又完全够用？</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>为什么环视摄像头要用鱼眼镜头（190° 视场角），而前视摄像头用普通镜头（28°-120°）？如果我把环视镜头装到前视位置，会出什么问题？</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>七、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：车载摄像头在进出隧道时能稳定工作的核心技术是什么？</div>
+<label><input type="radio" name="mc1" value="A"> A. 鱼眼镜头畸变校正</label>
+<label><input type="radio" name="mc1" value="B"> B. HDR（高动态范围）多帧合成</label>
+<label><input type="radio" name="mc1" value="C"> C. 全局快门（Global Shutter）</label>
+<label><input type="radio" name="mc1" value="D"> D. 图像压缩算法</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：以下哪个<strong>不是</strong>车载摄像头相对于 LiDAR 的优势？</div>
+<label><input type="radio" name="mc2" value="A"> A. 能识别颜色和纹理（交通灯、标志牌）</label>
+<label><input type="radio" name="mc2" value="B"> B. 全天候能力更强（不受雨雾影响）</label>
+<label><input type="radio" name="mc2" value="C"> C. 分辨率更高（可以看清远处的小物体细节）</label>
+<label><input type="radio" name="mc2" value="D"> D. 成本更低（约 $30-$80 一颗）</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：以下哪种快门方式最适合运动场景下的车载摄像头？</div>
+<label><input type="radio" name="mc3" value="A"> A. 滚动快门（Rolling Shutter）</label>
+<label><input type="radio" name="mc3" value="B"> B. 电子快门（Electronic Shutter）</label>
+<label><input type="radio" name="mc3" value="C"> C. 全局快门（Global Shutter）</label>
+<label><input type="radio" name="mc3" value="D"> D. 机械快门（Mechanical Shutter）</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson30',
+    title: 'Lesson 30（18:00）：车载摄像头与视觉感知',
+    mcq: { mc1: 'B', mc2: 'B', mc3: 'C' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson30', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson30');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson30');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson30',
+  title: 'Lesson 30（18:00）：车载摄像头与视觉感知——自动驾驶的"眼睛"如何看懂世界？',
+  feynman: [
+    { q: 1, ref: '用饭桌聊天类比：行车记录仪摄像头像普通手机拍照（没有 HDR、滚动快门、无 ISP），车载摄像头有专业 ISP 做多帧合成 HDR、全局快门抗运动模糊、专门去噪/校正。核心区别是车载摄像头输出的是"AI 可读"的优化图像，而非"人眼可看"的原始图像' },
+    { q: 2, ref: '最危险：完全黑暗夜间高速（无光）、暴雨大雾（光线散射）、正对强光（传感器饱和）。够用：白天结构化道路（标线清晰、光照好）、城市低速（制动距离短）、停车场（照明充足）。核心限制是摄像头依赖环境光' },
+    { q: 3, ref: '环视用鱼眼要短距广覆盖（4 颗拼 360°），前视要远距高分辨率（2MP 集中在小 FOV 上）。互换后：鱼眼装前视→远处分辨率不足+畸变严重+算法不适配；普通透镜装环视→覆盖范围不够有盲区' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'C' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

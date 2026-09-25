@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 50：车载以太网 FRER 无缝冗余——关键数据怎么"双路齐发、只收一份"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+.feynman-label{font-weight:600;margin:.8rem 0 .3rem}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 50（10:27）：车载以太网 FRER 无缝冗余</h1>
+<p class="meta">📅 2026-09-05 | 🚗 IEEE 802.1CB · 帧复制与消除（FRER）· R-TAG · 序号去重 · 无缝冗余 | ⏰ 10:27</p>
+<div class="nav-bar">
+  <a href="../Lesson49-车载以太网交换机与VLAN--2026-09-04--0006/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson51-车载以太网诊断DoIP进阶--2026-09-06--1622/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景</h2>
+<p>高速上，L3 级自动驾驶正在行驶，方向盘后面没有驾驶员。<strong>智驾域控</strong>算出"前方有障碍，向右打 5°"，要把这条指令送到<strong>转向执行器</strong>。就在此刻，连接它们的那根网线——线束被磨损、连接器松脱、或者被老鼠咬断——<strong>指令丢了</strong>。执行器等不到指令，车直直往前开。</p>
+<blockquote><strong>一条线，决定一车人的安全。</strong></blockquote>
+<p>网络永远不是 100% 可靠的：线缆会断、连接器会松、电磁干扰会毁帧。对<strong>视频流</strong>来说，丢几帧无所谓（下一帧马上就来）；但对<strong>刹车、转向</strong>这种闭环控制指令，<strong>丢一条 = 系统在那一瞬间"失聪"</strong>。</p>
+<p>功能安全（ISO 26262，前面学过）对 ASIL D 系统有一条硬要求：<strong>fail-operational</strong>——一个部件坏了，系统必须还能继续工作，不能直接趴窝。网络也一样：<strong>一条链路断了，指令必须还能送到</strong>。怎么办？</p>
+<blockquote><strong>这一课讲清楚：FRER（帧复制与消除，IEEE 802.1CB）——把每个关键帧"发两份、走两条路"，接收端"只收一份"。断了一条路，另一条路的副本照样到：不重传、不等待、控制不中断。</strong></blockquote>
+
+<h2>二、为什么"丢了再补发"救不了刹车？——事后补救 vs 事前双发</h2>
+<p>直觉方案："丢了就重发嘛，TCP 不就是这样？" 但算一笔时间账：</p>
+<table>
+<tr><th>步骤</th><th>耗时</th><th>说明</th></tr>
+<tr><td>① 接收端发现丢了</td><td>≥ 一个帧周期</td><td>得等"下一帧该来却没来"才能判断</td></tr>
+<tr><td>② 反馈给发送端</td><td>一个网络来回</td><td>发"我丢了"的通知</td></tr>
+<tr><td>③ 发送端重发</td><td>又一个网络来回</td><td>重走一遍网络</td></tr>
+<tr><td>④ 接收端收到</td><td>—</td><td>全程 ≥ 2~3 个来回</td></tr>
+</table>
+<p>而控制闭环里，转向指令的周期可能只有 <strong>1~10 ms</strong>——晚 1 ms，车就偏出去一点。等"发现 → 报告 → 重发 → 送达"整条链走完，<strong>黄花菜都凉了</strong>。而且重传还会加剧网络拥塞。</p>
+<p><strong>FRER 的思路完全反过来：</strong> 别等丢了再补救——<strong>发送时就发两份</strong>，走两条互不相干的物理路径。一条路断了，另一份副本早就（或正从好路上）赶来，接收端总能收到一份——<strong>切换时间 ≈ 0，这就是"无缝"</strong>。</p>
+<table>
+<tr><th>维度</th><th>丢包后重传（事后补救）</th><th>FRER 双路齐发（事前冗余）</th></tr>
+<tr><td><strong>动手时机</strong></td><td>丢了之后才发现、才补救</td><td>发送时就已经复制两份上路</td></tr>
+<tr><td><strong>补救延迟</strong></td><td>≥ 2~3 个网络来回</td><td>0——另一份副本已经在路上</td></tr>
+<tr><td><strong>控制闭环体验</strong></td><td>等待期间执行器"听不到"指令</td><td>任意时刻都能收到一份</td></tr>
+<tr><td><strong>平时带宽</strong></td><td>1 份</td><td>2 份（带宽 ×2）</td></tr>
+<tr><td><strong>适用流量</strong></td><td>诊断、OTA 等非实时数据</td><td>转向/制动等安全关键控制流</td></tr>
+</table>
+
+<h2>三、FRER 的思路：复制 → 分路 → 消除</h2>
+<p>FRER 干的事可以概括为三个动作（对应 802.1CB 的三大功能）：</p>
+<ol>
+  <li><strong>复制（Replication）</strong>：发送端（或入口交换机）把每个关键帧复制成两份，并给两份贴上"我是同一份"的记号，分别送上两条路；</li>
+  <li><strong>分路（成员流 Member Stream）</strong>：两份副本各自成为一条成员流，走<strong>物理上不同</strong>的路径（不同线束、不同交换机）；</li>
+  <li><strong>消除（Elimination）</strong>：接收端（或汇合点）把两份副本<strong>只放行先到的一份</strong>，后到的重复副本直接丢弃——上层应用看到的始终是"一份不多、一份不少"。</li>
+</ol>
+<div class="mermaid">
+flowchart TB
+    T["智驾域控（发送端 Talker）&lt;br&gt;复制功能：每帧复制两份&lt;br&gt;打相同序号，分路发送"]
+    subgraph PA["路径 A：左侧线束 · 交换机 S1 · VLAN 10"]
+        S1["S1 转发"]
+    end
+    subgraph PB["路径 B：右侧线束 · 交换机 S2 · VLAN 20"]
+        S2["S2 转发"]
+    end
+    E["转向执行器（接收端 Listener）&lt;br&gt;消除功能：只放行先到的一份&lt;br&gt;后到的重复副本丢弃"]
+    APP["上层应用：恰好收到一份指令"]
+    T --&gt; S1
+    T --&gt; S2
+    S1 --&gt; E
+    S2 --&gt; E
+    E --&gt; APP
+</div>
+<table>
+<tr><th>名词</th><th>作用</th><th>类比</th></tr>
+<tr><td><strong>流（Stream）</strong></td><td>一路端到端业务，如"转向指令流"</td><td>一份连续寄出的信</td></tr>
+<tr><td><strong>成员流（Member Stream）</strong></td><td>复制出的每一路副本流</td><td>同一封信的两条邮路副本</td></tr>
+<tr><td><strong>复制功能（Replication）</strong></td><td>入口处每帧复制成多份、打记号、分路发送</td><td>誊写两份、编同一个号</td></tr>
+<tr><td><strong>消除功能（Elimination）</strong></td><td>汇合处/接收端只放行先到的一份</td><td>收件人只读一份就够</td></tr>
+<tr><td><strong>恢复功能（Recovery，可选）</strong></td><td>把乱序/时延差纠正回原样</td><td>把信按原顺序整理好</td></tr>
+</table>
+<blockquote><strong>一句话：复制让"两条路都有一份"，消除让"应用只看到一份"——这就是"双路齐发、只收一份"。</strong></blockquote>
+
+<h2>四、怎么认出"同一份"？——R-TAG 与序号</h2>
+<p>两份副本凭什么证明"我们是同一封信"？——靠发送端塞进帧里的一个小标签：<strong>R-TAG（冗余标签，6 字节，EtherType = 0xF1C1）</strong>。</p>
+<table>
+<tr><th>字段</th><th>长度</th><th>作用</th></tr>
+<tr><td><strong>EtherType（0xF1C1）</strong></td><td>2 字节</td><td>告诉沿途交换机"我是带冗余标签的帧"</td></tr>
+<tr><td><strong>路径/成员 ID</strong>（含版本与保留位）</td><td>2 字节</td><td>这份副本属于哪条成员流（走哪条路）</td></tr>
+<tr><td><strong>序号</strong></td><td>2 字节</td><td><strong>同一帧的两个副本序号相同</strong>，接收端按"流 + 序号"去重</td></tr>
+</table>
+<p><strong>接收端的消除逻辑</strong>（每条流维护一份"已收序号"记录）：</p>
+<div class="mermaid">
+flowchart TB
+    IN["收到一份副本&lt;br&gt;（带 R-TAG：流 + 序号）"]
+    D["判断：查该流的已收序号记录&lt;br&gt;这个序号收过吗？"]
+    NEW["没收过 → 新副本&lt;br&gt;记录序号，放行给上层"]
+    DUP["收过了 → 重复副本&lt;br&gt;直接丢弃"]
+    APP["上层应用：每份数据只收到一次"]
+    IN --&gt; D
+    D --&gt;|"没收到过"| NEW
+    D --&gt;|"已收到过"| DUP
+    NEW --&gt; APP
+</div>
+<p><strong>要点：同一个序号只放行一次。</strong> 先到的副本被放行并记录；后到的同序号副本一看"收过了"，直接丢弃。两份副本谁先到都行——结果都一样：<strong>应用只收到一份</strong>。</p>
+<p><strong>序号用完了怎么办？</strong> 序号只有 16 位（0~65535），发满会<strong>回绕</strong>成 0。工程上接收端不是简单地"见重复就丢"，而是用<strong>滑动窗口</strong>判断新旧：序号比窗口内已收的新 → 放行；落在窗口内的旧序号 → 重复，丢弃；明显比窗口旧很多 → 按"回绕后的新帧"处理。这样既去了重，又不会把回绕后的新帧误杀。</p>
+
+<h2>五、两条路必须"真分开"——单点故障是冗余的天敌</h2>
+<p>FRER 有个前提：<strong>两条路径不能有"共同的致命弱点"</strong>。如果两份副本其实共享同一根线、同一个连接器、同一台交换机、同一个电源——那这个共享点一坏，两份一起死，冗余形同虚设。</p>
+<table>
+<tr><th>共享点</th><th>后果</th></tr>
+<tr><td>同一根线束 / 同一个连接器</td><td>线断 / 插头松 → 两路同时断</td></tr>
+<tr><td>同一台交换机</td><td>交换机挂 → 两路全没</td></tr>
+<tr><td>同一个电源域</td><td>电源失效 → 收发两端全趴窝</td></tr>
+</table>
+<p><strong>车里怎么落地：</strong></p>
+<ul>
+  <li>路径 A、B 走<strong>不同的交换机端口（甚至不同交换机）</strong>，VLAN 也分开——上一课的 VLAN/流分类正好派上用场：为两条成员流建不同 VLAN，配合流分类保证各自带宽不被挤占；</li>
+  <li>线束<strong>分开走线</strong>（左/右、前/后不同走向），避免一起被磨断；</li>
+  <li>关键执行器（转向、制动）的冗余链路甚至要求<strong>独立供电</strong>——这已经属于系统级冗余设计，网络只是其中一环。</li>
+</ul>
+
+<h2>六、车上怎么用：只给"最不能丢"的流开 FRER</h2>
+<p>FRER 的代价是<strong>带宽翻倍 + 硬件支持</strong>（交换机要能解析 R-TAG、按流维护序号状态，通常需要支持 802.1CB 的车规交换芯片）。所以车上<strong>不是所有流量都开 FRER</strong>，只给"丢一条就出事"的流开：</p>
+<table>
+<tr><th>流量</th><th>开 FRER？</th><th>理由</th></tr>
+<tr><td>智驾域控 → 线控转向/制动（SBW/EMB）</td><td>✅ 开</td><td>安全关键闭环，丢一条都不可接受</td></tr>
+<tr><td>ADAS 控制 / 功能安全相关报文</td><td>✅ 开</td><td>fail-operational 的硬要求</td></tr>
+<tr><td>摄像头视频流</td><td>❌ 不开</td><td>带宽翻倍太贵，丢帧可容忍、可恢复</td></tr>
+<tr><td>诊断、OTA、娱乐</td><td>❌ 不开</td><td>非实时，丢了重传即可</td></tr>
+</table>
+<blockquote><strong>一句话：FRER 是把"带宽翻倍"的钱，花在"绝不能丢"的流上——它是 TSN 家族里"可靠性"维度的标准，和 Qbv（准时出门）、Qci（限速监管，后续会讲）配合使用。</strong></blockquote>
+
+<h2>七、把这几课串起来：一条关键指令的完整旅程</h2>
+<p>回顾车载以太网深度系列：<strong>PHY（L48）把帧变成电信号 → 交换机/流分类（L49）把帧分拣隔离 → TSN Qbv（L47）让帧准点出门 → FRER（本课）让帧"断一条路也不丢"</strong>。一帧转向指令的旅程：</p>
+<ol>
+  <li>智驾域控生成指令 → 复制功能复制两份、打上<strong>相同序号</strong>的 R-TAG；</li>
+  <li>两份分别进 VLAN 10 / VLAN 20，走两条物理链路；</li>
+  <li>沿途交换机按流分类放行——不拥塞、准点；</li>
+  <li>接收端消除功能：先到的一份放行，后到的重复副本丢弃；</li>
+  <li>执行器拿到<strong>恰好一份</strong>指令——即使其中一条链路已经断了。</li>
+</ol>
+
+<h2>八、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>"无缝"不是修得快，而是根本不用修</strong>——FRER 在故障发生前就把副本发出去了，一条路断了另一份照样到，切换时间 ≈ 0；等丢包再重传，对 1~10 ms 的控制闭环永远来不及。</li>
+  <li><strong>去重靠"同一个序号只放行一次"</strong>——发送端用 R-TAG 给同帧副本打相同序号，接收端按"流 + 序号"放行先到者、丢弃后到者，上层永远只看到一份。</li>
+  <li><strong>两条路必须真分开，共享点 = 单点故障</strong>——同一根线、同一个连接器、同一台交换机都会让冗余失效；FRER 只开给转向/制动这类"绝不能丢"的流，因为它的代价是带宽翻倍。</li>
+</ol>
+
+<h2>九、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <h3>Q1：用"寄重要文件"的类比讲 FRER：为什么发两份？收件人怎么知道两份是同一份文件、不会读两遍？为什么两条邮路必须"真的不一样"？（提示：寄出前要在两份上做什么记号？两条邮路如果其实共享同一段路会怎样？）</h3>
+  <textarea id="feynman1" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q2：为什么"发现丢了再补发"这一招，对转向、刹车指令来说来不及？把"等超时 → 通知对方 → 对方重发 → 再送到"这条链为什么慢讲清楚；FRER 为什么能做到"断了一条路也不卡顿"？</h3>
+  <textarea id="feynman2" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q3（进阶）：接收端怎么保证"不多收、不漏收"？讲讲序号在其中起的作用：如果序号是 16 位，发满 65535 后会回绕成 0，接收端怎么避免把"回绕后的新帧"误判成"重复的旧帧"？（提示：滑动窗口，怎么判断新旧）</h3>
+  <textarea id="feynman3" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+
+<h2>十、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：FRER（帧复制与消除）相比"丢包后重发"，本质优势是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. 平时只发一份数据，更省带宽</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. 故障后能在几毫秒内把丢的帧重发出去</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. 故障发生前数据就已经复制成两份在路上，一条链路断了另一份照常到达，无需等待补救</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. 它不需要交换机，设备直连就能用</label>
+  <div class="mcq-result" id="mc1-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ2：接收端在同一条流上先后收到两份序号相同的副本，正确的处理是？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. 两份都交给上层应用，让应用自己判断用哪份</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. 查已收序号记录：该序号已经收过 → 后到的是重复副本，直接丢弃，只放行先到的那份</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 立即回复发送端"已收到"，请它停止发送</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 两份都丢弃，等待第三份副本</label>
+  <div class="mcq-result" id="mc2-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ3：智驾域控到后轮转向执行器的 FRER 冗余，两条路径分别走左、右线束，但最终汇合在同一个连接器里。这个设计的最大问题是？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. 没有问题，FRER 只需要两条逻辑上不同的路径</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. 没有问题，交换机会自动绕开坏掉的连接器</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. 没有问题，连接器坏了系统会自动切换成单路发送</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. 连接器成了单点故障——它一坏，两条路径同时失效，冗余白做</label>
+  <div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 50,
+    title: '车载以太网FRER无缝冗余',
+    feynman: [],
+    mcq: { mc1: 'C', mc2: 'B', mc3: 'D' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 50,
+  title: '车载以太网 FRER 无缝冗余——关键数据怎么"双路齐发、只收一份"？',
+  feynman: [
+    { q: 'Q1', ref: '寄重要文件类比——把 FRER 想成"寄一份绝不能丢的重要文件"。①为什么发两份：任何一条邮路都可能出意外（车翻了、信湿了、送信人病了），发两份、走两条不同的路，只要至少一条送到，文件就不丢。对应车上：一条链路可能被磨断、连接器松脱，两条独立链路同时坏的概率极低，所以"断一条也不丢"。②收件人怎么知道两份是同一份：寄出前在每份上盖同一个流水号（对应 R-TAG 里的序号），收件人按流水号登记：第一个到的号没见过 → 收下；另一份同号的到了 → 一看号已经收过 → 知道是重复件，不再读第二遍（丢弃）。所以不会读两遍，也不会漏收。③为什么两条邮路必须真的不一样：如果两条"邮路"其实共享同一段路（同一辆车转运、同一座桥），这段路一断，两份一起丢——共享点就是单点故障。对应车上：两份副本不能走同一根线束、同一个连接器、同一台交换机，否则那个点一坏冗余就失效。结论：FRER = 事前双发 + 按流水号去重 + 路径真分开，缺一不可。' },
+    { q: 'Q2', ref: '补发为什么来不及——它是一条"事后补救链"，每一步都要时间：①接收端要先发现丢了：靠序号出现空洞或超时判断，至少得等一个帧周期；②再把"我丢了"报告给发送端：又花一个网络来回；③发送端重新发一遍：再花一个来回。整条链走完 ≥ 2~3 个网络来回。而转向/刹车指令的周期可能只有 1~10 ms，等待期间执行器一直"听不到"新指令，车已经偏出去了；重传还会在拥塞时雪上加霜。FRER 反着来：故障发生之前，发送时就已经把帧复制成两份、分两条路发出——链路断掉的那一刻，另一份副本要么已经到了、要么正从另一条好路上赶来。接收端根本不需要"发现丢失"这个动作，也就没有反馈等待，切换时间 ≈ 0，控制不中断。所以"无缝"不是补救得快，而是压根不需要补救。代价是平时带宽就翻倍，因此只给最关键的流开 FRER。' },
+    { q: 'Q3', ref: '不多收、不漏收都靠序号：①不多收——发送端给同一帧的两个副本打相同序号，接收端每条流维护"已收序号"记录：先到的副本放行并记录；后到的同序号副本判定为重复，直接丢弃，所以应用永远只收到一份。②不漏收——两条路各有一份副本，正常时至少一份能到；一条路断了，另一份照常到达，所以应用不会收不到。③序号回绕问题：16 位序号 0~65535 循环使用，65535 之后回到 0。不能简单用"序号相等 = 重复"来判断，否则会把回绕后的新帧误杀成旧副本。工程上用滑动窗口：接收端维护一小段"最近已收序号"窗口，用"序号差（按 65536 取模的意义上的先后）"判断新旧——序号明显更新 → 放行；落在窗口内 → 重复，丢弃；序号看起来旧很多 → 按回绕后的新帧放行。也就是说，接收端记的不是"最后一个序号"，而是"最近一段窗口"，新帧只有落进窗口才算重复，这样既去了重，又不会错杀回绕后的新帧。' }
+  ],
+  mcq: { mc1: 'C', mc2: 'B', mc3: 'D' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

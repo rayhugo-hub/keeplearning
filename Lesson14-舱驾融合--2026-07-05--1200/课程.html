@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 14（12:00）：舱驾融合——座舱和智驾怎么"共享一个大脑"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{text-align:center;margin:.8rem 0}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 14（12:00）— 2026-07-05 | 🧠 舱驾融合：座舱域与智驾域合并</div>
+  <h1>舱驾融合——座舱和智驾怎么"共享一个大脑"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson13-座舱互联--2026-07-05--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson15-车载网关--2026-07-05--1500/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>过去，一辆智能汽车里有两个"独立大脑"：</p>
+<ul>
+  <li><strong>座舱域控制器</strong>负责中控屏、仪表盘、语音助手、导航——这是给"人"用的。</li>
+  <li><strong>智驾域控制器</strong>负责摄像头感知、路径规划、刹车/加速控制——这是给"车"用的。</li>
+</ul>
+<p>它们各自有独立的芯片、独立的内存、独立的操作系统，甚至来自不同的供应商。</p>
+
+<p><strong>问题：为什么不把这两个"大脑"合并成一个？合并后会遇到哪些麻烦？</strong></p>
+
+<div class="callout">
+  <p>今天的重点：<strong>舱驾融合（Cockpit-Domain Integration）</strong>——将座舱域和智驾域的功能整合到同一个域控制器或同一颗 SoC 上，实现"一个大脑管所有"。</p>
+</div>
+
+<hr>
+
+<h2>二、为什么要合？三个驱动力</h2>
+
+<table>
+<tr><th>#</th><th>驱动力</th><th>说明</th><th>量化收益</th></tr>
+<tr><td><strong>1</strong></td><td><strong>成本降低</strong></td><td>两颗芯片→一颗芯片，减少 PCB 面积、散热、外壳、线束</td><td>硬件 BOM 成本降低 30~40%</td></tr>
+<tr><td><strong>2</strong></td><td><strong>数据共享</strong></td><td>座舱需要智驾的感知数据做"增强现实导航"；智驾需要座舱的语音和 DMS 数据</td><td>跨域通信延迟从 10ms 降到 &lt;1ms</td></tr>
+<tr><td><strong>3</strong></td><td><strong>软件升级</strong></td><td>一个操作系统、一套 OTA 流程、一次开发测试周期</td><td>软件开发成本降低 ~50%</td></tr>
+</table>
+
+<h3>数据共享的典型场景</h3>
+
+<div class="mermaid">
+flowchart LR
+    subgraph 智驾功能
+        CAM["🚗 摄像头感知"]
+        LIDAR["🔦 激光雷达"]
+        PLAN["🧭 路径规划"]
+    end
+
+    subgraph 座舱功能
+        NAV["🗺️ 导航地图"]
+        ARHUD["👓 AR-HUD"]
+        DMS["👁️ 驾驶员监控"]
+        VOICE["🎤 语音交互"]
+    end
+
+    subgraph 融合域控
+        SHARED["🧠 共享感知数据"]
+        FUSION["🔀 数据融合引擎"]
+    end
+
+    CAM --> SHARED
+    LIDAR --> SHARED
+    SHARED --> FUSION
+    FUSION --> ARHUD
+    FUSION --> NAV
+    FUSION --> DMS
+    DMS --> PLAN
+    VOICE --> FUSION
+</div>
+
+<div class="callout-warn">
+  <p><strong>场景举例：</strong>当智驾检测到前方有行人突然横穿，不仅智驾会触发 AEB（自动紧急刹车），座舱的 AR-HUD 会立刻在挡风玻璃上高亮标注行人位置，同时语音播报"前方有行人请注意"。这一切如果靠两个域控制器的 CAN 通信实现，延迟至少 10~20ms；融合后只需要 &lt;1ms。</p>
+</div>
+
+<hr>
+
+<h2>三、怎么合？三种技术路线</h2>
+
+<h3>路线 A：硬件融合——一颗 SoC 跑两个域</h3>
+
+<table>
+<tr><th>特性</th><th>说明</th></tr>
+<tr><td>典型芯片</td><td>高通 SA8775 / SA8797、英伟达 Thor、地平线 J6</td></tr>
+<tr><td>架构</td><td>一颗 SoC 内部通过<strong>硬件虚拟化</strong>分割为两个"安全岛"：一个跑座舱 OS（Android/QNX），一个跑智驾 OS（RTOS/Linux+Safety）</td></tr>
+<tr><td>隔离方式</td><td><strong>Hypervisor</strong>（虚拟机监视器）——硬件级别的资源隔离，确保智驾的实时任务不被座舱 UI 动画干扰</td></tr>
+<tr><td>优势</td><td>成本最低、通信延迟最低、PCB 面积最小</td></tr>
+<tr><td>挑战</td><td><strong>功能安全隔离</strong>——座舱出 Bug 不能影响智驾；需要芯片支持硬件虚拟化</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart TB
+    subgraph SOC["一颗 SoC"]
+        subgraph HV["Hypervisor 硬件虚拟化层"]
+            DIR1["虚拟分区 1"]
+            DIR2["虚拟分区 2"]
+        end
+        subgraph COCKPIT["座舱域"]
+            ANDROID["Android / 鸿蒙"]
+            NAVI["导航"]
+            MEDIA["多媒体"]
+            VOICE2["语音"]
+        end
+        subgraph ADAS["智驾域"]
+            RTOS["RTOS / Safe Linux"]
+            PERCEPTION["感知（目标检测）"]
+            FUSION2["融合"]
+            CONTROL["控制（AEB/LCC）"]
+        end
+    end
+
+    SOC --> HV
+    HV --> COCKPIT
+    HV --> ADAS
+</div>
+
+<h3>路线 B：板级融合——两颗 SoC 在同一块板子上</h3>
+
+<table>
+<tr><th>特性</th><th>说明</th></tr>
+<tr><td>方案</td><td>一块 PCB 上放两颗芯片：一颗高性能 SoC 跑座舱，一颗安全 SoC/MCU 跑智驾</td></tr>
+<tr><td>互联</td><td>通过片内高速总线（PCIe / 以太网）直连，延迟 1~5ms</td></tr>
+<tr><td>优势</td><td>保留了各自的硬件独立性（满足功能安全），又避免了跨域控制器的物理线束和外壳成本</td></tr>
+<tr><td>挑战</td><td>仍比单 SoC 方案贵，散热设计复杂</td></tr>
+</table>
+
+<h3>路线 C：域控级融合——两个域控制器合并在一个"盒子"里</h3>
+
+<table>
+<tr><th>特性</th><th>说明</th></tr>
+<tr><td>方案</td><td>一个盒子里有两块独立板卡（座舱板 + 智驾板），共用电源、外壳、散热，板间走车载以太网</td></tr>
+<tr><td>优势</td><td>供应商解耦——座舱板 A 公司供货，智驾板 B 公司供货，OEM 组装；已有成熟量产</td></tr>
+<tr><td>挑战</td><td>成本节省有限，不是真正融合</td></tr>
+</table>
+
+<div class="callout">
+  <p><strong>行业趋势：</strong>2024~2026 年是"路线 C → 路线 B"的过渡期；2027~2030 年主流是"路线 A"（单 SoC 硬件虚拟化）。英伟达 Thor（2025 年量产）和高通 SA8775（2024 年量产）都支持路线 A。</p>
+</div>
+
+<hr>
+
+<h2>四、核心难点：功能安全隔离</h2>
+
+<p>舱驾融合最大的技术挑战不是"能不能合一"，而是<strong>"合一后智驾还能不能安全运行"</strong>。</p>
+
+<h3>功能安全等级差异</h3>
+
+<table>
+<tr><th>域</th><th>安全等级</th><th>要求</th></tr>
+<tr><td><strong>智驾域</strong></td><td><strong>ASIL-D</strong>（最高等级）</td><td>单点故障失效率 &lt; 10⁻⁸/小时；AEB/ACC 失效可能导致死亡事故</td></tr>
+<tr><td><strong>座舱域</strong></td><td><strong>QM</strong>（无安全要求）</td><td>中控屏死机不会导致行车事故；导航地图卡顿最多让用户烦躁</td></tr>
+</table>
+
+<div class="callout-warn">
+  <p><strong>核心矛盾：</strong>把 QM 级别的系统和 ASIL-D 级别的系统放在同一颗芯片上运行——座舱的一个内存泄漏 Bug 可能导致智驾系统无响应，车就失去了自动刹车能力。</p>
+</div>
+
+<h3>解决方案</h3>
+
+<table>
+<tr><th>技术</th><th>作用</th></tr>
+<tr><td><strong>硬件虚拟化（Hypervisor）</strong></td><td>硬件级别隔离内存、中断、外设。智驾分区不能访问座舱分区的内存，座舱分区也不能抢智驾分区的 CPU 时间</td></tr>
+<tr><td><strong>TLB 隔离 &amp; MPU</strong></td><td>内存管理单元（MMU）和内存保护单元（MPU）确保两个域的内存空间完全独立</td></tr>
+<tr><td><strong>安全岛（Safety Island）</strong></td><td>芯片内部专门划出一个"安全核心"跑智驾安全监控，独立于主处理器核心</td></tr>
+<tr><td><strong>时间确定性调度</strong></td><td>智驾的 AEB 控制任务必须在 1ms 内完成；如果座舱的动画特效抢了 CPU，调度器必须优先保障智驾</td></tr>
+</table>
+
+<hr>
+
+<h2>五、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>融合的驱动力是成本和数据共享</strong></td><td>把座舱和智驾放在一个域控/SoC 上，省了芯片钱和线束，还让数据互通延迟从 10ms 降到 &lt;1ms</td></tr>
+<tr><td><strong>2</strong></td><td><strong>融合的最大障碍是功能安全隔离</strong></td><td>ASIL-D（智驾）和 QM（座舱）的安全等级差了一个数量级，必须用硬件虚拟化、安全岛等技术隔离</td></tr>
+<tr><td><strong>3</strong></td><td><strong>行业正在从"物理合一"走向"芯片合一"</strong></td><td>2024 年板级融合为主流，2027 年后单 SoC 硬件虚拟化将成为行业标准</td></tr>
+</table>
+
+<hr>
+
+<h2>六、图示：舱驾融合的前世今生</h2>
+
+<div class="mermaid">
+sequenceDiagram
+    participant OEM as 🏭 整车厂
+    participant Cockpit as 🖥️ 座舱域控制器
+    participant ADAS as 🤖 智驾域控制器
+    participant SOC as 🔲 单SoC融合方案
+
+    Note over OEM,SOC: 阶段一：独立域控（2020~2023）
+    Cockpit-->>ADAS: CAN/以太网（延迟 10~20ms）
+    ADAS-->>Cockpit: 感知数据（车道线/障碍物列表）
+    OEM->>Cockpit: 座舱供应商 A
+    OEM->>ADAS: 智驾供应商 B
+
+    Note over OEM,SOC: 阶段二：板级融合（2024~2026）
+    OEM->>Cockpit: 座舱 SoC
+    OEM->>ADAS: 智驾 SoC（同板，PCIe互联）
+    Cockpit-->>ADAS: PCIe 直连（延迟 1~5ms）
+
+    Note over OEM,SOC: 阶段三：SoC融合（2027~2030）
+    OEM->>SOC: 单颗 SoC（高通Thor/SA8775）
+    SOC->>SOC: 硬件虚拟化隔离
+    Note over SOC: 座舱 VM + 智驾 VM 在同一芯片上运行
+    Note over SOC: 数据共享延迟 &lt; 1ms
+</div>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>请用自己的话解释：为什么把座舱和智驾合并到一颗芯片上能省钱？具体在哪几个方面省了钱？（不要用术语堆砌，像给一个非技术朋友解释）</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>假设有一颗芯片同时运行座舱系统（Android 播放视频）和智驾系统（AEB 紧急刹车）。如果一个恶意应用在 Android 上疯狂占用内存，为什么会影响到智驾的安全性？厂家用什么技术手段来防止这种问题？</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>有人说："既然舱驾融合这么好，为什么现在（2024~2025）量产车上还是分开的居多？" 请用自己的话列出至少两个最重要的原因。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. 舱驾融合最核心的驱动力是什么？</div>
+<label><input type="radio" name="mc1" value="A"> A. 为了减少方向盘上的按键数量</label>
+<label><input type="radio" name="mc1" value="B"> B. 降低成本 + 实现座舱和智驾之间的高速数据共享</label>
+<label><input type="radio" name="mc1" value="C"> C. 让座舱能播放 8K 视频</label>
+<label><input type="radio" name="mc1" value="D"> D. 让车可以自动驾驶不需要人监督</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. 以下哪种技术路线实现了"一颗 SoC 同时跑座舱和智驾"？</div>
+<label><input type="radio" name="mc2" value="A"> A. 在座舱域控上用 USB 线连接一个智驾开发板</label>
+<label><input type="radio" name="mc2" value="B"> B. 两颗 SoC 焊在同一块 PCB 上，通过 PCIe 互联</label>
+<label><input type="radio" name="mc2" value="C"> C. 一颗 SoC 通过 Hypervisor 硬件虚拟化分割为两个隔离分区，各自跑对应 OS</label>
+<label><input type="radio" name="mc2" value="D"> D. 让智驾系统通过 Wi-Fi 远程连接到座舱系统</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. 舱驾融合方案中，座舱域（QM 等级）和智驾域（ASIL-D 等级）合并的最大技术难点是什么？</div>
+<label><input type="radio" name="mc3" value="A"> A. 座舱系统太耗电，智驾系统不够用</label>
+<label><input type="radio" name="mc3" value="B"> B. 智驾的 AI 模型太大，座舱芯片跑不动</label>
+<label><input type="radio" name="mc3" value="C"> C. 功能安全隔离——座舱的一个 Bug 不能导致智驾失控</label>
+<label><input type="radio" name="mc3" value="D"> D. 座舱和智驾用的编程语言不同</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ====== Auto-save / Load from localStorage ======
+const LS_KEY = 'teachme_lesson14';
+function saveProgress() {
+  const data = {};
+  data.f1 = document.getElementById('feynman1').value;
+  data.f2 = document.getElementById('feynman2').value;
+  data.f3 = document.getElementById('feynman3').value;
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    if (el.checked) data[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!saved) return;
+    if (saved.f1) document.getElementById('feynman1').value = saved.f1;
+    if (saved.f2) document.getElementById('feynman2').value = saved.f2;
+    if (saved.f3) document.getElementById('feynman3').value = saved.f3;
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      if (saved[el.name] === el.value) el.checked = true;
+    });
+  } catch(e) {}
+}
+// Auto-save on input change
+document.addEventListener('input', saveProgress);
+
+// ====== Submit All: MCQ grading + Feynman review ======
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS.mcq;
+  let score = 0, total = 0;
+  for (const [q, ans] of Object.entries(ANSWERS)) {
+    total++;
+    const selected = document.querySelector(`input[name="${q}"]:checked`);
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === ans) {
+      score++;
+      resultDiv.className = 'mcq-result correct';
+      resultDiv.textContent = '✅ 正确！';
+    } else {
+      const chosen = selected ? selected.value : '（未作答）';
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '❌ 错误。你的答案：' + chosen + '，正确答案：' + ans;
+    }
+  }
+
+  // Remove old score summary if exists
+  const oldScore = document.getElementById('mcq-score');
+  if (oldScore) oldScore.remove();
+
+  const scoreDiv = document.createElement('div');
+  scoreDiv.id = 'mcq-score';
+  scoreDiv.style.cssText = 'margin:.5rem 0;padding:.5rem .7rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;color:#2e7d32';
+  document.getElementById('btn-group-container').before(scoreDiv);
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+
+  // --- Copy Feynman answers for review ---
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  const f3 = document.getElementById('feynman3').value.trim();
+
+  let copyBlock = document.getElementById('copy-block');
+  if (!copyBlock) {
+    copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.5;display:none';
+    document.getElementById('btn-group-container').before(copyBlock);
+  }
+  copyBlock.style.display = 'block';
+  copyBlock.textContent = '【费曼题 Q1】\n' + (f1 || '（未作答）') + '\n\n【费曼题 Q2】\n' + (f2 || '（未作答）') + '\n\n【费曼题 Q3】\n' + (f3 || '（未作答）');
+
+  // Show hint about grading
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 14 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+
+// Load saved progress on page load
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson14',
+  title: 'Lesson 14（12:00）：舱驾融合——座舱和智驾怎么"共享一个大脑"？',
+  feynman: [
+    { q: 1, ref: '省钱主要在三个方面：① 芯片成本——原来要买两块芯片（座舱SoC+智驾SoC）现在只需一块，直接省掉一颗芯片的钱（比如一颗SA8775约$200，两颗独立芯片加起来可能$350+）；② PCB和外壳——原来两块电路板、两个散热片、两个金属外壳，现在只需一套，节省了PCB面积和结构件成本；③ 线束和连接器——原来两个域控制器之间需要高速线束（以太网、同轴电缆）连接，现在数据在芯片内部走，省掉了外部线束和连接器。总体估算硬件成本降低30~40%。' },
+    { q: 2, ref: '影响：如果座舱的Android系统被恶意应用占用了大量内存和CPU，操作系统可能变得卡顿甚至崩溃。在最坏情况下，整个SoC的内存被耗尽、中断响应延迟增大，智驾系统的实时控制任务（如AEB需要每10ms检查一次刹车距离）可能会错过截止时间——车就可能撞上去。厂家用以下技术防止：① Hypervisor硬件虚拟化——智驾和座舱运行在完全隔离的虚拟机里，即使座舱的VM崩溃，智驾的VM不受影响；② 内存分区——使用MMU/MPU硬件强行分隔内存空间，座舱进程不能访问智驾的内存；③ 安全岛——芯片内部有一个独立的"安全核"专门跑智驾安全监控，主核被攻破也不影响；④ 时间确定性调度——芯片调度器保证智驾的实时任务优先获得CPU时间。' },
+    { q: 3, ref: '至少两个原因：① 功能安全认证周期长——让一颗芯片同时满足ASIL-D（智驾）和QM（座舱）的认证需要全新的芯片架构和软件栈，认证周期通常2~3年。供应商和车厂需要时间完成A-SPICE、ISO 26262等功能安全流程，2024年刚有量产芯片（SA8775/Thor），大批量上车需等到2026~2027年。② 组织壁垒——大多数车厂的组织架构中，座舱团队和智驾团队是独立的部门（甚至不同公司子公司），使用不同的供应商、不同的软件开发流程、不同的项目周期。让两个团队合并使用同一颗芯片和同一套软件栈，涉及复杂的部门协调和成本分摊问题。③ 冗余和可靠性——分开的两个域控制器天然提供了"物理冗余"：如果座舱域控坏了，智驾还能正常工作。融合后单颗芯片一旦失效，两个域同时失效。这在安全架构上是一个退步，需要额外的冗余设计（如备份MCU）来弥补。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'C' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

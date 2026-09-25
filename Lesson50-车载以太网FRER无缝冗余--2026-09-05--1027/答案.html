@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 50：答案 — 车载以太网 FRER 无缝冗余</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.answer-correct{color:#2e7d32;font-weight:700}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Lesson 50：参考答案</h1>
+<p class="meta">车载以太网 FRER 无缝冗余——关键数据怎么"双路齐发、只收一份"？</p>
+</div>
+<div class="nav-bar">
+  <a href="../Lesson49-车载以太网交换机与VLAN--2026-09-04--0006/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson51-车载以太网诊断DoIP进阶--2026-09-06--1622/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">📖 返回课程</a>
+</div>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1：用"寄重要文件"的类比讲 FRER：为什么发两份？收件人怎么知道两份是同一份文件、不会读两遍？为什么两条邮路必须"真的不一样"？（提示：寄出前要在两份上做什么记号？两条邮路如果其实共享同一段路会怎样？）</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>FRER = "寄一份绝不能丢的重要文件"——<strong>事前发两份走两条真不一样的路 + 靠同一个流水号去重</strong>，收件人永远只读到一份。
+</div>
+<table>
+<tr><th>寄文件类比</th><th>802.1CB 对应物</th></tr>
+<tr><td>绝不能丢的重要文件</td><td>转向/制动等安全关键帧</td></tr>
+<tr><td>抄两份、盖同一个流水号</td><td>复制功能 + R-TAG 里相同的序号</td></tr>
+<tr><td>两条不同的邮路</td><td>两条成员流（不同线束/交换机/VLAN）</td></tr>
+<tr><td>收件人按流水号登记</td><td>消除功能：同序号只放行一次</td></tr>
+<tr><td>两份都共享同一辆车/同一座桥</td><td>单点故障（同一根线/连接器/交换机）</td></tr>
+</table>
+<p><strong>三个问题逐一回答：</strong></p>
+<ol>
+<li><strong>为什么发两份？</strong> 任何一条邮路都可能出意外（车翻了、信湿了、送信人病了）——发两份、走两条不同的路，只要至少一条送到，文件就不丢。对应车上：一条链路可能被磨断、连接器松脱，<strong>两条独立链路同时坏的概率极低</strong>，所以"断一条也不丢"。</li>
+<li><strong>怎么知道是同一份、不会读两遍？</strong> 寄出前在每份上盖<strong>同一个流水号</strong>（对应 R-TAG 的序号）。收件人按流水号登记：第一个到的号没见过 → 收下；另一份同号的到了 → 一看号已经收过 → 知道是重复件，<strong>不再读第二遍（丢弃）</strong>。所以不会读两遍，也不会漏收。</li>
+<li><strong>两条邮路为什么必须"真的不一样"？</strong> 如果两条"邮路"其实共享同一段路（同一辆车转运、同一座桥），这段路一断，两份一起丢——<strong>共享点就是单点故障</strong>。对应车上：两份副本不能走同一根线束、同一个连接器、同一台交换机，否则那个点一坏，冗余就失效。</li>
+</ol>
+<p><strong>结论：</strong> 事前双发 + 按流水号去重 + 路径真分开，三者缺一不可——这就是 FRER 的完整逻辑。</p>
+
+<h3>Q2：为什么"发现丢了再补发"这一招，对转向、刹车指令来说来不及？把"等超时 → 通知对方 → 对方重发 → 再送到"这条链为什么慢讲清楚；FRER 为什么能做到"断了一条路也不卡顿"？</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>重发是<strong>事后补救链</strong>，每一步都要花时间；FRER 是<strong>事前冗余</strong>——故障发生前副本就已经在两条路上，所以"无缝"。
+</div>
+<p><strong>补发为什么慢（一条事后链，环环都要时间）：</strong></p>
+<table>
+<tr><th>环节</th><th>为什么慢</th></tr>
+<tr><td>① 接收端发现丢了</td><td>要靠"序号空洞"或"超时没等到"判断，至少得等一个帧周期</td></tr>
+<tr><td>② 把"我丢了"报告给发送端</td><td>又花一个网络来回</td></tr>
+<tr><td>③ 发送端重新发送</td><td>再花一个网络来回</td></tr>
+<tr><td><strong>合计</strong></td><td><strong>≥ 2~3 个网络来回</strong>，且假设反馈通道本身没坏</td></tr>
+</table>
+<p>而转向/刹车指令的周期可能只有 <strong>1~10 ms</strong>——等待期间执行器一直"听不到"新指令，车已经偏出去了；重传还会在拥塞时<strong>雪上加霜</strong>（越堵越重发，越重发越堵）。</p>
+<p><strong>FRER 为什么"断了一条路也不卡顿"：</strong> 它把"补救"变成了"预防"——<strong>故障发生之前</strong>，发送时就已经把帧复制成两份、分两条路发出。链路断掉的那一刻，另一份副本要么已经到了、要么正从另一条好路上赶来。接收端<strong>根本不需要"发现丢失"这个动作</strong>，也就没有反馈、没有等待，<strong>切换时间 ≈ 0</strong>。</p>
+<p><strong>结论：</strong> "无缝"不是修得快，而是<strong>压根不需要修</strong>——代价是平时带宽就翻倍，所以只给最关键的流开 FRER。</p>
+
+<h3>Q3（进阶）：接收端怎么保证"不多收、不漏收"？讲讲序号在其中起的作用：如果序号是 16 位，发满 65535 后会回绕成 0，接收端怎么避免把"回绕后的新帧"误判成"重复的旧帧"？（提示：滑动窗口，怎么判断新旧）</h3>
+<div class="ref-box">
+<strong>核心思路：</strong>不多收靠"同序号只放行一次"，不漏收靠"两条路各有一份"；回绕问题靠<strong>滑动窗口 + 序号差判断新旧</strong>，而不是"相等即重复"。
+</div>
+<p><strong>① 不多收——靠序号去重：</strong> 发送端给同一帧的两个副本打<strong>相同序号</strong>；接收端每条流维护一份"已收序号"记录：先到的副本 → 序号没见过 → 放行并记录；后到的同序号副本 → 查记录发现已收过 → 判定重复，<strong>直接丢弃</strong>。所以应用永远只收到一份。</p>
+<p><strong>② 不漏收——靠双路冗余：</strong> 两条路各有一份副本，正常时至少一份能到；一条断了，另一份照常到达，所以应用不会收不到。（除非两条路同时坏——这正是"路径必须真分开"的原因。）</p>
+<p><strong>③ 序号回绕——为什么"相等即重复"会出事：</strong> 16 位序号 0~65535 <strong>循环使用</strong>，65535 之后回到 0。如果接收端只记住"最后收到的序号"，下一帧是回绕后的新序号，简单判重复会把<strong>回绕后的新帧误杀</strong>。</p>
+<p><strong>④ 工程解法——滑动窗口：</strong> 接收端维护的不是"一个号"，而是<strong>一小段"最近已收序号"窗口</strong>，用<strong>序号差（按 65536 取模的意义上的"先后"）</strong>判断新旧：序号比窗口更新 → 放行，窗口滑动；序号落在窗口内 → 重复副本，丢弃；序号看起来旧很多（差值极大，只可能是回绕）→ 按"回绕后的新帧"放行。</p>
+<p><strong>结论：</strong> 接收端记的是"最近一段窗口"而不是"最后一个号"，新帧只有<strong>落进窗口</strong>才算重复——既去了重，又不会错杀回绕后的新帧。</p>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ1：FRER（帧复制与消除）相比"丢包后重发"，本质优势是什么？</h3>
+<p><span class="answer-correct">✅ C. 故障发生前数据就已经复制成两份在路上，一条链路断了另一份照常到达，无需等待补救</span></p>
+<p>解析：FRER 的本质是<strong>事前冗余</strong>：发送时就把帧复制成两份、走两条独立链路，故障发生时另一份副本已经在（或正在）路上，接收端<strong>无需发现丢失、无需反馈、无需等待</strong>，切换时间 ≈ 0——这才是"无缝"。A 说反了：FRER 平时就发两份，带宽 ×2；B 描述的仍是"事后重发"思路，只是把重发加快，依然要等"发现丢失 → 反馈 → 重发"整条链，对 1~10 ms 的控制闭环来不及；D 错误：FRER 恰恰依赖交换机/车规交换芯片支持（复制帧、打 R-TAG、按流维护序号状态），不是设备直连就能用。</p>
+
+<h3>MCQ2：接收端在同一条流上先后收到两份序号相同的副本，正确的处理是？</h3>
+<p><span class="answer-correct">✅ B. 查已收序号记录：该序号已经收过 → 后到的是重复副本，直接丢弃，只放行先到的那份</span></p>
+<p>解析：接收端去重的核心规则就是<strong>"同一个序号只放行一次"</strong>——先到放行并记录，后到同序号的判定重复直接丢，不多收也不漏收。A 把去重责任推给应用：应用层无法区分"两份副本"和"两条新指令"，还得自己做去重和时序处理，违背 FRER"对上层透明"的设计目的；C 回复发送端是多此一举，还引入反馈延迟（这正是 FRER 要消灭的东西）；D 两份都丢会造成漏收——万一其中一份是唯一到达的副本（另一条路已经断了），丢掉它应用就真的收不到了。</p>
+
+<h3>MCQ3：智驾域控到后轮转向执行器的 FRER 冗余，两条路径分别走左、右线束，但最终汇合在同一个连接器里。这个设计的最大问题是？</h3>
+<p><span class="answer-correct">✅ D. 连接器成了单点故障——它一坏，两条路径同时失效，冗余白做</span></p>
+<p>解析：FRER 成立的前提是<strong>两条路径物理上真正独立</strong>。左、右线束虽然分开了，但汇合在同一个连接器——这个连接器就是<strong>共同故障点（单点故障）</strong>：它一松脱/损坏，两份副本同时断在路上，冗余形同虚设。A 错误：FRER 要的是物理上不相交的路径，"逻辑上不同"（比如只是 VLAN 不同但走同一根线）不顶用；B 错误：交换机只能按拓扑转发，连接器是物理层故障，它既感知不到也无法"绕开"；C 错误：不存在这种"自动切换成单路"的机制——需要切换本身就是 FRER 要避免的事后补救。正确设计：线束分走、<strong>连接器也分开</strong>，最好再独立供电。</p>
+
+</div>
+</body>
+</html>

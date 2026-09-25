@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 12（21:00）：UWB精确测距原理与安全机制</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{text-align:center;margin:.8rem 0}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 12（21:00）— 2026-07-04 | 🔑 UWB精确测距与安全机制</div>
+  <h1>UWB精确测距——手机怎么知道它离车正好1.2米？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson11-座舱--2026-06-28--2100/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson13-座舱互联--2026-07-05--0900/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>你的手机在口袋里，你走到驾驶座门前——车门自动解锁了。但你绕到车尾去拿后备箱的东西，车门<strong>不会</strong>解锁。</p>
+
+<p><strong>问题：车怎么知道你站在驾驶座门口，而不是后备箱位置？</strong></p>
+
+<p>你可能猜到了——靠 UWB（超宽带）测距。但是：</p>
+
+<div class="callout">
+  <p>为什么 UWB 能精确到 ±10 厘米，而蓝牙（BLE）只能告诉你"在附近"？它们测距的原理到底有什么本质不同？</p>
+</div>
+
+<p>这就是今天要讲的核心：<strong>UWB 的精确测距原理。</strong></p>
+
+<hr>
+
+<h2>二、两种测距思路：看强度 vs 算时间</h2>
+
+<h3>2.1 BLE：看信号有多强（RSSI）</h3>
+
+<p>BLE 测距的方法非常简单——<strong>看信号强度（RSSI，Received Signal Strength Indicator）</strong>。</p>
+
+<p>原理：信号在空气中传播会衰减，距离越远信号越弱。如果我知道你出发时的信号强度，我就根据收到的信号强度反推距离。</p>
+
+<table>
+<tr><th>因素</th><th>对 BLE 测距的影响</th></tr>
+<tr><td>人体阻挡</td><td>手机放口袋 vs 拿手里，信号差 5~15 dB</td></tr>
+<tr><td>多径反射</td><td>信号打到墙上反射过来，让你以为"信号不错"</td></tr>
+<tr><td>天线方向</td><td>手机天线朝向不同，信号强度变化很大</td></tr>
+<tr><td>温度/湿度</td><td>空气条件变化也会影响信号衰减</td></tr>
+</table>
+
+<div class="callout-warn">
+  <strong>结果：BLE 的 RSSI 测距误差通常在 3~5 米，甚至更差。</strong>它只能告诉你"人在附近"，精确不到"站在哪个门旁边"。
+</div>
+
+<h3>2.2 UWB：算信号飞了多长时间（ToF / TWR）</h3>
+
+<p>UWB 用的方法完全不同——<strong>它不关心信号有多强，只关心信号飞了多久</strong>。</p>
+
+<p>原理很简单：如果你知道光速（≈ 30 万公里/秒），又知道信号从发出到接收用了多少时间，那么：</p>
+
+<div class="rule-box">
+  <p><strong>距离 = 光速 × 时间 ÷ 2</strong>（除以 2 是因为信号"去 + 回"是两倍距离）</p>
+</div>
+
+<p>UWB 测距流程（双向测距 Two-Way Ranging, TWR）：</p>
+
+<pre class="code-block">
+手机                    车
+ |                       |
+ |--- 测距请求 ---&gt;------|  手机发出脉冲
+ |                       |  车收到后等待固定时间 T_reply
+ |&lt;--- 测距响应 ---------|  车回复脉冲
+ |                       |
+ | 手机计算：总时间 - T_reply = 2 × 飞行时间
+ | 飞行时间 × 光速 ÷ 2 = 距离
+</pre>
+
+<p><strong>UWB 能精确的关键原因：</strong></p>
+
+<table>
+<tr><th>特性</th><th>为什么重要</th></tr>
+<tr><td>带宽极大（500 MHz+）</td><td>脉冲极短（~2 纳秒），时间分辨率高</td></tr>
+<tr><td>时间戳精度达到皮秒级</td><td>能测到 1 纳秒以内的飞行时间差</td></tr>
+<tr><td>不受多径干扰</td><td>首径（第一条到达的路径）容易被识别，滤掉反射信号</td></tr>
+<tr><td>不受信号强度影响</td><td>不依赖 RSSI，人体阻挡和方向不影响测距精度</td></tr>
+</table>
+
+<div class="callout">
+  <p><strong>一个比喻：</strong>BLE 像蒙着眼睛听脚步声大小判断距离，UWB 像用秒表精确测量回声返回的时间。</p>
+</div>
+
+<hr>
+
+<h2>三、UWB 如何防"中继攻击"？</h2>
+
+<h3>3.1 什么是中继攻击</h3>
+
+<p>回忆 Lesson 06 提到的问题：有人拿两个中继器，一个靠近你的手机，一个靠近车，把信号"接力"传过去——让车以为你就在旁边。</p>
+
+<pre class="code-block">
+中继攻击示意图：
+攻击者 A              攻击者 B
+（靠近你手机）         （靠近车）
+     |                     |
+📱 ---|&lt;-- 转发信号 ---&gt;|--- 🚗
+你在家里                车以为你在旁边
+</pre>
+
+<h3>3.2 UWB 为什么天然防中继</h3>
+
+<p><strong>UWB 的双向测距（TWR）天然防中继</strong>，原因很简单：</p>
+
+<ol class="ol-decimal">
+  <li><strong>UWB 测的是往返时间</strong>——手机发请求→车响应→手机收到，整个过程有严格的时间窗口</li>
+  <li><strong>中继器会引入额外延迟</strong>——每个中继器至少要几十微秒来处理和转发信号</li>
+  <li><strong>UWB 能检测到这个异常延迟</strong>——如果收到的响应时间比预期长太多，说明信号被人截路了</li>
+</ol>
+
+<div class="callout-warn">
+  <p><strong>关键理解：</strong>中继器可以在 10 微秒内转发 BLE 信号（BLE 的时间精度不够，看不出异常），但 UWB 的测距精度是纳秒级的——多出 1 微秒的延迟等于 300 米的距离差，一眼就能看出问题。</p>
+</div>
+
+<p><strong>CCC（Car Connectivity Consortium）Digital Key 3.0 标准要求：</strong>无感进入必须使用 UWB 安全测距，仅靠 BLE 不足以达到安全要求。</p>
+
+<hr>
+
+<h2>四、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>UWB 靠时间算距离，不是靠信号强度</strong></td><td>BLE 看 RSSI（信号强弱），UWB 算 ToF（飞行时间），这是本质差异</td></tr>
+<tr><td><strong>2</strong></td><td><strong>UWB 的精度来自大带宽和纳秒级脉冲</strong></td><td>带宽越大 → 脉冲越短 → 时间分辨率越高 → 距离越准</td></tr>
+<tr><td><strong>3</strong></td><td><strong>UWB 的双向测距天然防中继攻击</strong></td><td>中继器带来的额外延迟在纳秒精度下一目了然</td></tr>
+</table>
+
+<hr>
+
+<h2>五、图示：UWB vs BLE 测距对比</h2>
+
+<div class="mermaid">
+flowchart TB
+    subgraph BLE["BLE 测距（RSSI 信号强度法）"]
+        B1["手机发射 BLE 信号"] --> B2["车测量接收信号强度"]
+        B2 --> B3["信号强度受人体阻挡&lt;br&gt;反射、天线方向影响"]
+        B3 --> B4["估算距离：误差 3~5 米"]
+        B4 --> B5["只能判断：人在附近/不在附近"]
+    end
+
+    subgraph UWB["UWB 测距（ToF 飞行时间法）"]
+        U1["手机发射 UWB 脉冲（~2ns）"] --> U2["车接收并记录到达时刻"]
+        U2 --> U3["车等待固定时间后回复"]
+        U3 --> U4["手机接收响应，计算总往返时间"]
+        U4 --> U5["减去等待时间 = 2×飞行时间"]
+        U5 --> U6["光速 × 飞行时间 = 距离&lt;br&gt;精度：±10cm"]
+    end
+</div>
+
+<hr>
+
+<h2>六、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>用你自己的话解释：为什么 UWB 能精确到厘米级，而 BLE 连半米都做不到？不准用"带宽"、"时域"等专业术语，用比喻或生活常识来说明。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>如果一个坏蛋拿着中继器想骗你的车开门，为什么用 BLE 做数字钥匙时有风险，而用 UWB 更安全？请用你自己的话讲清楚原理。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>有人说："既然 UWB 这么厉害，为什么不用 UWB 来做所有通信？"请从功率、成本和用例的角度，解释为什么车里还需要 BLE 和 NFC。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>七、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. UWB 测距的核心原理是以下哪一项？</div>
+<label><input type="radio" name="mc1" value="A"> A. 测量接收信号的电压幅值来推算距离</label>
+<label><input type="radio" name="mc1" value="B"> B. 测量信号从发出到返回的飞行时间来计算距离</label>
+<label><input type="radio" name="mc1" value="C"> C. 测量信号的频率偏移来推算距离</label>
+<label><input type="radio" name="mc1" value="D"> D. 测量信号在介质中的衰减速率来推算距离</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. 以下哪个是对 UWB 能实现高精度测距贡献最大的硬件特性？</div>
+<label><input type="radio" name="mc2" value="A"> A. 使用 2.4 GHz 频段，兼容 Wi-Fi 天线</label>
+<label><input type="radio" name="mc2" value="B"> B. 信号带宽高达 500 MHz 以上，脉冲宽度仅约 2 纳秒</label>
+<label><input type="radio" name="mc2" value="C"> C. 发射功率比 BLE 高 10 倍</label>
+<label><input type="radio" name="mc2" value="D"> D. 天线尺寸比 BLE 大 3 倍</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. 以下哪种攻击方式，UWB 的安全测距能最有效地防范？</div>
+<label><input type="radio" name="mc3" value="A"> A. 黑客远程获取云端车钥匙数据</label>
+<label><input type="radio" name="mc3" value="B"> B. 攻击者复制手机 SIM 卡</label>
+<label><input type="radio" name="mc3" value="C"> C. 中继攻击（Relay Attack）：两个攻击者接力转发信号</label>
+<label><input type="radio" name="mc3" value="D"> D. 暴力破解车辆的 Wi-Fi 密码</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ====== Auto-save / Load from localStorage ======
+const LS_KEY = 'teachme_lesson12';
+function saveProgress() {
+  const data = {};
+  data.f1 = document.getElementById('feynman1').value;
+  data.f2 = document.getElementById('feynman2').value;
+  data.f3 = document.getElementById('feynman3').value;
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    if (el.checked) data[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!saved) return;
+    if (saved.f1) document.getElementById('feynman1').value = saved.f1;
+    if (saved.f2) document.getElementById('feynman2').value = saved.f2;
+    if (saved.f3) document.getElementById('feynman3').value = saved.f3;
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      if (saved[el.name] === el.value) el.checked = true;
+    });
+  } catch(e) {}
+}
+// Auto-save on input change
+document.addEventListener('input', saveProgress);
+
+// ====== Submit All: MCQ grading + Feynman review ======
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS.mcq;
+  let score = 0, total = 0;
+  for (const [q, ans] of Object.entries(ANSWERS)) {
+    total++;
+    const selected = document.querySelector(`input[name="${q}"]:checked`);
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === ans) {
+      score++;
+      resultDiv.className = 'mcq-result correct';
+      resultDiv.textContent = '✅ 正确！';
+    } else {
+      const chosen = selected ? selected.value : '（未作答）';
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '❌ 错误。你的答案：' + chosen + '，正确答案：' + ans;
+    }
+  }
+
+  // Remove old score summary if exists
+  const oldScore = document.getElementById('mcq-score');
+  if (oldScore) oldScore.remove();
+
+  const scoreDiv = document.createElement('div');
+  scoreDiv.id = 'mcq-score';
+  scoreDiv.style.cssText = 'margin:.5rem 0;padding:.5rem .7rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;color:#2e7d32';
+  document.getElementById('btn-group-container').before(scoreDiv);
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+
+  // --- Copy Feynman answers for review ---
+  const f1 = document.getElementById('feynman1').value.trim();
+  const f2 = document.getElementById('feynman2').value.trim();
+  const f3 = document.getElementById('feynman3').value.trim();
+
+  let copyBlock = document.getElementById('copy-block');
+  if (!copyBlock) {
+    copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.5;display:none';
+    document.getElementById('btn-group-container').before(copyBlock);
+  }
+  copyBlock.style.display = 'block';
+  copyBlock.textContent = '【费曼题 Q1】\n' + (f1 || '（未作答）') + '\n\n【费曼题 Q2】\n' + (f2 || '（未作答）') + '\n\n【费曼题 Q3】\n' + (f3 || '（未作答）');
+
+  // Show hint about grading
+  let hint = document.getElementById('feynman-score-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    document.getElementById('copy-block').after(hint);
+  }
+  hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 12 评分</strong>」';
+}
+
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+}
+
+// Load saved progress on page load
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson12',
+  title: 'Lesson 12（21:00）：UWB精确测距原理与安全机制',
+  feynman: [
+    { q: 1, ref: '用"蒙眼听脚步声 vs 秒表回声"比喻：BLE = 蒙眼听声音大小判断对方在哪（声音会被墙、被子、方位干扰，只能知道大概方向）。UWB = 两个人玩精确计时抛接球，光速恒定，时间量得越准距离算得越准。核心：光速不变原理 + 纳秒级时间测量 → 厘米级精度。' },
+    { q: 2, ref: '中继攻击的思路是"转发信号让车以为手机靠近"。BLE 的时间精度是微秒级，中继器几十微秒的延迟 BLE 测不出来。UWB 的 TWR 测距精确到纳秒：手机计时出发到收到响应，中继器每多花 1 微秒就多算 300 米距离，UWB 马上发现异常并拒绝开门。本质：UWB 测往返时间，中继器必然增加可检测的延迟。' },
+    { q: 3, ref: '三个理由：① 功耗：UWB 的窄脉冲需要瞬间大电流，待机功耗高于 BLE，不适合持续监听。② 成本：UWB 芯片比 BLE 贵 3~5 倍，天线更复杂。③ 互补：BLE 负责低功耗唤醒和握手（10m 范围），UWB 负责精确测距和安全认证（关键场景），NFC 负责最后一厘米的备份（手机没电也能用）。三种技术是互补关系。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'C' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

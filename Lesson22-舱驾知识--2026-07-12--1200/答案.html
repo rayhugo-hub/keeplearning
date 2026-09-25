@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 22：答案 — 舱驾融合的软件架构——座舱和智驾如何在同一个芯片上"和平共处"？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson21-舱联知识--2026-07-12--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <a href="课程.html">← 返回课程</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson23-音频通信协议知识--2026-07-12--1800/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 22 — 答案</div>
+  <h1>舱驾融合的软件架构——座舱和智驾如何在同一个芯片上"和平共处"？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（"三室一厅，房东隔开"类比解释 Hypervisor）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"三室一厅，房东隔开"类比）：</strong></p>
+<p>把一颗舱驾融合 SoC 比作<strong>一套三室一厅的房子</strong>：</p>
+<ul>
+  <li><strong>租客 A = Android（导航/娱乐）</strong>：喜欢开派对，占客厅用 GPU 渲染地图，偶尔吵闹（卡顿）没关系</li>
+  <li><strong>租客 B = QNX（仪表/刹车）</strong>：需要绝对安静、不能被打扰——刹车指令如果在路上多等几毫秒就可能追尾</li>
+  <li><strong>租客 C = Linux/ADAS（感知/规划）</strong>：每天要搬进搬出大量箱子（摄像头数据流），需要持续稳定的内存带宽</li>
+</ul>
+<p><strong>如果不隔离（没有 Hypervisor）：</strong> 三个租客抢客厅——导航（A）下载电影把 CPU 占满了，刹车系统（B）想说"踩刹车！"但 CPU 被占着，只能排队等——这绝不允许。</p>
+<p><strong>Hypervisor = 房东的解决方案：</strong></p>
+<ol>
+  <li><strong>"租房合同"（CPU 时间片）：</strong> 房东给每个租客安排了固定的"客厅使用时间"——比如 B 每天有 30% 的时间独占客厅，A 有 40%，C 有 30%。不管 A 在派对上多嗨，到了 B 的时间段，房东就把 A 请出去，B 必须准时拿到客厅。这保证了刹车系统永远有 CPU。</li>
+  <li><strong>"独立套房"（内存隔离）：</strong> 每个租客有自己的独立房间（虚拟内存空间），B 的房间用 24 小时安保锁死（不可被其他租客访问）。即使 A 的房间煤气泄漏了（内存错误），也绝对不会影响 B 的房间。</li>
+</ol>
+<p><strong>一句话：</strong> Hypervisor 就像一个严格的房东——保证每个租客的"使用权"（CPU）和"隐私空间"（内存），即使有租客胡闹，也影响不到别人。</p>
+</div>
+
+<h3>Q2（"高铁时刻表 vs 外卖取餐"类比解释混合关键系统）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"高铁时刻表 vs 外卖取餐"类比）：</strong></p>
+<ul>
+  <li><strong>高铁（安全任务 = 制动、仪表、AEB）：</strong> 必须准点发车、准点到站。如果说好了 14:00 发车，哪怕月台上只有一个人也要准点发——晚了可能撞车。不能因为"周围有人还在上客"（非安全任务还在跑）就延误发车。</li>
+  <li><strong>外卖取餐（非安全任务 = 导航、OTA、语音）：</strong> 可以等、可以慢、大不了重新下单。如果外卖小哥迟到了 5 分钟，你只会有点不爽，不会出人命。</li>
+</ul>
+<p><strong>CPU 预算隔离如何工作？</strong></p>
+<table>
+<tr><th>机制</th><th>类比</th><th>技术实现</th></tr>
+<tr><td><strong>CPU 预算</strong></td><td>高铁每天固定占用 9:00~10:00 的轨道，外卖永远不能占用这个时间段</td><td>每个 VM 在 Hypervisor 配置中有固定的 CPU 时间片，安全 VM 至少有 30% CPU 保底</td></tr>
+<tr><td><strong>黄金核</strong></td><td>高铁有专用轨道（1 号和 2 号站台），外卖只能在 3 号站台</td><td>SoC 中特定 CPU 核心只运行安全任务，不跑非安全任务</td></tr>
+<tr><td><strong>额度用完</strong></td><td>外卖小哥的电动车没电了（CPU 额度用完了）——那就等着，不能去抢高铁的电池</td><td>非安全 VM 的 CPU 额度用完后，Hypervisor 限制其调度，但安全 VM 不受影响</td></tr>
+</table>
+<p><strong>为什么安全任务不会饥饿（starvation）？</strong></p>
+<ul>
+  <li>Hypervisor 按固定时间片调度各 VM，安全 VM 的时间片是<strong>硬保证</strong>的</li>
+  <li>即使非安全 VM 把 CPU 占满（无限循环），安全 VM 的时间片到了，Hypervisor 直接"抢走" CPU 交给安全 VM</li>
+  <li>黄金核上的安全任务完全不受非安全任务调度周期的影响——它们在不同的核心上并行运行</li>
+</ul>
+<p><strong>一句话：</strong> 高铁时刻表（安全任务）不受外卖取餐（非安全任务）的影响——因为它们走不同的轨道（黄金核）、有固定的发车时间（CPU 预算隔离）。</p>
+</div>
+
+<h3>Q3（"点外卖"类比解释 SOA 服务化）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"扫码点外卖"类比）：</strong></p>
+<p>把 SOA 服务化比作<strong>扫码点外卖——你在手机 App 上点餐，后厨按单做菜，外卖员送到你手上</strong>：</p>
+<table>
+<tr><th>步骤</th><th>SOA 的对应</th><th>点外卖的类比</th></tr>
+<tr><td><strong>服务注册</strong></td><td>ADAS 告诉 SOA 网关："我有'环境感知'服务，我能提供障碍物坐标和道路限速数据"</td><td>商家在美团上注册：我是 XX 餐厅，我能做辣子鸡和鱼香肉丝</td></tr>
+<tr><td><strong>服务发现</strong></td><td>座舱导航 App 问 SOA 网关："有什么服务可以提供当前路况信息？"</td><td>你在美团上搜索"附近川菜馆"</td></tr>
+<tr><td><strong>订阅/发布</strong></td><td>导航 App 说："请定时给我推送环境感知数据，每 20 毫秒一次"</td><td>你关注了餐厅的公众号，每天收到新品推送</td></tr>
+<tr><td><strong>请求/响应</strong></td><td>导航 App 问："请查一下驾驶员现在的疲劳状态"；QNX 上的 DMS 服务处理后返回</td><td>你在 App 上点了一份辣子鸡，备注"微辣"；餐厅做好菜送到你家</td></tr>
+</table>
+<p><strong>为什么 SOA 更安全、更灵活？</strong></p>
+<table>
+<tr><th></th><th>直接冲进后厨（共享内存）</th><th>扫码点外卖（SOA 服务化）</th></tr>
+<tr><td><strong>安全</strong></td><td>❌ 你在后厨可能被刀割伤（内存访问越界）</td><td>✅ 你只通过 App 下单，不进后厨</td></tr>
+<tr><td><strong>灵活性</strong></td><td>❌ 你只能吃这家餐厅做的菜（紧耦合，改菜单就要改代码）</td><td>✅ 你可以在不同餐厅之间切换（服务发现和切换）</td></tr>
+<tr><td><strong>可升级</strong></td><td>❌ 后厨换人了，你进去找不到路（版本升级破坏兼容性）</td><td>✅ 后厨换人，但菜单（接口）不变，你照常扫码</td></tr>
+<tr><td><strong>隔离</strong></td><td>❌ 你冲进去时可能撞到别的菜（干扰其他 VM）</td><td>✅ 每个 VM 独立运行，通过网关通信，Hypervisor 隔离不被破坏</td></tr>
+</table>
+<p><strong>一句话：</strong> SOA = 你坐在座位上扫码点餐，后厨做菜、外卖配送——你只关心菜单和味道，不关心后厨怎么运作。直接共享内存 = 你冲进后厨自己拿——乱套！</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>Hypervisor 的核心作用是<strong>在多个操作系统之间安全隔离 CPU、内存和外设资源</strong>（A❌ 图形渲染是 GPU 的事；C❌ Hypervisor 不"替代"操作系统，它管理虚拟机；D❌ Hypervisor 不直接执行安全任务，它为安全任务的 OS 提供运行环境）</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>C</strong></td>
+  <td>"黄金核"是<strong>专用核心，只运行安全关键任务，确保确定性调度</strong>。它不共享给非安全任务，即使非安全 VM 占满所有共享核，黄金核上的安全任务也不受影响（A❌ 不是价格；B❌ 恰恰相反，黄金核不给 Android 用；D❌ OTA 是后台非安全任务，不应该占用黄金核）</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>B</strong></td>
+  <td>SOA 服务化的最大优势是<strong>两个 VM 之间松耦合，通过标准化接口通信，不破坏 Hypervisor 的隔离边界</strong>（A❌ 实际上 SOA 需要 SOME/IP / DDS 协议有一定学习成本；C❌ SOA 不是更快，而是更安全、更解耦；D❌ SOA 依赖操作系统的网络/IPC 支持）</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

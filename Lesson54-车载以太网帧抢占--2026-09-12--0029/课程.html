@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 54：车载以太网帧抢占——快车凭什么能"抢道"，被切成段的慢车还不丢数据？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+.feynman-label{font-weight:600;margin:.8rem 0 .3rem}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 54（00:29）：车载以太网帧抢占</h1>
+<p class="meta">📅 2026-09-12 | 🚗 IEEE 802.1Qbu + IEEE 802.3br IET · eMAC / pMAC 与 MAC Merge · SMD 与 mCRC 分片暗号 · 保护带 1542B → 127B · 逐跳重组 · 与 Qbv/Qav/PSFP/MACsec 配合 | ⏰ 00:29</p>
+<div class="nav-bar">
+  <a href="../Lesson53-车载以太网PSFP每流监管--2026-09-08--0004/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson55-车载以太网Qav信用整形--2026-09-13--2317/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景：为了"准点"，居然要空出 123 微秒</h2>
+<p>L47 讲过 <strong>Qbv（时间感知整形）</strong>：交换机出口被切成一段段"时间窗"，关键流（转向、制动、智驾）有专属窗口，普通流（视频、OTA、日志）在别的窗口发。</p>
+<p>但以太网有一条铁律：<strong>一个帧一旦开始发送，就必须发完</strong>——前导码、数据、CRC 校验，谁都不能中途打断它。</p>
+<p>于是问题来了：在普通流时段的最后时刻，一个 1500 字节的大帧开始发送。它刚好跨过时间窗边界，<strong>撞进下一个关键流窗口</strong>——关键帧被迫多等"这个大帧发完的时间"。而车载关键控制流的时延预算常常就是几百微秒级别，这一下就可能超预算。</p>
+<p>Qbv 的标准解法是<strong>保护带（Guard Band）</strong>：在关键窗口前留出一段"谁都不许开始发新帧"的时间。留多长？必须等于<strong>发一个最大帧所需的时间</strong>：</p>
+<p>1500（载荷）+ 18（地址/类型/CRC）+ 4（VLAN 标签）+ 12（帧间隙）+ 8（前导码）= <strong>1542 字节</strong>，在 100 Mbps 链路上约 <strong>123.36 µs</strong>。</p>
+<div class="mermaid">
+flowchart LR
+    A["✅ 普通时段：开始发 1500 字节大帧"] --&gt; B["🚧 保护带：约 123 µs 内禁止开始发新帧"]
+    B --&gt; C["⭐ 关键时段：转向 / 制动帧准点发出"]
+</div>
+<p>代价非常直接：<strong>每个周期、每个关键窗口前都要牺牲约 123 µs 的带宽</strong>。100 Mbps 链路总共只有每秒 1250 万字节的容量，这 123 µs 相当于每次白扔约 1.5 KB。周期越短、关键窗口越多，浪费越大——而且<strong>周期时间根本压不下去</strong>。</p>
+<blockquote>类比：高速公路上要让救护车随时能插进来，就得在它前面留一段"空档"。如果空档必须按"最长的大货车（1500 字节）"来留，那普通车流的通行效率就很低。</blockquote>
+<p>能不能让大车<strong>先靠边停在应急车道，等救护车过去再接着开</strong>？这就是<strong>帧抢占（Frame Preemption）</strong>：把正在传的普通帧<strong>切开</strong>，让关键帧插在切缝里先走，之后再把普通帧剩下的部分接着传完。</p>
+
+<h2>二、一个概念：把"慢车"切成段，让"快车"插缝过</h2>
+<p>帧抢占由两份标准合力定义，分工清清楚楚：</p>
+<table>
+<tr><th>标准</th><th>管什么</th><th>归属</th></tr>
+<tr><td><strong>IEEE 802.1Qbu</strong></td><td>桥的管理部分：<strong>哪些帧可以被抢、哪些帧可以抢别人</strong>（队列到 MAC 的映射、配置与状态）</td><td>IEEE 802.1（交换机 / 桥的视角）</td></tr>
+<tr><td><strong>IEEE 802.3br（IET，Interspersing Express Traffic）</strong></td><td>MAC 部分：<strong>怎么切、怎么拼</strong>（前导码改写、CRC 规则、链路能力握手）</td><td>IEEE 802.3（以太网 MAC 的视角）</td></tr>
+</table>
+<p>效果：保护带不再需要按"最大帧 1542 字节"留，只需要按"<strong>最小可抢分片</strong>"留——</p>
+<ul>
+  <li>802.3br 规定<strong>非末分片的最小长度为 64 字节</strong>（这也是最小合法以太网帧的尺寸）；</li>
+  <li>硬件在 <strong>64 字节粒度</strong>上检查"要不要让路"，最坏情况下最多有 63 字节已经发出、来不及切；</li>
+  <li>于是残余保护带 = <strong>64 + 63 = 127 字节</strong>。100 Mbps 下<strong>仅约 10.2 µs</strong>，比原来的 123 µs 缩短了 <strong>90% 以上</strong>。</li>
+</ul>
+<div class="mermaid">
+flowchart LR
+    P1["🚚 普通帧（1500 字节）已发出 512 字节"] --&gt; E1["⭐ 关键帧整帧插缝通过（快车不会被切）"] --&gt; P2["🚚 普通帧续发剩余 988 字节（还能再被抢）"]
+</div>
+<p>三个必须记住的要点：</p>
+<ul>
+  <li><strong>抢占只发生在"逐跳"（link-by-link），不是端到端</strong>。这和 IP 分片完全不同：IP 分片是端到端的事，收端才重组；帧抢占是<strong>每条链路各自切、下一跳立刻重组</strong>，交给交换机时已经是一个完整帧了。</li>
+  <li><strong>一帧可以被抢多次</strong>。普通帧在传输过程中能被一次又一次打断，直到发完。</li>
+  <li><strong>必须两端都支持</strong>。链路这头切了，那头认不出来，帧就成了垃圾——所以链路上要先"报备 + 验货"（见下一节）。</li>
+</ul>
+
+<h2>三、切与拼的暗号：eMAC / pMAC / MAC Merge</h2>
+<p>抢占能在同一条物理链路上"插队"，靠的是在出口端口上<strong>虚拟出两个 MAC 服务</strong>，外加一个"切片 / 拼装车间"：</p>
+<div class="mermaid">
+flowchart TB
+    Q["出口队列组&lt;br&gt;（Qbv 按队列开关 · Qav 信用整形）"] --&gt; MAP["队列 → MAC 映射表（802.1Qbu）"]
+    MAP --&gt; EM["eMAC（express）：关键流&lt;br&gt;可抢占别人，自己绝不被打断"]
+    MAP --&gt; PM["pMAC（preemptable）：普通流&lt;br&gt;可被抢占，可被切成多片"]
+    EM --&gt; MM["MAC Merge 子层：发送时切片 · 接收时重组"]
+    PM --&gt; MM
+    MM --&gt; PHY["PHY → 链路 → 下一跳（在下一跳重组）"]
+</div>
+<ul>
+  <li><strong>eMAC（express MAC，快车）</strong>：走关键流的 MAC。它发的帧<strong>永不被打断</strong>，而且它有权打断别人。</li>
+  <li><strong>pMAC（preemptable MAC，慢车）</strong>：走普通流的 MAC。它发的帧<strong>可以被切开</strong>，切下来的分片等 eMAC 忙完再续传。</li>
+  <li><strong>谁能抢谁、谁不能抢，由 802.1Qbu 的"队列 → MAC 映射"决定</strong>：某个优先级队列被配置成映射到 eMAC，它才有抢占权；映射到 pMAC 的，就是被抢对象。<strong>映射配错，关键流照样被抢</strong>——这是工程上最常见的翻车点。</li>
+  <li><strong>MAC Merge 子层</strong>：夹在两个 MAC 与 PHY 之间，负责"切 + 拼"。发送方向把 pMAC 的帧切片并保存上下文；接收方向按顺序把分片拼回完整帧，再交给上层 MAC。因为它只跟<strong>相邻一跳</strong>打交道，所以<strong>每一跳都要有它</strong>。</li>
+</ul>
+<h3>分片的"暗号"：前导码和 CRC 都被改了</h3>
+<p>要让接收端知道"这半截是分片、后面还有"，标准改了两处标志位：</p>
+<table>
+<tr><th>位置</th><th>普通以太网</th><th>帧抢占之后</th></tr>
+<tr><td><strong>前导码第 8 字节</strong>（原 SFD）</td><td><code>0xD5</code>（SFD，帧开始）</td><td><strong>SMD（Start of mPacket Delimiter）</strong>：<code>SMD-E</code> 快车整帧 · <code>SMD-S</code> 分片开头 · <code>SMD-C</code> 后续分片 · 另有 <code>SMD-V</code> / <code>SMD-R</code> 专供链路握手校验</td></tr>
+<tr><td><strong>尾部校验</strong></td><td>FCS（CRC-32，对整帧计算）</td><td><strong>非末分片：mCRC</strong>（按标准做了区分性处理——校验值末 16 位取反，使它区别于任何合法整帧的 FCS）；<strong>末分片：原帧的 FCS</strong>（不取反）</td></tr>
+</table>
+<p>接收端一算 CRC 残差就知道"<strong>这是分片、后面还有</strong>"还是"<strong>整帧到此结束</strong>"——不需要靠超时去猜。这一点很关键：靠"等超时"判断会引入不确定时延，而车载网络最怕的恰恰是不确定。</p>
+<h3>链路必须先"验货"再启用</h3>
+<p>既然前导码和 CRC 都被改了，<strong>对端如果不支持帧抢占，只会把这些分片当成坏帧全丢掉</strong>。所以 802.3br 要求链路两端先做能力确认（<strong>verify / respond 握手</strong>，配合 LLDP 宣告），双方都支持才真正开启；<strong>任何一头不支持，这条链路就退回"保护带"传统方案</strong>。帧抢占是<strong>逐链路的开关</strong>，不是整车一开就全都有。</p>
+
+<h2>四、它和 L47 / L49 / L52 / L53 那些机制怎么配合</h2>
+<table>
+<tr><th>机制</th><th>管什么</th><th>与帧抢占的关系</th></tr>
+<tr><td><strong>Qbv 门控</strong>（L47）</td><td>出口队列按时间表开关</td><td><strong>最佳搭档</strong>：帧抢占是 Qbv 的"减负器"——保护带从"最大帧"缩到"最小分片"，周期可以更短、带宽利用率更高。Qbv 负责"排时刻表"，Qbu 保证时刻表不被大帧越界破坏</td></tr>
+<tr><td><strong>Qav 信用整形</strong>（L47）</td><td>按类控制平均速率与突发</td><td><strong>互不替代</strong>：Qav 只管"能不能开始发"，<strong>它无法中断已经在发的帧</strong>；帧抢占专治这个。两者可以叠加——先被 Qav 整形，再被 Qbu 抢占</td></tr>
+<tr><td><strong>PSFP 入口监管</strong>（L53）</td><td>入口按每流过滤 / 门控 / 限速</td><td><strong>位置互补</strong>：PSFP 在<strong>入口</strong>管"这帧有没有资格进场"；帧抢占在<strong>出口</strong>管"这帧要不要给关键帧让路"。一个管资格，一个管让路</td></tr>
+<tr><td><strong>MACsec 链路安全</strong>（L52）</td><td>MAC 之上加密整帧、追加 ICV</td><td><strong>层级不同</strong>：帧抢占在 MAC 内部"切 / 拼"，对 MACsec 是透明的——先按 L52 加好密，再在链路上切片传输、下一跳重组，重组完才交给 MACsec 校验解密。<strong>顺序是"先安全、后切片"</strong>，但这也意味着每一跳都要成套的硬件支持，复杂度与时延都要付代价</td></tr>
+</table>
+<p><strong>把 L47~L54 串一遍（一帧摄像头数据的旅程）</strong>：PHY（L48）把比特送上线 → MACsec（L52）上锁 → 交换机按 L49 的规则认流、在入口做 L53 的 PSFP 设卡 → 转发引擎查表送往出口 → 出口先按 L47 的 Qav 整形、Qbv 看时刻表；此刻若有关键帧要发，<strong>帧抢占（L54）把普通帧按 64 字节粒度切成片让路</strong>，关键帧插缝先走 → 冗余路径上用 L50 的 FRER 双发去重。帧抢占就是这条流水线上的<strong>"应急车道"</strong>。</p>
+
+<h2>五、工程要点</h2>
+<ol>
+  <li><strong>映射必须配对</strong>：只有映射到 eMAC 的队列才有抢占权。把"关键流"的优先级错配到 pMAC，等于白配置——配完一定要用抓包工具确认关键帧真的走了 eMAC。</li>
+  <li><strong>逐跳都要支持、都要协商</strong>：任何一跳不支持，这段链路就退回保护带。做网络设计时要<strong>逐跳清点</strong>交换机 / 端节点的芯片能力，并把"是否启用"写进配置基线。</li>
+  <li><strong>残余保护带 = 127 字节</strong>：64 字节最小分片 + 63 字节不可预判的余量。链路预算与周期计算要按这个数（而不是 1542 字节）来算——这是帧抢占最大的收益来源。</li>
+  <li><strong>分片不是越小越好</strong>：每一片都要付前导码 / mCRC 的额外开销，切得越碎、开销越大；切得越粗，残余保护带越长。<strong>分片尺寸是"开销 vs 时延"的折中</strong>，通常由硬件按 64 字节粒度自动决定。</li>
+  <li><strong>被抢占的帧要在下一跳"等"</strong>：重组需要缓冲，等待期间占用对方交换机的内存；关键流量越大、抢占越频繁，普通流的<strong>抖动</strong>越大。所以关键流的门控窗口要给足，否则频繁抢占反而伤害普通业务。</li>
+  <li><strong>产业现状要清醒</strong>：帧抢占比 Qbv / Qav 实现难度高得多（要在 MAC 里保存并切换发送上下文），早期一度被认为"难以落地"；近年在车用以太网（IEEE 802.1DG profile）与车规 TSN 交换芯片上逐步可配（Microchip、NXP 等厂商的 TSN 交换机应用笔记中都有专章）。<strong>设计时先确认芯片与软件栈真的支持，再把它写进方案。</strong></li>
+</ol>
+
+<h2>六、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>它治的是"保护带太贵"</strong>：以太网帧一开头发就不能停，Qbv 只能用"最大帧时间"当保护带（100 Mbps 下约 123 µs）。帧抢占把普通帧<strong>切成最小 64 字节的分片</strong>，让关键帧插缝先走，保护带缩到 <strong>127 字节（约 10 µs）</strong>。</li>
+  <li><strong>两个 MAC + 一个合并子层</strong>：出口端口虚拟出 <strong>eMAC（快车，不可被打断、能抢别人）</strong> 与 <strong>pMAC（慢车，可被切、可被多次抢）</strong>，由 <strong>MAC Merge 子层</strong>负责切片与重组；<strong>逐跳生效、下一跳立刻重组</strong>，不是 IP 那种端到端分片。分片靠<strong>前导码 SMD</strong> 与 <strong>mCRC / FCS</strong> 两种暗号区分，链路两端必须协商验证后才启用。</li>
+  <li><strong>它是 Qbv 的搭子，不是替代品</strong>：Qbv 排时刻表、Qbu 保证时刻表不被大帧越界；Qav 管不了"已在发的帧"，帧抢占专治这个；PSFP（L53）管入口资格、帧抢占管出口让路。<strong>关键流的队列必须正确映射到 eMAC</strong>，否则一切白搭。</li>
+</ol>
+
+<h2>七、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <h3>Q1：用"高速公路应急车道"打比方：为什么 Qbv 时间窗之间要留"保护带"？这个保护带为什么必须按"最长的大货车"来留？帧抢占是怎么把这段空档从"一辆大货车"缩短到"一小段"的？（提示：想一想"帧一旦开始发就不能中断"、"越界侵占关键窗口"，以及"64 字节最小分片 + 63 字节余量 = 127 字节"）</h3>
+  <textarea id="feynman1" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q2：帧抢占把一个正在传的普通帧"切成几段"，可接收端怎么知道"这半截是分片、后面还有"，而不是"帧坏了"或"帧已经结束"？前导码和 CRC 各被改了什么？为什么链路上必须先"报备 + 验货"，双方都支持才敢启用？（提示：前导码里有 SMD 系列标志，非末分片用 mCRC 而末分片用原帧 FCS，老设备会把分片当坏帧丢掉）</h3>
+  <textarea id="feynman2" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q3（进阶）：帧抢占和 Qav（信用整形）、PSFP（入口监管）、MACsec（链路加密）分别位于网络的哪个位置、管什么事？为什么说它和 Qav"互不替代"？如果把关键流的队列错配到了 pMAC（被抢的那一侧），实际会发生什么？（提示：整形管"能不能开始发"、抢占管"发的过程中能不能被插队"；入口 vs 出口；先安全后切片）</h3>
+  <textarea id="feynman3" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+
+<h2>八、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：一辆车在 100 Mbps 车载以太网上用 Qbv 保证关键控制流的时延。工程团队发现周期时间压不下去、普通业务带宽总被"吃掉"一块。最可能的原因，以及帧抢占带来的改善是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. 带宽损失来自 VLAN 标签开销，帧抢占可以去掉 VLAN 标签</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. 时间窗切换前必须留保护带，其长度等于发一个最大帧的时间（约 123 µs），这段时间不能开始发新帧；帧抢占允许把正在传的普通帧切开、让关键帧插缝通过，保护带只需按最小分片留（64 + 63 = 127 字节，约 10 µs），带宽浪费大幅下降</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. 带宽损失来自 MACsec 的 ICV 开销，帧抢占通过压缩 ICV 长度回收带宽</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. 周期性丢包是 PSFP 限速造成的，帧抢占通过提高令牌桶速率恢复带宽</label>
+  <div class="mcq-result" id="mc1-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ2：关于帧抢占的"分片与重组"，以下哪项描述是正确的？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. 帧抢占是端到端分片：源节点把帧切开，一路以分片形式传到最后的目的节点才重组，中间交换机只透传分片</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. 帧抢占是逐跳行为：每条链路各自把普通帧切成至少 64 字节的分片，下一跳（交换机）立刻重组为完整帧；被抢的帧可被多次抢占；非末分片用 mCRC、末分片用原帧 FCS，接收端据此分辨分片与整帧</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 分片长度可以任意小（比如 8 字节），因为改用了新的前导码 SMD，接收端一定能识别出来</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 帧抢占和 IP 分片一样由上层协议负责重组，交换机只做转发、不参与任何处理</label>
+  <div class="mcq-result" id="mc2-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ3：某车型骨干链路上：普通流映射 pMAC、关键流映射 eMAC，两端都支持帧抢占。以下哪种情况最可能导致"帧抢占配了却没效果"？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. 关键流的队列被错配到了 pMAC（或该队列未启用抢占相关配置），于是关键帧自己也成了"被抢对象"，不会去打断普通帧；同时链路上只要有一跳不支持，保护带方案也会退回——功能是逐跳协商启用的，任一跳缺失即在该跳失效</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. 只要两端芯片型号相同，帧抢占就一定能生效，不需要任何配置</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. 帧抢占一旦开启就是全车全链路生效，链路中间交换机不支持也不影响</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. 帧抢占只依赖时钟同步，只要 gPTP 正常，抢占必然生效</label>
+  <div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 54,
+    title: '车载以太网帧抢占',
+    feynman: [],
+    mcq: { mc1: 'B', mc2: 'B', mc3: 'A' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 54,
+  title: '车载以太网帧抢占——快车凭什么能"抢道"，被切成段的慢车还不丢数据？',
+  feynman: [
+    { q: 'Q1', ref: '核心是帧一开头发就不能停，所以只能用最大帧当空档。①保护带的由来：Qbv 把出口时间切成一段段时间窗，关键流有专属窗口；但以太网帧一旦开始发送就必须完整发完，中途不能被打断。若在普通时段末尾刚开始发一个 1500 字节大帧，它会越界撞进下一个关键窗口，把关键帧挤迟到。为了不让它越界，只能在关键窗口前留一段不许开始发新帧的时间，让正在传的帧发完——这就是保护带，它是给正在路上的车留驶离时间，不是禁止通行。②为什么按最长的大货车留：保护带必须保证任何一帧都能在这段时间内发完，而以太网最长帧是带一个 VLAN 标签的 1500 字节帧：1500 + 18 + 4 + 12 + 8 = 1542 字节，100 Mbps 下约 123 微秒；这段时间一个字节都发不出去，带宽白扔、周期压不下去，就像高速上每次都按最长货车留空档，普通车流效率被拉低。③帧抢占怎么缩短：让正在传的普通帧在安全切点靠边停一下，先让关键帧整帧过去，再从断点续传；切点以 64 字节为粒度检查，且非末分片至少 64 字节，最坏情况下还有 63 字节已经发出来不及切，所以残余保护带 = 64 + 63 = 127 字节，100 Mbps 下仅约 10 微秒，缩短 90% 以上，省下的时间就是可用带宽和更短的周期。结论：保护带是给最长货车留的驶离空档，帧抢占让普通车学会靠边分段走，空档只需按最小一段车留。' },
+    { q: 'Q2', ref: '核心是前导码说身份、尾部校验说有没有后文，改了格式就要先验货。①前导码被换成了 SMD（Start of mPacket Delimiter）：普通以太网前导码最后 1 个字节是 SFD 0xD5，表示帧开始；帧抢占把它换成 SMD-E（快车整帧，优先级最高不可被抢）、SMD-S（分片开头）、SMD-C（分片续片），还有 SMD-V 与 SMD-R 专供链路握手校验。接收端一看前导码就知道自己在收一整帧还是某帧的一部分。②尾部校验：非末分片放 mCRC，标准对校验值做了区分性处理（末 16 位取反），使它不可能等于任何合法整帧的 FCS；最后一个分片才放原帧真正的 FCS（不取反）。接收端算完校验就知道是分片还有后文，还是整帧结束，不用靠等超时判断——超时会引入不确定时延，而车载网络最怕不确定。③为什么必须先报备验货：帧抢占改了链路上的帧格式，老设备不认识 SMD、也不会按 mCRC 判断，会把分片全当坏帧丢掉，整条链路报废。所以 802.3br 要求两端先做能力确认（verify 与 respond 握手，配合 LLDP 宣告），双方都支持并配置一致才真正开启；它是逐链路的开关，一段链路上只要有一头不支持，这段就退回保护带方案。' },
+    { q: 'Q3', ref: '核心是四道关各在一处、互不替代，映射配错等于没配。①位置与职责：Qav 信用整形在交换机出口队列，按流量类别控制平均速率与突发，攒够信用才允许开始发送一个帧；PSFP 在交换机入口，按每一条流过滤（白名单、最大帧长）、门控和限速，管这帧有没有资格进场；帧抢占在出口的 MAC 内部（MAC Merge 子层），把正在发的普通帧切片让路，管已经在发的帧要不要让路；MACsec 在 MAC 之上，加密整帧并追加 ICV，管内容是不是真的。②为什么与 Qav 互不替代：Qav 的决策点只在帧要不要开始发送这一刻，信用够才放它上路；可帧一旦上路就管不了了，以太网不允许中途打断，所以一个已经开始的大帧照样占满链路一段时间。帧抢占补的正是这个缺口，管的是已经在路上的帧能不能被暂时叫停——Qav 决定谁能上路，帧抢占决定上路后遇到救护车谁靠边，两者可叠加，先 Qav 整形再 Qbu 抢占。③关键流错配到 pMAC 的后果：pMAC 是被抢的一侧，关键帧映射到 pMAC 就等于自己也成了被抢对象，既不能打断普通帧，还会被别人切开推迟，时延不再确定，Qbv 给了时间窗也形同虚设；再加上帧抢占是逐跳协商的，链路上任何一跳不支持或未启用，那一段就退回保护带，端到端时延预算照样被破坏。所以工程上要抓包验证关键帧真的走 eMAC，并逐跳清点设备能力写进配置基线。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'A' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</div>
+</body>
+</html>

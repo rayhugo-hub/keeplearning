@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 29：答案 — 车载激光雷达（LiDAR）——自动驾驶的"眼睛"是怎么看路的？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+.ans-item{margin:.3rem 0}
+.ans-label{font-weight:600;color:#2e7d32}
+.ans-label-wrong{color:#c62828}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson28-车载OTA升级--2026-07-19--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <a href="../Lesson30-车载摄像头与视觉感知--2026-07-21--1800/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 29 — 答案</div>
+  <h1>车载激光雷达（LiDAR）——自动驾驶的"眼睛"是怎么看路的？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（用"手电筒照夜路 vs 用尺子量距离"的类比解释 LiDAR 和摄像头的区别）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>用"手电筒"类比摄像头，用"尺子"类比 LiDAR：</p>
+<ul>
+<li><strong>手电筒（摄像头）</strong>：你晚上在外面用手电筒照东西——你看到远处有个物体，但你知道它到底离你几米远吗？很难，因为你的眼睛只能看到"光"，不能直接知道走了多远。摄像头也是一样——它靠环境光来看东西，但不知道每个物体具体有多远。</li>
+<li><strong>尺子（LiDAR）</strong>：LiDAR 就像你手里拿了一把尺子，但不是用肉眼去看，而是用"激光"去量。你把尺子扔出去（发射激光），它碰到东西弹回来（接收回波），你记下它走了多少时间。光速是不变的——你算出来它走了多远，再除以 2 就是距离。</li>
+</ul>
+<p><strong>核心区别：</strong>摄像头是"看图猜距离"，LiDAR 是"直接量距离"。</p>
+</div>
+
+<h3>Q2（雨夜只装一种传感器的取舍）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>选择 LiDAR。</p>
+<table>
+<tr><th>传感器</th><th>雨夜问题</th></tr>
+<tr><td>摄像头</td><td>光线昏暗 + 雨滴反光 → 图像模糊，检测可靠度大幅下降</td></tr>
+<tr><td>毫米波雷达</td><td>全天候好，但分辨率太低 → 能检测到"有障碍物"，但分不清是"路牌"还是"行人"</td></tr>
+<tr><td>LiDAR</td><td>自发光，不受环境光影响；雨滴反射虽造成噪点但可滤除；分辨率足以分辨行人轮廓</td></tr>
+</table>
+<p><strong>取舍逻辑：</strong>雨夜最危险的是"突然出现的小目标（行人、动物）"——这需要高分辨率 + 不受光照影响。LiDAR 在此场景下最优。代价是成本最高，但在安全性和可靠性上最优。</p>
+</div>
+
+<h3>Q3（三种 LiDAR 技术的故障后果对比）</h3>
+
+<div class="ref-box">
+<table>
+<tr><th>技术类型</th><th>故障模式</th><th>后果</th><th>严重程度</th></tr>
+<tr><td>机械式 LiDAR</td><td>旋转电机卡死或断线</td><td>激光头停在某个方向，只能看到固定角度 → 感知系统出现巨大盲区</td><td>🔴 严重</td></tr>
+<tr><td>MEMS LiDAR</td><td>微振镜断裂或失控</td><td>激光扫描路径异常 → 点云变形、出现空洞 → 算法无法解析障碍物轮廓</td><td>🔴 严重</td></tr>
+<tr><td>Flash LiDAR</td><td>个别 SPAD 像素失效</td><td>点云中少几个点 → 周边像素可以补偿 → 对整体感知影响极小</td><td>🟢 轻微</td></tr>
+</table>
+<p><strong>结论：</strong>Flash LiDAR 在可靠性上有天然优势——没有运动部件，单个像素失效不影响整体功能。这就是为什么汽车行业倾向于固态 LiDAR。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ 1：LiDAR 测量距离的核心物理原理是什么？</h3>
+<p><strong>正确答案：C. 飞行时间法（TOF，Time of Flight）</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 三角测量法</td><td>❌ 双目摄像头的原理，LiDAR 不需要</td></tr>
+<tr><td>B. 多普勒频移</td><td>❌ 毫米波雷达测速的原理</td></tr>
+<tr><td>C. 飞行时间法 TOF</td><td>✅ LiDAR 通过测量激光脉冲的往返飞行时间来计算距离（d = c × t / 2）</td></tr>
+<tr><td>D. 超声波回波时间</td><td>❌ 倒车雷达的原理，探测距离短（~5m），精度低</td></tr>
+</table>
+
+<h3>MCQ 2：以下哪个<strong>不是</strong>机械旋转式 LiDAR 的缺点？</h3>
+<p><strong>正确答案：C. 水平视场角小于 120°</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 有旋转部件</td><td>✅ 确实是缺点——旋转电机有磨损</td></tr>
+<tr><td>B. 成本高</td><td>✅ 确实是缺点——机械结构复杂，量产成本高</td></tr>
+<tr><td>C. 水平视场角小于 120°</td><td>❌ <strong>不是缺点</strong>——机械旋转式 LiDAR 恰恰是唯一能实现 360° 水平视场的方案</td></tr>
+<tr><td>D. 体积较大</td><td>✅ 确实是缺点——带旋转机构的体积大</td></tr>
+</table>
+
+<h3>MCQ 3：为什么 LiDAR 在夜间比摄像头表现更好？</h3>
+<p><strong>正确答案：B. LiDAR 自带激光光源，不依赖环境照明</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 红外热成像</td><td>❌ LiDAR 不是热成像仪</td></tr>
+<tr><td>B. 自带激光光源</td><td>✅ LiDAR 有主动光源（激光），所以哪怕在完全漆黑的隧道里也能工作</td></tr>
+<tr><td>C. 使用声波</td><td>❌ LiDAR 使用光波（激光），不是声波</td></tr>
+<tr><td>D. 低温计算更快</td><td>❌ 温度和计算速度无关</td></tr>
+</table>
+
+<hr>
+
+<p><a href="课程.html" class="back-link">← 返回课程</a></p>
+
+</div>
+</body>
+</html>

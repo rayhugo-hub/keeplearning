@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 39（23:00）：SOME/IP 与 DoIP——车载以太网上的"服务"是怎么被找到和调用的？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 39（23:00）— 2026-08-10 | 🚗 车载以太网协议栈深挖（SOME/IP / SOME/IP-SD 服务发现 / DoIP）</div>
+  <h1>SOME/IP 与 DoIP——车载以太网上的"服务"是怎么被找到和调用的？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson38-车载嵌入式Linux--2026-08-09--1500/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson40-CANFD与网络管理--2026-08-10--2330/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你想在美团上点一份外卖：打开 App，它<strong>自动列出附近所有餐厅</strong>，你挑一家、下单、等餐送到。</p>
+
+<p><strong>问题来了：</strong> App 是怎么知道"附近有哪些餐厅、它们卖什么"的？餐厅可没有提前把菜单写进你的手机里——是<strong>"发现"</strong>出来的。</p>
+
+<p><strong>车里也在发生同样的事：</strong> 中控想调用"打开空调"这个功能，它怎么知道<strong>空调控制器（HVAC ECU）在哪、提供什么服务、怎么连上它</strong>？这就是这一课的主角——<strong>SOME/IP（Scalable service-Oriented MiddlewarE over IP）</strong>。</p>
+
+<div class="callout">
+<p><strong>这一课讲清楚：SOME/IP 是什么、服务是怎么被"发现"的（SOME/IP-SD）、以及 DoIP 如何把诊断"搬"上以太网。</strong></p>
+</div>
+
+<hr>
+
+<h2>二、从"信号"到"服务"：为什么需要 SOME/IP？</h2>
+
+<p>老一代汽车（CAN 时代）的通信方式是<strong>"信号"</strong>：每个 ECU 的每条报文，ID、长度、发送周期、含义，<strong>出厂前就定死了</strong>。加一个新功能？改报文矩阵、重新标定、重新测试——非常痛苦。</p>
+
+<p>智能汽车时代，软件要<strong>持续迭代</strong>（OTA），功能要<strong>动态组合</strong>（比如"语音开空调"要同时调语音识别、车身控制两个服务）。于是通信方式从"信号"升级为<strong>"服务"</strong>：</p>
+
+<table>
+<tr><th>对比维度</th><th>CAN 信号通信</th><th>SOME/IP 服务通信</th></tr>
+<tr><td>通信对象</td><td>固定 ID 的报文（信号）</td><td>服务（方法/事件/字段）</td></tr>
+<tr><td>关系建立</td><td>出厂静态配置</td><td><strong>运行时动态发现</strong></td></tr>
+<tr><td>调用方式</td><td>周期发送，收不收都发</td><td><strong>按需请求-响应 / 订阅-推送</strong></td></tr>
+<tr><td>扩展性</td><td>加功能要改网络矩阵</td><td>加服务即插即用</td></tr>
+<tr><td>承载网络</td><td>CAN / CAN-FD</td><td>车载以太网（100BASE-T1）</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart LR
+    subgraph CAN["🚌 CAN 时代：信号"]
+        C1["ECU-A 发报文<br/>ID=0x123 周期 10ms"]
+        C2["ECU-B 收报文<br/>解析字节 3 得车速"]
+        C1 -- "不管对方要不要，都发" --&gt; C2
+    end
+    subgraph SOMEIP["🌐 SOME/IP 时代：服务"]
+        S1["中控（客户端）"]
+        S2["空调控制器（服务端）"]
+        S1 -- "请求：把温度调到 22℃" --&gt; S2
+        S2 -- "响应：已执行 ✅" --&gt; S1
+    end
+</div>
+
+<div class="callout">
+<p><strong>一句话：</strong> CAN 是"对讲机喊话"（固定频道、定时喊），SOME/IP 是"打电话叫服务"（拨号、接通、对话、挂断）。</p>
+</div>
+
+<hr>
+
+<h2>三、SOME/IP 的服务接口：四种"能力"</h2>
+
+<p>SOME/IP 把 ECU 提供的功能抽象成<strong>服务（Service）</strong>，一个服务包含四种元素：</p>
+
+<table>
+<tr><th>元素</th><th>英文</th><th>类比</th><th>通信方式</th></tr>
+<tr><td><strong>方法</strong></td><td>Method</td><td>"打电话问一件事"</td><td>请求-响应（Request/Response）</td></tr>
+<tr><td><strong>事件</strong></td><td>Event</td><td>"订阅公众号，有更新自动推给你"</td><td>服务端主动推送（Publish）</td></tr>
+<tr><td><strong>字段</strong></td><td>Field</td><td>"一个可以读、可以改的属性"</td><td>getter / setter / notifier</td></tr>
+<tr><td><strong>事件组</strong></td><td>Eventgroup</td><td>"一组相关推送的打包订阅"</td><td>订阅（Subscribe）的最小单位</td></tr>
+</table>
+
+<p><strong>举个空调的例子：</strong></p>
+
+<ul>
+<li><strong>Method</strong>：中控发"设置温度 22℃" → 空调控制器响应"OK"（一问一答）</li>
+<li><strong>Event</strong>：中控订阅"温度变化"事件 → 温度一变，空调控制器<strong>主动推送</strong>新温度（不用中控反复问）</li>
+<li><strong>Field</strong>：中控读"当前温度"（getter）、写"目标温度"（setter）</li>
+<li><strong>Eventgroup</strong>：把"温度、风速、模式"三个事件打包成一个组，一次订阅全收到</li>
+</ul>
+
+<div class="callout">
+<p><strong>关键：</strong> Method 是"你问我答"，Event 是"我主动报"，Field 是"可读可写的属性"——这是区分三种元素的口诀。</p>
+</div>
+
+<hr>
+
+<h2>四、SOME/IP-SD：服务是怎么被"发现"的？</h2>
+
+<p>服务不是出厂写死的，而是<strong>运行时动态发现</strong>的。负责这件事的协议叫 <strong>SOME/IP-SD（Service Discovery，服务发现）</strong>，它靠三种报文完成"牵线搭桥"：</p>
+
+<table>
+<tr><th>报文</th><th>谁发</th><th>干什么</th></tr>
+<tr><td><strong>FindService（查找服务）</strong></td><td>客户端</td><td>广播："谁提供空调服务？"</td></tr>
+<tr><td><strong>OfferService（提供服务）</strong></td><td>服务端</td><td>单播/组播回答："我提供！地址是……"</td></tr>
+<tr><td><strong>SubscribeEventgroup（订阅事件组）</strong></td><td>客户端</td><td>"我要订阅这个事件组"</td></tr>
+</table>
+
+<p><strong>完整流程：</strong></p>
+
+<div class="mermaid">
+sequenceDiagram
+    participant C as 📱 客户端（中控）
+    participant S as 🧊 服务端（空调控制器）
+    Note over C,S: 第一步：发现（Discovery）
+    C-&gt;&gt;S: FindService：谁提供空调服务？（广播）
+    S--&gt;&gt;C: OfferService：我提供！IP+端口+服务ID
+    Note over C,S: 第二步：订阅（Subscribe）
+    C-&gt;&gt;S: SubscribeEventgroup：订阅温度/风速/模式
+    S--&gt;&gt;C: SubscribeAck：订阅成功
+    Note over C,S: 第三步：使用（Interaction）
+    C-&gt;&gt;S: Method 请求：设置温度 22℃
+    S--&gt;&gt;C: Method 响应：已执行
+    S--&gt;&gt;C: Event 推送：温度变为 22℃
+</div>
+
+<p><strong>两个重要细节：</strong></p>
+
+<ol>
+<li><strong>TTL 续租（保活）</strong>：OfferService 报文带一个"有效期"（TTL）。服务端<strong>周期性重发</strong> Offer（默认几秒一次），客户端收到就刷新记录；如果长时间收不到 → 认为服务下线了。这就是"心跳"机制。</li>
+<li><strong>可选 vs 必选服务</strong>：有些服务（如灯光）是<strong>启动就提供</strong>的，不用等 Find 才回应；有些是<strong>按需启动</strong>的——收到 FindService 才起来，省电。</li>
+</ol>
+
+<div class="callout">
+<p><strong>一句话：</strong> SOME/IP-SD 就是服务的"红娘"——Find 是"征婚启事"，Offer 是"自我介绍"，Subscribe 是"确定关系"。</p>
+</div>
+
+<hr>
+
+<h2>五、DoIP：把诊断"搬"上以太网</h2>
+
+<p>诊断大家不陌生（Lesson 25 的 UDS）。传统诊断走 <strong>UDS over CAN</strong>，速度慢（CAN 最快也就几 Mbps）、一次刷写要等很久。<strong>DoIP（Diagnostic over IP）</strong> 把 UDS 诊断报文封装进 <strong>TCP/IP</strong>，跑在车载以太网上：</p>
+
+<table>
+<tr><th>对比</th><th>UDS over CAN</th><th>UDS over DoIP</th></tr>
+<tr><td>传输</td><td>CAN 总线</td><td>TCP/IP（以太网）</td></tr>
+<tr><td>速度</td><td>最高 ~8 Mbps（CAN-FD）</td><td><strong>100/1000 Mbps</strong></td></tr>
+<tr><td>典型用途</td><td>产线/售后小数据诊断</td><td><strong>OTA 刷写、大数据诊断</strong></td></tr>
+<tr><td>端口</td><td>无（靠 CAN ID）</td><td><strong>TCP 13400</strong></td></tr>
+</table>
+
+<p><strong>DoIP 的典型流程：</strong></p>
+
+<div class="mermaid">
+flowchart LR
+    T["🛠️ 诊断仪 / OTA 服务器"] -- "TCP 连接（端口 13400）" --&gt; G["🚗 DoIP 网关<br/>（路由激活 + VIN 识别）"]
+    G -- "把 UDS 请求路由到目标 ECU" --&gt; E["🔌 ECU（执行 UDS 服务）"]
+    E -- "UDS 响应原路返回" --&gt; G
+    G -- "封装成 DoIP 响应" --&gt; T
+</div>
+
+<p><strong>DoIP 的三个关键步骤：</strong></p>
+
+<ol>
+<li><strong>连接建立</strong>：诊断仪与 DoIP 网关建立 TCP 连接（端口 13400）</li>
+<li><strong>路由激活（Routing Activation）</strong>：诊断仪"报名"，网关检查它有没有权限（防黑客乱诊断）</li>
+<li><strong>VIN 识别 + 路由</strong>：诊断仪报上车辆 VIN，网关把 UDS 请求路由到指定 ECU</li>
+</ol>
+
+<div class="callout">
+<p><strong>为什么 OTA 需要 DoIP？</strong> 一个整车固件几个 GB，用 CAN 刷要刷到天荒地老；DoIP 走以太网，速度快几十上百倍——<strong>没有 DoIP，就没有今天的整车 OTA。</strong></p>
+</div>
+
+<hr>
+
+<h2>六、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：SOME/IP 是"服务化通信"，靠"发现"而不是"出厂配置"</h3>
+<p>CAN 时代功能是出厂写死的信号；SOME/IP 时代功能是运行时<strong>动态发现</strong>的服务（Method/Event/Field/Eventgroup）。加新功能不用改全网配置，<strong>即插即用</strong>。</p>
+
+<h3>📌 规则二：SOME/IP-SD 三句话——Find 找、Offer 应、Subscribe 定</h3>
+<p>客户端广播 FindService 找服务，服务端回 OfferService 亮明身份（带 TTL 周期续租保活），客户端 SubscribeEventgroup 订阅事件组，然后就可以 Method 调用、Event 收推送了。</p>
+
+<h3>📌 规则三：DoIP = UDS 搬上以太网，是 OTA 的"高速公路"</h3>
+<p>DoIP 用 TCP（端口 13400）承载 UDS 诊断，速度比 CAN 快几十上百倍。路由激活 + VIN 识别保证只有"有权限的人"能诊断——<strong>刷写快 + 够安全，缺一不可。</strong></p>
+
+</div>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>用<strong>"点外卖"</strong>的流程类比 SOME/IP-SD 服务发现：FindService、OfferService、SubscribeEventgroup 分别对应什么？为什么服务端要<strong>周期性重发</strong> OfferService（TTL 续租）？请讲给一个没学过汽车电子的人听。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p><strong>Method 和 Event 有什么区别？</strong> 各自适合什么场景？请举两个车载例子（一个用 Method、一个用 Event），并解释为什么 Event 能减少网络流量。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>为什么说从 CAN"信号通信"升级到 SOME/IP"服务通信"是<strong>软件定义汽车</strong>的必经之路？DoIP 又在其中扮演什么角色（结合 OTA 场景）？</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：关于 SOME/IP 的四种服务元素，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc1" value="A"> A. Method 是服务端主动推送数据的机制</label>
+<label><input type="radio" name="mc1" value="B"> B. Event 是"你问我答"的请求-响应机制</label>
+<label><input type="radio" name="mc1" value="C"> C. Field 是可以读取和修改的属性（getter/setter）</label>
+<label><input type="radio" name="mc1" value="D"> D. Eventgroup 是 Method 的另一种叫法</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：在 SOME/IP-SD 服务发现中，<strong>服务端</strong>启动后主动宣告"我提供某某服务"的报文是？</div>
+<label><input type="radio" name="mc2" value="A"> A. FindService</label>
+<label><input type="radio" name="mc2" value="B"> B. SubscribeEventgroup</label>
+<label><input type="radio" name="mc2" value="C"> C. OfferService</label>
+<label><input type="radio" name="mc2" value="D"> D. SubscribeAck</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：相比传统 UDS over CAN，DoIP 最<strong>本质</strong>的优势是？</div>
+<label><input type="radio" name="mc3" value="A"> A. 不需要建立连接，即发即收</label>
+<label><input type="radio" name="mc3" value="B"> B. 把 UDS 封装进 TCP/IP 跑在以太网上，速度快几十上百倍，支撑 OTA 大数据刷写</label>
+<label><input type="radio" name="mc3" value="C"> C. 不需要 VIN 识别和权限校验</label>
+<label><input type="radio" name="mc3" value="D"> D. 只能用于产线，售后不能用</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson39',
+    title: 'Lesson 39（23:00）：SOME/IP 与 DoIP——车载以太网上的"服务"是怎么被找到和调用的？',
+    mcq: { mc1: 'C', mc2: 'C', mc3: 'B' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson39', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson39');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson39');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson39',
+  title: 'Lesson 39（23:00）：SOME/IP 与 DoIP——车载以太网上的"服务"是怎么被找到和调用的？',
+  feynman: [
+    { q: 1, ref: '点外卖类比：FindService 就像你打开美团搜索"附近的餐厅"——客户端广播"谁提供空调服务"；OfferService 就像餐厅在平台上亮出招牌和地址——服务端回应"我提供，这是我的 IP 和端口"；SubscribeEventgroup 就像你关注了这家餐厅的公众号——订阅后餐厅有新动态自动推给你。为什么要周期性重发 OfferService？因为网络会变化（ECU 重启、休眠唤醒），服务端用 TTL（有效期）机制定期"刷存在感"，客户端收不到续租就认为服务下线，避免调用一个已经不存在的服务' },
+    { q: 2, ref: 'Method 是"你问我答"的请求-响应：客户端发请求，服务端给响应，适合一次性动作，比如"打开天窗""设置温度"；Event 是"订阅-推送"：服务端状态一变就主动推送，适合持续变化的状态，比如"车速""电量""温度变化"。车载例子：Method=中控发"座椅加热开到 3 档"（一问一答）；Event=电池管理系统推送"电量从 80% 变成 79%"（变化才推）。为什么 Event 省流量？传统 CAN 是周期发送不管变没变，Event 只在变化时推送，平时不占用网络；而且客户端订阅了才推，没订阅的节点不收，避免广播轰炸' },
+    { q: 3, ref: '软件定义汽车 = 功能由软件动态组合，而不是出厂焊死。CAN 信号通信要改功能就得改报文矩阵、重新标定、全车联调，迭代一次以月计；SOME/IP 服务通信把功能封装成服务，运行时发现、按需调用，加一个新服务不影响其他节点，OTA 升级只更新相关软件，所以它是软件定义汽车的通信基石。DoIP 的角色：OTA 刷写要把几百 MB 甚至几个 GB 的固件下到车里，CAN 带宽不够；DoIP 用以太网 TCP 传输，速度快几十上百倍，配合路由激活和 VIN 识别保证安全和精准路由——没有 DoIP，OTA 刷写根本刷不动' }
+  ],
+  mcq: { mc1: 'C', mc2: 'C', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

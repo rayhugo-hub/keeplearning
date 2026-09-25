@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 38（15:00）：车载嵌入式 Linux——为什么"车规 Linux"不是"电脑上的 Linux"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 38（15:00）— 2026-08-09 | 🚗 车载嵌入式 Linux（内核结构 / 设备树 / 驱动模型 / 与 AUTOSAR 的关系）</div>
+  <h1>车载嵌入式 Linux——为什么"车规 Linux"不是"电脑上的 Linux"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson37-BMS电池管理系统--2026-08-09--1200/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson39-以太网SOMEIP与DoIP--2026-08-10--2300/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你的车机启动只要 3 秒，家里的电脑开机要 30 秒；你的车机跑了几万公里、-20℃ 到 70℃ 都不死机，家里的电脑夏天开个游戏就风扇狂转。</p>
+
+<p><strong>更神奇的是：</strong> 它们可能都叫"Linux"。</p>
+
+<p><strong>问题来了：</strong> 同一个 Linux，凭什么在车上能"秒启、不死机、扛高温"？车里的 Linux 和电脑上的 Linux，到底差在哪？</p>
+
+<div class="callout">
+<p><strong>答案是嵌入式 Linux 的"裁剪、定制与实时化"。</strong> 这一课讲清楚：<strong>车载 Linux 的内核结构、设备树与驱动模型、以及它和 AUTOSAR 的关系。</strong></p>
+</div>
+
+<hr>
+
+<h2>二、先分清：Linux 在车里的三种"岗位"</h2>
+
+<p>Linux 不是"一个系统"，而是一个<strong>内核（Kernel）+ 一堆工具</strong>。在车里，它有三类典型用法：</p>
+
+<table>
+<tr><th>岗位</th><th>跑在哪</th><th>特点</th></tr>
+<tr><td><strong>信息娱乐系统</strong></td><td>中控（Android Automotive 底层就是 Linux 内核）</td><td>生态丰富、功能多、实时性要求低</td></tr>
+<tr><td><strong>仪表 / 域控</strong></td><td>仪表盘、座舱域控制器（常配 QNX Hypervisor，Linux 跑 guest OS）</td><td>需要一定实时性、稳定性</td></tr>
+<tr><td><strong>智能驾驶</strong></td><td>ADAS/AD 域控（如英伟达 Orin 上的 Linux + 实时核）</td><td>高算力、混合实时（大核 Linux + 小核 RTOS）</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>关键认知：</strong> 车载 Linux 不是"Ubuntu 装进车里"，而是<strong>从内核源码裁剪、配置、编译出来的定制系统</strong>——只保留需要的功能，砍掉用不上的。</p>
+</div>
+
+<hr>
+
+<h2>三、Linux 内核：一辆车的"操作系统底盘"</h2>
+
+<div class="mermaid">
+flowchart TB
+    subgraph APP["📱 应用层"]
+        A1["导航 / 仪表 HMI / ADAS 应用"]
+    end
+    subgraph KERNEL["🧠 Linux 内核"]
+        K1["进程调度器（CFS / RT）"]
+        K2["内存管理（MMU / CMA）"]
+        K3["文件系统（ext4 / overlayfs）"]
+        K4["网络协议栈（TCP/IP / CAN）"]
+        K5["设备驱动（I2C / SPI / CAN / GPU）"]
+    end
+    subgraph HW["🔌 硬件层"]
+        H1["SoC（CPU / GPU）"]
+        H2["外设（传感器 / 屏幕 / 车载总线）"]
+    end
+    APP -- "系统调用" --&gt; KERNEL
+    KERNEL -- "设备树 + 驱动" --&gt; HW
+</div>
+
+<p><strong>车载开发最常打交道的四个内核子系统：</strong></p>
+
+<ol>
+<li><strong>进程调度</strong>：车规版会启用<strong>实时调度策略</strong>（SCHED_FIFO / SCHED_RR + PREEMPT_RT 补丁），保证关键任务（如仪表刷新）优先执行</li>
+<li><strong>内存管理</strong>：用 <strong>CMA（连续内存分配）</strong> 给 GPU/ISP 预留大块连续内存</li>
+<li><strong>设备驱动</strong>：这是嵌入式开发的"主战场"——<strong>写驱动让内核认识新硬件</strong></li>
+<li><strong>内核裁剪</strong>：<span class="code">menuconfig</span> 配置、裁剪内核，去掉用不到的模块 → 启动更快、更省内存、攻击面更小</li>
+</ol>
+
+<hr>
+
+<h2>四、设备树（Device Tree）：硬件的"户口本"</h2>
+
+<p>电脑上，BIOS/UEFI 告诉操作系统"装了哪些硬件"；嵌入式设备没有 BIOS，怎么让内核知道"这块板子上有什么"？</p>
+
+<p><strong>答案是设备树（Device Tree, DTS/DTB）。</strong></p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph DTS["📄 dts 源文件（文本）"]
+        D1["描述 CPU、内存、外设<br/>如：CAN 控制器在地址 0x31000000"]
+    end
+    subgraph DTC["⚙️ 设备树编译器"]
+        D2["dtc 编译"]
+    end
+    subgraph DTB["💾 dtb 二进制"]
+        D3["内核启动时读取"]
+    end
+    DTS --&gt; DTC --&gt; DTB
+    DTB --&gt; K["内核：<br/>按设备树匹配驱动、<br/>初始化硬件"]
+</div>
+
+<p><strong>设备树的作用（三个"告诉"）：</strong></p>
+
+<table>
+<tr><th>作用</th><th>说明</th></tr>
+<tr><td>告诉内核<strong>有什么硬件</strong></td><td>CPU 型号、内存大小、外设地址</td></tr>
+<tr><td>告诉内核<strong>硬件怎么用</strong></td><td>中断号、时钟频率、引脚配置（GPIO）</td></tr>
+<tr><td>告诉驱动<strong>怎么匹配</strong></td><td>设备节点里的 <span class="code">compatible</span> 属性与驱动里的 <span class="code">of_match_table</span> 匹配</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>一句话：</strong> 设备树是"硬件描述文件"——改硬件不用改内核代码，改 dts 重新编译就行。<strong>硬件和软件解耦的关键。</strong></p>
+</div>
+
+<hr>
+
+<h2>五、驱动模型：内核怎么"认识"新硬件？</h2>
+
+<p>Linux 设备驱动模型的核心是<strong>三件套：总线（Bus）、设备（Device）、驱动（Driver）</strong>。</p>
+
+<div class="mermaid">
+flowchart LR
+    BUS["🔗 总线 Bus<br/>（platform / I2C / SPI / CAN）"]
+    DEV["🔌 设备 Device<br/>（来自设备树节点）"]
+    DRV["🧩 驱动 Driver<br/>（写好的驱动程序）"]
+    DEV -- "注册到总线" --&gt; BUS
+    DRV -- "注册到总线" --&gt; BUS
+    BUS -- "匹配（compatible / ID 表）" --&gt; MATCH["✅ 匹配成功 →<br/>probe() 被调用 →<br/>硬件初始化"]
+</div>
+
+<p><strong>常见驱动类型：</strong></p>
+
+<table>
+<tr><th>驱动类型</th><th>典型例子</th><th>车载用途</th></tr>
+<tr><td><strong>字符设备</strong></td><td><span class="code">/dev/spidev</span>、<span class="code">/dev/i2c-x</span></td><td>传感器、触摸屏读取</td></tr>
+<tr><td><strong>平台设备</strong></td><td>platform 驱动（设备树节点驱动）</td><td>片上外设：CAN 控制器、GPU</td></tr>
+<tr><td><strong>网络设备</strong></td><td>以太网、CAN 接口</td><td>车载以太网通信</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>写驱动的本质：</strong> 实现 <span class="code">probe()</span>（初始化硬件）和 <span class="code">remove()</span>（卸载），再提供操作接口——剩下的"匹配、生命周期管理"由内核框架搞定。</p>
+</div>
+
+<hr>
+
+<h2>六、车载 Linux 与 AUTOSAR 是什么关系？</h2>
+
+<p>上一课学了 AUTOSAR，这一课学 Linux——很多人搞混。一句话理清：</p>
+
+<table>
+<tr><th>对比</th><th>AUTOSAR Classic</th><th>AUTOSAR Adaptive</th><th>车载 Linux</th></tr>
+<tr><td>定位</td><td>深嵌入式实时平台</td><td>高性能 POSIX 平台</td><td>通用嵌入式 OS</td></tr>
+<tr><td>内核</td><td>无（裸机/OSEK 风格）</td><td>基于 POSIX API（常配 Linux 或 QNX）</td><td>Linux 内核</td></tr>
+<tr><td>用在哪</td><td>制动、转向等安全关键 ECU</td><td>智能驾驶、域控</td><td>中控、仪表、域控</td></tr>
+<tr><td>实时性</td><td>硬实时</td><td>软实时</td><td>可配置（PREEMPT_RT）</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart LR
+    subgraph CLASSIC["🛡️ AUTOSAR Classic"]
+        C1["制动 / 转向 ECU<br/>硬实时、无 OS"]
+    end
+    subgraph ADAPTIVE["🧠 AUTOSAR Adaptive"]
+        A1["智驾域控<br/>POSIX 接口"]
+    end
+    subgraph LINUX["🐧 车载 Linux"]
+        L1["中控 / 仪表<br/>生态丰富"]
+    end
+    CLASSIC -- "按 ASIL 分工" --&gt; ADAPTIVE
+    LINUX -- "与 Adaptive 常共用内核/硬件" --&gt; ADAPTIVE
+</div>
+
+<div class="callout">
+<p><strong>一句话：</strong> AUTOSAR Classic 管"安全关键的小 ECU"，AUTOSAR Adaptive 和 Linux 管"高性能大算力域控"——它们不是竞争关系，而是<strong>按安全等级和算力需求分工</strong>。</p>
+</div>
+
+<hr>
+
+<h2>七、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：车载 Linux 是"裁剪定制"出来的，不是"装"出来的</h3>
+<p>从内核源码按需裁剪、配置、编译（menuconfig），去掉用不上的模块——启动更快、更省内存、攻击面更小。<strong>嵌入式 Linux 的第一课是"做减法"。</strong></p>
+
+<h3>📌 规则二：设备树是硬件的"户口本"，驱动靠"匹配"认硬件</h3>
+<p>设备树（dts→dtb）描述"有什么硬件、怎么用"，内核启动时按设备树匹配驱动、初始化外设。改硬件 = 改 dts，不用改内核代码。</p>
+
+<h3>📌 规则三：AUTOSAR 和 Linux 是"分工"不是"竞争"</h3>
+<p>AUTOSAR Classic 管安全关键 ECU（硬实时），AUTOSAR Adaptive / Linux 管大算力域控（生态与性能）。按 ASIL 等级和算力需求各司其职。</p>
+
+</div>
+
+<hr>
+
+<h2>八、桌面 Linux vs 车规 Linux：一张对照表</h2>
+
+<p>前面七节讲了车规 Linux 的三个技术动作。这一节把它们和"电脑上的 Linux"摆在一起，一次看清差异的<strong>根源</strong>：不是功能多少，而是<strong>对运行环境的假设不同</strong>。</p>
+
+<h3>8.1 三个本质区别</h3>
+
+<table>
+<tr><th>维度</th><th>桌面 Linux（Ubuntu / Debian）</th><th>车规 Linux（嵌入式定制）</th><th>为什么必须不同</th></tr>
+<tr><td><strong>裁剪定制</strong></td><td>通用发行版，预装上千个包，"什么都装"</td><td>从内核源码 <span class="code">menuconfig</span> 裁剪，只留需要的模块</td><td>启动更快（3 秒 vs 30 秒）、省内存、攻击面更小</td></tr>
+<tr><td><strong>实时性</strong></td><td>默认 CFS 完全公平调度，只保证"尽力而为"</td><td>SCHED_FIFO / SCHED_RR + PREEMPT_RT 补丁</td><td>仪表刷新、制动指令不能"排队等"——晚 10 ms 就可能出事</td></tr>
+<tr><td><strong>硬件描述</strong></td><td>有 BIOS/UEFI，启动时告诉系统"有什么硬件"</td><td>没有 BIOS，靠<strong>设备树（dts→dtb）</strong>描述硬件</td><td>改硬件只改 dts、不动内核代码；一块内核能跑多款车型</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>一句话记住：</strong> 桌面 Linux 假设"硬件基本固定、性能过剩、可以重启"；车规 Linux 假设"硬件每款不同、资源紧张、十年不能关机"。</p>
+</div>
+
+<h3>8.2 第四层差异：宏观运行契约</h3>
+
+<p>技术之上还有一层更"软"的差异——整辆车对软件提出的<strong>运行假设</strong>。这层平时不显眼，却是车规和消费电子真正的分水岭。</p>
+
+<table>
+<tr><th>契约</th><th>桌面 Linux</th><th>车规 Linux</th></tr>
+<tr><td><strong>生命周期</strong></td><td>3～5 年，系统大版本可以推倒重来</td><td>10～15 年（与整车同寿命），必须长期可维护</td></tr>
+<tr><td><strong>认证要求</strong></td><td>无强制认证</td><td>元器件 AEC-Q100、开发流程 ISO 26262、软件 ASPICE</td></tr>
+<tr><td><strong>更新方式</strong></td><td>装完即用，升级失败就重装</td><td>A/B 双分区<strong>原子更新 + 回滚</strong>，升级失败必须能退回上一版</td></tr>
+<tr><td><strong>失效后果</strong></td><td>蓝屏 → 重启，损失的是"体验"</td><td>蓝屏 → 可能危及人身安全，代价不可逆</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>"车规"不是一种技术，而是一整套约束。</strong>硬件要过温度与振动，软件要过流程与认证，更新要能回滚，生命周期要够长——<strong>做减法、加实时、用设备树描述硬件</strong>，都是这套约束逼出来的动作。</p>
+</div>
+
+<h3>8.3 别和第六节搞混</h3>
+
+<p>这两节的视角不冲突：第六节回答"整车为什么既要 AUTOSAR 又要 Linux"；本节回答"同一个 Linux 怎么变成车规的"。前者是<strong>分工</strong>，后者是<strong>改造</strong>。</p>
+
+<hr>
+
+<h2>九、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你的朋友说："车机不就是个 Linux 电脑吗？" 请解释车载 Linux 和桌面 Linux 的<strong>三个关键区别</strong>——从<strong>裁剪定制</strong>、<strong>实时性</strong>、<strong>设备树</strong>三个角度讲清楚。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>请用生活类比（比如"小区物业"或"招聘中介"）解释：<strong>Linux 的"总线-设备-驱动"模型是怎么让内核"认识"新硬件的？</strong> 类比里要对应上"设备树提供硬件信息""驱动注册""匹配成功后 probe() 初始化"这三个要点。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>为什么车里的中控用 Linux/Android，而制动、转向这些 ECU 却用 AUTOSAR Classic（裸机/RTOS）？请从<strong>实时性</strong>、<strong>安全认证</strong>、<strong>算力需求</strong>三个角度解释。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>十、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：车载嵌入式 Linux 与桌面 Linux 相比，最<strong>本质</strong>的区别是？</div>
+<label><input type="radio" name="mc1" value="A"> A. 车载 Linux 不能用图形界面</label>
+<label><input type="radio" name="mc1" value="B"> B. 车载 Linux 是从内核源码按需裁剪、定制编译的，且常启用实时调度与设备树描述硬件</label>
+<label><input type="radio" name="mc1" value="C"> C. 车载 Linux 不能运行应用程序</label>
+<label><input type="radio" name="mc1" value="D"> D. 桌面 Linux 无法在汽车上使用</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：关于<strong>设备树（Device Tree）</strong>的作用，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc2" value="A"> A. 设备树是 Linux 内核的源代码，驱动都写在里面</label>
+<label><input type="radio" name="mc2" value="B"> B. 设备树描述硬件信息（CPU、内存、外设地址等），内核启动时据此匹配驱动、初始化硬件</label>
+<label><input type="radio" name="mc2" value="C"> C. 设备树只在电脑上使用，嵌入式设备用 BIOS 代替</label>
+<label><input type="radio" name="mc2" value="D"> D. 设备树与硬件无关，只是软件配置文件</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：AUTOSAR Classic 与车载 Linux 的关系是？</div>
+<label><input type="radio" name="mc3" value="A"> A. 两者是竞争关系，只能二选一</label>
+<label><input type="radio" name="mc3" value="B"> B. AUTOSAR Classic 用于安全关键的小 ECU（硬实时、无 OS），Linux 用于中控/域控等高性能场景——按安全等级和算力需求分工</label>
+<label><input type="radio" name="mc3" value="C"> C. Linux 比 AUTOSAR Classic 更安全，可以完全替代</label>
+<label><input type="radio" name="mc3" value="D"> D. AUTOSAR Classic 跑在 Linux 内核之上</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson38',
+    title: 'Lesson 38（15:00）：车载嵌入式 Linux——为什么"车规 Linux"不是"电脑上的 Linux"？',
+    mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson38', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson38');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson38');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson38',
+  title: 'Lesson 38（15:00）：车载嵌入式 Linux——为什么"车规 Linux"不是"电脑上的 Linux"？',
+  feynman: [
+    { q: 1, ref: '三个区别：1) 裁剪定制：桌面 Linux 是通用发行版装一堆用不上的软件；车载 Linux 从内核源码按需裁剪配置编译，只保留需要的驱动和功能。好处：启动更快（3秒 vs 30秒）、更省内存、攻击面更小；2) 实时性：桌面是尽力而为调度；车载版启用实时调度策略（SCHED_FIFO/RR + PREEMPT_RT），保证仪表刷新、报警等关键任务优先确定性执行；3) 设备树：桌面电脑靠 BIOS/UEFI 探测硬件；嵌入式没 BIOS，靠设备树（dts/dtb）描述硬件，内核启动时据此匹配驱动、初始化硬件，改硬件 = 改 dts 不用改内核代码' },
+    { q: 2, ref: '招聘中介类比：求职者（设备）把简历（compatible 属性、地址、中断号，来自设备树）交给中介（总线）；用人单位（驱动）也到中介登记要招什么样的人（支持的设备列表 of_match_table）。中介一比对，简历和岗位要求匹配 → 安排入职（probe() 被调用）→ 新人上岗干活（初始化硬件、提供操作接口）。不匹配就继续等。要点：总线是中介，设备树是简历，内核框架负责匹配，驱动作者只写 probe/remove' },
+    { q: 3, ref: '三个角度：1) 实时性：制动转向要求硬实时（毫秒级确定性响应），AUTOSAR Classic 裸机/OSEK 风格任务调度完全可控；中控导航影音是软实时，卡顿几百毫秒可接受，Linux 足够；2) 安全认证：制动转向是 ASIL-D 最高等级，Classic 架构和流程围绕功能安全认证设计；中控通常 QM/ASIL-A，Linux 开放生态难以满足 ASIL-D 认证；3) 算力需求：制动转向功能单一算力小，裸机/RTOS 足够；中控智驾要跑地图语音 AI，需要高性能 SoC 和丰富生态，是 Linux 主场' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>

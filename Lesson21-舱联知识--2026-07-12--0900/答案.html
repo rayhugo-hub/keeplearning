@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 21：答案 — 无线投屏的通信链路——手机画面是怎么"飞"到车机屏幕上的？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson20-数字车钥匙通信--2026-07-11--1200/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson22-舱驾知识--2026-07-12--1200/课程.html">下一课 →</a>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 21 — 答案</div>
+  <h1>无线投屏的通信链路——手机画面是怎么"飞"到车机屏幕上的？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（"敲门→进屋搬东西"类比解释 BLE + Wi-Fi Direct 的关系）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"敲门→进屋搬东西"类比）：</strong></p>
+<p>把 BLE 比作"敲门"，Wi-Fi Direct 比作"搬东西"：</p>
+<ul>
+  <li><strong>BLE 敲门（发现和配对）：</strong> 你站在朋友家门口，先敲门（BLE 广播），朋友在门里问"谁呀？"（扫描响应），你自报家门"我是张三，我来给你送个大件家具体"（交换能力信息）。这个阶段消耗极少的能量——就像敲门只花几秒的力气。</li>
+  <li><strong>Wi-Fi Direct 搬东西（高速传输）：</strong> 朋友确认你的身份和需求后，打开大门（建立 Wi-Fi Direct 连接），你们一起把大件家具搬进去（高清视频流传输）。这个阶段需要全身发力——就像 Wi-Fi Direct 需要高功率传输大量数据。</li>
+</ul>
+<p><strong>为什么不能直接 Wi-Fi（不敲门直接搬东西）？</strong></p>
+<ul>
+  <li>如果不在 BLE 阶段先"敲门"，手机根本不知道附近有车机——就像你站在朋友家门前直接开始搬东西，但门没开，你都不知道屋里有没有人。</li>
+  <li>如果 Wi-Fi Direct 一直开着等手机连接，车机的 Wi-Fi 芯片必须持续高功率广播——会严重增加车辆 12V 电池的功耗，可能导致车辆长时间停放后亏电。</li>
+  <li>BLE 阶段的"能力交换"决定了 Wi-Fi 的传输参数（分辨率、编解码器）——就像先看家具尺寸再决定开多大的门。</li>
+</ul>
+<p><strong>一句话：</strong> BLE 是"轻轻敲个门"，Wi-Fi Direct 是"使劲搬东西"——门不开怎么搬？敲门怎么使劲敲门？</p>
+</div>
+
+<h3>Q2（"两条不同的路"类比对比 Wi-Fi Direct 与路由器）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"两条不同的路"类比）：</strong></p>
+<p>把数据从手机传到车机比作"从 A 到 B 送外卖"：</p>
+<ul>
+  <li><strong>通过家用路由器（手机热点/家庭 Wi-Fi）：</strong> 就像外卖员（数据）从你家（手机）出发，骑到路口的中转站（路由器），再从中转站出来骑到商场（车机）。多了一段路（路由器转发），多了一重拥堵风险（路由器同时服务其他设备），途中可能遇到红绿灯（路由器的队列延迟）。</li>
+  <li><strong>Wi-Fi Direct（点对点直连）：</strong> 就像外卖员从你家（手机）直接走过去到商场（车机）——一条专属通道，不用经过任何中转站。路上没人挡着，随时可以走。</li>
+</ul>
+<p><strong>为什么 Wi-Fi Direct 时延更低？</strong></p>
+<table>
+<tr><th>场景</th><th>路径</th><th>典型延迟</th></tr>
+<tr><td>通过路由器</td><td>手机→路由器→车机（两跳）</td><td>20~50 ms</td></tr>
+<tr><td>Wi-Fi Direct</td><td>手机↔车机（一跳）</td><td>5~10 ms</td></tr>
+</table>
+<ul>
+  <li>路由器是"共享资源"——家里的电视、电脑、手机都在抢这条信道。导航画面需要低延迟，偶尔被其他设备抢占信道就会卡顿。</li>
+  <li>Wi-Fi Direct 是"专用通道"——手机和车机之间没有第三方设备竞争，信道资源独占，带宽可达 300 Mbps 以上（Wi-Fi 5 单流）。</li>
+</ul>
+<p><strong>一句话：</strong> 无线投屏走的是"秘密专用通道"，不走"人挤人的大马路"。</p>
+</div>
+
+<h3>Q3（触控回传的通信路径及 TCP vs UDP 的选择）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"你喊话我响应"类比）：</strong></p>
+<p>把触控回传比作"你喊话我响应"：</p>
+<ul>
+  <li><strong>画面传输（UDP）：</strong> 老师在讲台上讲课（手机渲染画面），通过广播（RTP/UDP）传到所有同学（车机屏幕）——偶尔有同学走神漏听了一句（丢了一帧），没关系，继续往下听，不影响整体理解。老师不会因为有个同学没听清楚就停下来重讲一遍。</li>
+  <li><strong>触控回传（TCP）：</strong> 班长（车机）站起来说了一个重要通知——"老师说明天的考试改到后天了"（触摸事件）。这个通知必须确保每个同学都收到（可靠性要求）。如果有人说"我没听清"，班长必须重新说一遍（TCP 重传），直到所有人确认收到。</li>
+</ul>
+<p><strong>为什么触控用 TCP 而画面用 UDP？</strong></p>
+<table>
+<tr><th></th><th>画面（视频流）</th><th>触控（交互事件）</th></tr>
+<tr><td>丢包后的影响</td><td>画面短暂花一下（几十毫秒恢复）</td><td>按钮点下去没反应（无法恢复）</td></tr>
+<tr><td>用户感受</td><td>"好像闪了一下，算了"</td><td>"怎么回事？没按到？再点一次"</td></tr>
+<tr><td>传输协议</td><td>RTP/UDP</td><td>TCP</td></tr>
+<tr><td>重传策略</td><td>❌ 不重传</td><td>✅ 保证送达</td></tr>
+</table>
+<ul>
+  <li><strong>触控事件是"命令"不是"画面"：</strong> 你点了导航地址的"设为目的地"按钮——这个事件如果丢失了，导航 App 不会更新目的地，车机上可能看起来什么也没发生。用户会反复点，导致多个指令冲突。</li>
+  <li><strong>画面是"状态"不是"命令"：</strong> 如果某一帧丢包了，下一帧显示正确位置即可——因为状态是连续更新的，丢了一个中间状态不影响最终结果。</li>
+</ul>
+<p><strong>一句话：</strong> 触控是"命令"不能丢（用 TCP），画面是"状态"可以偶尔不更新（用 UDP）——就像发号施令必须确认收到，但天气预报偶尔说错一两个字不影响你决定要不要带伞。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>BLE 在无线投屏中的核心作用是<strong>低功耗发现和配对，交换能力信息</strong>（A❌ 视频流传输是 Wi-Fi Direct 的事；C❌ BLE 是短距无线技术，不是蜂窝网络；D❌ 加密由 WPA2/3 在 Wi-Fi Direct 阶段完成）</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>C</strong></td>
+  <td>Wi-Fi Direct 的最大优势是<strong>点对点直连，不经过路由器转发，延迟更低（5~10 ms）</strong>。它不需要路由器就能建立高速连接，信道独占、无第三方竞争，这是它能流畅投屏的关键（A❌ Wi-Fi Direct 通常只有几十米范围；B❌ 上网能力不是 Wi-Fi Direct 的设计目标；D❌ 连接设备数量不是优势）</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>C</strong></td>
+  <td>视频流用 RTP/UDP 传输是因为<strong>允许偶尔丢包（画面短暂花一下），避免 TCP 重传导致的长时间卡顿</strong>。导航画面"闪花 50 ms"比"卡住 500 ms 等重传"安全得多——驾驶员看一眼导航时卡住，可能导致错过路口（A❌ TCP 编码复杂度差异忽略不计；B❌ UDP 本身不"更快"，只是设计取舍不同；D❌ RTP 是 IETF 标准协议，非苹果专用）</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

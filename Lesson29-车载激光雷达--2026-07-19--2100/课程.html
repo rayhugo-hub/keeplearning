@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 29（21:00）：车载激光雷达（LiDAR）——自动驾驶的"眼睛"是怎么看路的？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 29（21:00）— 2026-07-19 | 🚗 车载激光雷达</div>
+  <h1>车载激光雷达（LiDAR）——自动驾驶的"眼睛"是怎么看路的？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson28-车载OTA升级--2026-07-19--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson30-车载摄像头与视觉感知--2026-07-21--1800/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你坐在一辆自动驾驶出租车的后排，车子在雨夜中穿行。雨刷疯狂摆动，路灯反射在湿漉漉的路面上。前方突然蹿出一只猫——车子在 50 毫秒内紧急制动，稳稳停下。</p>
+
+<p><strong>问题来了：</strong></p>
+
+<ul>
+<li>摄像头在雨夜里能看清那只猫吗？——雨滴反光、光线昏暗，摄像头很容易"眼瞎"</li>
+<li>毫米波雷达能"看到"猫吗？——能探测到障碍物，但分辨率太低，分不清是"猫"还是"一个塑料袋"</li>
+<li>那<strong>谁</strong>在雨夜里"看"得最清楚？</li>
+</ul>
+
+<div class="callout">
+<p><strong>答案是激光雷达（LiDAR）。它用激光脉冲在三维空间中"扫描"，生成精确到厘米级的点云图像——无论白天黑夜，雨雪雾霾，它都能稳定工作。</strong> 它是 L3 级以上自动驾驶的核心感知传感器。</p>
+</div>
+
+<hr>
+
+<h2>二、LiDAR 是什么？——用激光画出来的"立体素描"</h2>
+
+<h3>核心原理</h3>
+
+<p>LiDAR（Light Detection And Ranging）的工作原理：</p>
+
+<div class="callout">
+<p><strong>距离 = 光速 × 飞行时间 / 2</strong></p>
+<p>发射器发出一束极短的激光脉冲 → 遇到障碍物反射回来 → 接收器捕获回波 → 计算往返时间 → 得出距离。</p>
+</div>
+
+<p><strong>关键参数：</strong></p>
+
+<table>
+<tr><th>参数</th><th>含义</th><th>典型值</th></tr>
+<tr><td>波长</td><td>激光的颜色</td><td>905nm（近红外）或 1550nm</td></tr>
+<tr><td>线数</td><td>同时扫描的激光线束数</td><td>16 / 32 / 64 / 128 线</td></tr>
+<tr><td>探测距离</td><td>能可靠检测的最大距离</td><td>150m ~ 300m</td></tr>
+<tr><td>角分辨率</td><td>每根线的角度精度</td><td>0.05° ~ 0.2°</td></tr>
+<tr><td>帧率</td><td>每秒扫描次数</td><td>10 ~ 20 Hz</td></tr>
+</table>
+
+<h3>点云（Point Cloud）是什么？</h3>
+
+<p>每次激光脉冲返回一个三维坐标点 <code>(x, y, z)</code>。每秒数十万到数百万个点拼在一起，就是点云。</p>
+
+<p>点云能告诉算法：</p>
+<ul>
+<li>前方 25 米处有一个<strong>行人</strong>（人形轮廓）</li>
+<li>右侧 8 米有一辆<strong>自行车</strong>（两个轮子+坐垫形状）</li>
+<li>路沿在离车 1.2 米的左侧（地面高度突变点）</li>
+</ul>
+
+<h3>点云 vs 摄像头图像</h3>
+
+<table>
+<tr><th>特性</th><th>摄像头图像</th><th>LiDAR 点云</th></tr>
+<tr><td>维度</td><td>2D（像素 x, y）</td><td>3D（x, y, z）</td></tr>
+<tr><td>夜间能力</td><td>❌ 差（依赖环境光）</td><td>✅ 优秀（自发光源）</td></tr>
+<tr><td>颜色信息</td><td>✅ 有（RGB）</td><td>❌ 无（只有坐标）</td></tr>
+<tr><td>深度信息</td><td>❌ 需算法推算</td><td>✅ 直接测量</td></tr>
+<tr><td>天气影响</td><td>❌ 雨雾雪严重影响</td><td>✅ 影响较小</td></tr>
+<tr><td>数据量</td><td>大（2MP ~ 8MP）</td><td>中等（~1M 点/秒）</td></tr>
+<tr><td>成本</td><td>低（~$50）</td><td>高（$200 ~ $5000+）</td></tr>
+</table>
+
+<hr>
+
+<h2>三、三类主流 LiDAR 技术</h2>
+
+<h3>1️⃣ 机械旋转式 LiDAR</h3>
+
+<p>最经典的技术——整个激光模块在电机驱动下 360° 旋转扫描。</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph ROTARY["旋转模块"]
+        HEAD["旋转激光头"] --- ARRAY["激光发射器阵列<br>（多线阵）"]
+    end
+    MOTOR["电机驱动<br>600~1200 rpm"] --- HEAD
+    HEAD --&gt; SCAN["360° 水平扫描"]
+</div>
+
+<table>
+<tr><th>方面</th><th>说明</th></tr>
+<tr><td>✅ 优点</td><td>360° 水平视场角，技术成熟，分辨率高</td></tr>
+<tr><td>❌ 缺点</td><td>机械部件易磨损，成本高，体积大</td></tr>
+<tr><td>🏭 代表</td><td>Velodyne HDL-64（早期无人驾驶标配）</td></tr>
+</table>
+
+<h3>2️⃣ 微机电系统（MEMS）LiDAR</h3>
+
+<p>用微小的振镜代替机械旋转电机。</p>
+
+<div class="mermaid">
+flowchart LR
+    LASER["激光发射器"] --&gt; MEMS_M["MEMS 振镜<br>（微镜）"]
+    MEMS_M --&gt; SCAN_AREA["扫描区域<br>120° × 25°"]
+</div>
+
+<table>
+<tr><th>方面</th><th>说明</th></tr>
+<tr><td>✅ 优点</td><td>无大型旋转件，体积小，成本低，车规级可靠性</td></tr>
+<tr><td>❌ 缺点</td><td>视场角有限（通常 &lt; 120°），需要多颗拼接</td></tr>
+<tr><td>🏭 代表</td><td>Luminar, 速腾聚创 M 系列</td></tr>
+</table>
+
+<h3>3️⃣ 固态 Flash LiDAR</h3>
+
+<p>像相机一样"一次闪光"照亮整个场景，用 SPAD 探测器阵列接收回波。</p>
+
+<div class="mermaid">
+flowchart LR
+    FLASH["激光面光源<br>+ 扩散片"] --&gt; SCENE["照明整个视场"]
+    SCENE --&gt; SPAD["SPAD 探测器阵列<br>512×512 像素"]
+    SPAD --&gt; RESULT["每个像素独立测距"]
+</div>
+
+<table>
+<tr><th>方面</th><th>说明</th></tr>
+<tr><td>✅ 优点</td><td>无任何运动部件，极致可靠性，帧率高</td></tr>
+<tr><td>❌ 缺点</td><td>探测距离有限（通常 &lt; 100m），易受阳光干扰</td></tr>
+<tr><td>🏭 代表</td><td>Ouster ES2, 华为</td></tr>
+</table>
+
+<hr>
+
+<h2>四、LiDAR 在自动驾驶中的角色</h2>
+
+<div class="mermaid">
+flowchart TB
+    subgraph CAM["摄像头"]
+        CAM_F["认颜色<br>交通灯/车道线/标志牌"]
+    end
+    subgraph RADAR["毫米波雷达"]
+        RAD_F["测速度<br>远距离<br>全天候"]
+    end
+    subgraph LIDAR_SYS["LiDAR"]
+        LID_F["画点云<br>高精度距离<br>不受光照影响<br>厘米级分辨率"]
+    end
+    CAM_F --&gt; FUSION["多传感器融合"]
+    RAD_F --&gt; FUSION
+    LID_F --&gt; FUSION
+    FUSION --&gt; PLAN["规划与控制"]
+</div>
+
+<p>三种传感器互补：</p>
+<ul>
+<li><strong>摄像头</strong>：认识"交通灯是红色的"</li>
+<li><strong>毫米波雷达</strong>：知道"前方 150 米有障碍物，相对速度 60 km/h"</li>
+<li><strong>LiDAR</strong>：精确画出"前方 28.3 米处有一个高度 1.7m、宽度 0.6m 的行人轮廓"</li>
+</ul>
+
+<hr>
+
+<h2>五、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：LiDAR 用"光脉冲飞行时间"测距</h3>
+<p>每秒发射数百万个激光脉冲，计算每个脉冲的往返时间得到距离，生成三维点云。精度可达 ±2cm 以内。</p>
+
+<h3>📌 规则二：三类技术各有取舍</h3>
+<p><strong>机械式</strong>（360° 但贵且易损）→ <strong>MEMS</strong>（小且便宜但视场受限）→ <strong>Flash</strong>（无运动部件但距离短）。趋势是向纯固态演进。</p>
+
+<h3>📌 规则三：LiDAR 不是替代摄像头，而是互补</h3>
+<p>摄像头认颜色，LiDAR 认形状+距离。真正可靠的自动驾驶感知一定是"摄像头 + 毫米波雷达 + LiDAR"三者融合。</p>
+
+</div>
+
+<hr>
+
+<h2>六、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>用"手电筒照夜路 vs 用尺子量距离"的类比，向一个 12 岁的小朋友解释 LiDAR 和摄像头的根本区别。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>如果你要在雨夜设计一个自动驾驶系统，但预算只够装一种传感器（摄像头、毫米波雷达或 LiDAR），你会选哪个？为什么？说说你的取舍逻辑。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>机械式 LiDAR 的旋转电机坏了会怎样？MEMS LiDAR 的振镜坏了呢？Flash LiDAR 如果有个别像素点失效呢？从"故障后果"的角度对比三种技术。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>七、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：LiDAR 测量距离的核心物理原理是什么？</div>
+<label><input type="radio" name="mc1" value="A"> A. 三角测量法（利用两个相机视差）</label>
+<label><input type="radio" name="mc1" value="B"> B. 多普勒频移（利用频率变化）</label>
+<label><input type="radio" name="mc1" value="C"> C. 飞行时间法（TOF，Time of Flight）</label>
+<label><input type="radio" name="mc1" value="D"> D. 超声波回波时间</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：以下哪个<strong>不是</strong>机械旋转式 LiDAR 的缺点？</div>
+<label><input type="radio" name="mc2" value="A"> A. 有旋转部件，长期可靠性受限</label>
+<label><input type="radio" name="mc2" value="B"> B. 成本高，难以大规模车规量产</label>
+<label><input type="radio" name="mc2" value="C"> C. 水平视场角小于 120°</label>
+<label><input type="radio" name="mc2" value="D"> D. 体积较大，不便于集成到车顶</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：为什么 LiDAR 在夜间比摄像头表现更好？</div>
+<label><input type="radio" name="mc3" value="A"> A. LiDAR 有红外热成像功能，能检测热量</label>
+<label><input type="radio" name="mc3" value="B"> B. LiDAR 自带激光光源，不依赖环境照明</label>
+<label><input type="radio" name="mc3" value="C"> C. LiDAR 使用声波而非光波，不受光线影响</label>
+<label><input type="radio" name="mc3" value="D"> D. LiDAR 的芯片在低温下计算速度更快</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson29',
+    title: 'Lesson 29（21:00）：车载激光雷达（LiDAR）',
+    mcq: { mc1: 'C', mc2: 'C', mc3: 'B' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson29', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson29');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson29',
+  title: 'Lesson 29（21:00）：车载激光雷达（LiDAR）——自动驾驶的"眼睛"是怎么看路的？',
+  feynman: [
+    { q: 1, ref: '用"手电筒照夜路 vs 用尺子量距离"类比：摄像头（手电筒）→ 靠环境光看，猜距离；LiDAR（尺子）→ 发射激光量往返时间，直接算距离。核心区别："看图猜距离" vs "直接量距离"' },
+    { q: 2, ref: '选 LiDAR。摄像头雨夜看不清（光线差+雨滴反光）；毫米波雷达全天候但分辨率低（分不清"猫"和"塑料袋"）；LiDAR 自发光不受光照影响，分辨率高足以分辨行人轮廓。代价是成本最高，但安全第一' },
+    { q: 3, ref: '机械式（电机坏）→ 激光头卡死，巨大盲区 → 严重。MEMS（振镜坏）→ 扫描异常，点云变形 → 严重。Flash（像素坏）→ 个别点缺失可补偿 → 轻微。Flash 最安全，因无运动部件，优雅降级' }
+  ],
+  mcq: { mc1: 'C', mc2: 'C', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

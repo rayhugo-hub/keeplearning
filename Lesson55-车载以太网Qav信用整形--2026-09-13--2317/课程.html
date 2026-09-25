@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 55：车载以太网 Qav 信用整形——一个空闲的队列凭什么在偷偷"攒额度"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 55（23:17）：车载以太网 Qav 信用整形</h1>
+<p class="meta">📅 2026-09-13 | 🚗 IEEE 802.1Qav FQTSS · CBS 信用整形 · idleSlope / sendSlope / hiCredit / loCredit · 信用锯齿波 · 长期平均速率 = idleSlope · 与 Qbv / PSFP / 帧抢占 / FRER 分工 | ⏰ 23:17</p>
+<div class="nav-bar">
+  <a href="../Lesson54-车载以太网帧抢占--2026-09-12--0029/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson56-车载以太网CQF循环排队转发--2026-09-15--2346/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景：一个 9 KB 的突发，凭什么把关键帧推到 720 微秒之后</h2>
+<p>摄像头 ISP 在极短时间里把 <strong>6 帧画面</strong>一起交给交换机——对外口来说，这就是一个 <strong>9 KB 的突发</strong>。出口队列瞬间排满，而转向角、制动指令那一帧，就排在它<strong>后面</strong>。</p>
+<p>100 Mbps 链路上，把 9 KB 发完需要 <code>9000 ÷ 12 500 000 B/s ≈</code> <strong>720 µs</strong>。可关键控制流的端到端时延预算常常只有 <strong>250 µs</strong> 上下——<strong>还没出门就超预算了</strong>。</p>
+<p>这不奇怪：以太网出口是"先来先走"的，队列里排在你前面的字节，你必须等它走完。所以问题的本质是——<strong>突发必须被削平，否则关键帧没有活路</strong>。</p>
+<p>L47 / L54 学过的 <strong>Qbv 门控</strong> 能解决，但代价不小：需要 <strong>gPTP 全网时钟同步</strong>、需要<strong>离线算时间表</strong>、需要<strong>逐跳都支持</strong>。工程上很重。</p>
+<p><strong>802.1Qav（FQTSS，转发与排队增强）</strong> 提供了一条<strong>轻量</strong>的路子——<strong>信用整形（CBS，Credit-Based Shaper）</strong>：不需要全局时钟，只给"有带宽承诺"的那几类队列配一个<strong>额度斜率</strong>，让它们<strong>按承诺的速率平均地发</strong>，同时<strong>只允许很小的突发</strong>。</p>
+<div class="mermaid">
+flowchart LR
+    IDLE["😴 队列空闲：信用以 idleSlope 上涨（在攒额度）"] --&gt; ZERO["⚖️ 信用回到 0：有帧在等 → 允许开始发送"]
+    ZERO --&gt; SEND["📉 发送中：信用以 sendSlope 下滑（负斜率）"]
+    SEND --&gt; NEG["🔻 一帧发完：信用为负，禁止开始下一帧"]
+    NEG --&gt; IDLE
+</div>
+<p>上图就是 CBS 的全部灵魂：<strong>信用像锯齿一样上下摆动</strong>，摆动的节奏决定了这个队列能跑多快。</p>
+<blockquote>类比：给每个队列发一张<strong>储值卡</strong>。卡里没钱（余额为负）不许消费；不消费的时候余额慢慢涨（攒额度）；一消费就按"整口速度"快速扣钱，扣到负数就得停下来等。</blockquote>
+
+<h2>二、一个概念：每个队列一张"储值卡"，只准刷余额</h2>
+<p>CBS 的规则少得惊人——<strong>两条斜率 + 一道门槛</strong>：</p>
+<table>
+<tr><th>队列状态</th><th>信用怎么变</th><th>允许做什么</th></tr>
+<tr><td><strong>空闲</strong>（没轮到它发）</td><td>以 <strong>idleSlope</strong> 上涨（攒额度）</td><td>信用 ≥ 0 时，一旦轮到它就能开新帧</td></tr>
+<tr><td><strong>正在发送</strong></td><td>以 <strong>sendSlope</strong> 下降（负数）</td><td><strong>必须把这一整个帧发完</strong>，不能中途停</td></tr>
+<tr><td><strong>信用 ≥ 0</strong></td><td>—</td><td><strong>准入门槛</strong>：只有它 ≥ 0，才允许<strong>开始</strong>发送一个新帧</td></tr>
+<tr><td><strong>信用 &lt; 0</strong></td><td>—</td><td><strong>刹车</strong>：一个字节都不许发，等它涨回 0</td></tr>
+</table>
+<p>两个关键点：</p>
+<ul>
+  <li><strong>sendSlope 一定是负的</strong>：<code>sendSlope = idleSlope − portTransmitRate</code>。因为端口速率（整口带宽）必然大于 idleSlope（那只是给这一类的预留份额）——发送时它<strong>按整口速度在花</strong>，可"工资"只有 idleSlope，所以余额被快速扣掉，等于<strong>还债</strong>。</li>
+  <li><strong>门槛卡在"开始"这一刻，不卡在"发送中"</strong>。一旦放行，这一帧必须完整发完——这是以太网的物理约束（前导码 + 数据 + CRC 是不可切分的一个传输单元）。</li>
+</ul>
+<h3>守恒定律：为什么平均速率恰好等于 idleSlope</h3>
+<p>设端口速率 <code>R</code>、帧长 <code>L</code> 字节、预留斜率 <code>S</code>（就是 idleSlope）：</p>
+<table>
+<tr><th>阶段</th><th>耗时</th><th>信用变化</th></tr>
+<tr><td>发送这一帧</td><td><code>L / R</code></td><td>掉 <code>L × (1 − S / R)</code> 字节</td></tr>
+<tr><td>攒回 0</td><td><code>L × (R − S) / (R × S)</code></td><td>涨回 <code>L × (1 − S / R)</code> 字节</td></tr>
+<tr><td><strong>一个完整周期</strong></td><td><strong><code>L / S</code></strong></td><td><strong>净变化 0</strong></td></tr>
+</table>
+<p>于是：<strong>长期平均速率 = <code>L ÷ (L / S)</code> = <code>S</code> = idleSlope</strong>。</p>
+<p>这就是整形器的"守恒定律"：<strong>你预留多少，长期就只能跑多少</strong>。既不会超发，也不会被别的类挤掉。</p>
+<h3>数值感受（100 Mbps 口，idleSlope = 25 Mbps，帧长 1500 字节）</h3>
+<p>100 Mbps = 12.5 MB/s；25 Mbps = 3.125 MB/s。</p>
+<ul>
+  <li>发送耗时：<code>1500 ÷ 12.5 MB/s =</code> <strong>120 µs</strong>，期间信用从 0 掉到 <strong>−1125 字节</strong></li>
+  <li>攒回 0：<code>1125 ÷ 3.125 MB/s =</code> <strong>360 µs</strong></li>
+  <li>一个周期：<code>120 + 360 =</code> <strong>480 µs</strong>，而 <code>1500 ÷ 3.125 MB/s = 480 µs</code> ✔</li>
+  <li>长期平均：<strong>25 Mbps，与 idleSlope 一分不差</strong></li>
+</ul>
+
+<h2>三、"空闲率闲置"的真正含义：idleSlope 是预留，hiCredit 是刹车</h2>
+<h3>idleSlope（空闲斜率）——名字的由来与它的真实身份</h3>
+<p>名字直译就是"<strong>队列空闲时信用上涨的斜率</strong>"。但它真正的身份是<strong>带宽预留</strong>：</p>
+<ul>
+  <li>信用按<strong>时间</strong>累积，<strong>与该队列有没有流量、别的队列忙不忙都无关</strong>。所以哪怕某个类整天不发一帧，它的额度也<strong>不会</strong>被普通流抢走。</li>
+  <li>这就是"<strong>空闲率闲置</strong>"的含义：<strong>闲置期照样计息</strong>。好处是它保证了流的<strong>带宽承诺</strong>；代价是——<strong>这份额度别人也用不了</strong>。</li>
+  <li>因此<strong>所有 SR 类的 idleSlope 之和不能超过端口带宽</strong>。经典 AVB 里有个业界常说的 <strong>"75% 规则"</strong>：单类 idleSlope 通常不超过端口速率的 75%（为最坏干扰留余量），A + B 之和还要更保守。车载上具体数值以 <strong>IEEE 802.1DG</strong> 的 profile 与整车实测标定为准。</li>
+  <li>反过来要清醒：<strong>预留承诺的是"速率"，不是"实际需求"</strong>。idleSlope 配小了 → 流跑不上去（吞吐被整形器压住、队列持续积压、时延攀升、最终溢出丢帧）；配大了 → 白占出口容量，挤掉别的业务。</li>
+</ul>
+<h3>hiCredit（信用上限）——突发刹车</h3>
+<p>如果没有上限会怎样？一个空闲了<strong>整整一秒</strong>的队列会攒下 <code>idleSlope × 1 s</code> 的巨额信用，一有帧到达就<strong>连续全速发一大串</strong>——这比不整形还糟，因为突发是"攒出来的"，而且它会在最坏的时刻打穿下游缓冲。</p>
+<ul>
+  <li>标准要求 <strong>hiCredit 不小于 <code>idleSlope ×</code>（最大干扰帧的传输时间）</strong>，工程上就按这个值配。</li>
+  <li>算一遍：100 Mbps 口、idleSlope 25 Mbps、最大帧（含 VLAN 标签）1542 字节 ≈ 123.36 µs → <strong>hiCredit ≈ 25 Mbps × 123.36 µs ≈ 386 字节</strong>。</li>
+  <li>妙处在于：<strong>即使刚被一个最大帧挡了 123 µs，攒下的额度也不够"额外多发一帧"</strong>——突发被牢牢锁在<strong>一个帧之内</strong>。</li>
+</ul>
+<h3>loCredit（信用下限）——保证"开了就必须发完"</h3>
+<p>发送时信用一路下滑，下限是 <code>loCredit = sendSlope ×</code>（最大帧传输时间）：一个最大帧全速发完最多能掉到哪里。因为"一旦开始就必须发完"，信用<strong>最多</strong>掉到这里——它保证<strong>任何已经开始发送的帧都能完整发出</strong>，不会被信用见底丢在半路。</p>
+<p>这也顺手点出了 CBS 的<strong>边界</strong>：<strong>它只能管"要不要开始发"，管不了"已经发出的帧"</strong>。要打断已在发的帧，得靠 L54 的<strong>帧抢占</strong>。</p>
+<div class="mermaid">
+flowchart TB
+    subgraph EG["出口队列组"]
+        QA["SR 类 A 队列（有预留）"]
+        QB["SR 类 B 队列（有预留）"]
+        QN["普通流队列（不做信用整形）"]
+    end
+    CK["出队准入门槛：credit ≥ 0 才允许开始发送"]
+    CR["信用引擎：空闲按 idleSlope 涨 · 发送按 sendSlope 掉 · 上限 hiCredit"]
+    QA --&gt; CK
+    QB --&gt; CK
+    CR --&gt; CK
+    CK --&gt; ARB["端口仲裁 / Qbv 门控（802.1Q）"]
+    QN --&gt; ARB
+    ARB --&gt; PHY["PHY → 链路"]
+</div>
+
+<h2>四、它和 L47 / L50 / L53 / L54 那些机制怎么配合</h2>
+<table>
+<tr><th>机制</th><th>位置</th><th>管什么</th><th>与 CBS 的关系</th></tr>
+<tr><td><strong>Qbv 门控</strong>（L47）</td><td>交换机<strong>出口队列</strong></td><td>按<strong>全局时间表</strong>开关队列——管"什么时候准发"</td><td><strong>最佳组合</strong>：Qbv 只管闸门开合，<strong>门一开队列里积压的帧会以线速涌出</strong>；CBS 在门口按 idleSlope 限速，把脉冲摊成平缓流。Qbv 管<strong>准点与确定性</strong>，CBS 管<strong>平均速率与有限突发</strong>——<strong>CBS 给不了硬时延上界</strong></td></tr>
+<tr><td><strong>PSFP 入口监管</strong>（L53）</td><td>交换机<strong>入口</strong></td><td>按每流过滤 / 门控 / 限速——管"这帧有没有资格进场"</td><td><strong>位置互补</strong>：入口设卡防"坏流"，出口整形防"突发"，可以同时配</td></tr>
+<tr><td><strong>帧抢占</strong>（L54）</td><td><strong>出口 MAC 内部</strong>（MAC Merge）</td><td>让正在发的普通帧给关键帧让路</td><td><strong>互不替代</strong>：CBS 管不了"已在发的帧"（loCredit 正是保证它必须发完）；帧抢占专治这个。两者<strong>接续工作</strong>：先被 CBS 整形，再在需要时被抢占</td></tr>
+<tr><td><strong>FRER</strong>（L50）</td><td>双路径复制 / 去重</td><td>链路失效不丢帧</td><td><strong>必须对称配置</strong>：去重靠<strong>时序窗口</strong>判断两副本谁先到；若两条冗余路径上的 CBS 排队时延不一致（比如一侧 idleSlope 配小了），窗口就得放大——<strong>等于把冗余换来的时延预算又送掉了</strong></td></tr>
+<tr><td><strong>MACsec</strong>（L52）/ <strong>PHY</strong>（L48）</td><td>加密 / 物理层</td><td>内容可信 / 比特上线</td><td>无直接交互，但<strong>都吃帧长预算</strong>：加密追加的 ICV 让同一帧更长，在 CBS 里"更贵"（发送耗时与信用消耗都增加）</td></tr>
+</table>
+<p><strong>把 L47~L55 串一遍（一帧摄像头数据的旅程）</strong>：</p>
+<div class="mermaid">
+flowchart LR
+    IN["入口：PSFP 每流监管&lt;br&gt;有没有资格进场"] --&gt; SW["转发引擎&lt;br&gt;按 VLAN / 流分类入队"]
+    SW --&gt; OUT["出口队列&lt;br&gt;CBS 信用整形 + Qbv 门控"]
+    OUT --&gt; MM["MAC Merge / 帧抢占&lt;br&gt;给关键帧让路"]
+    MM --&gt; LINK["链路 / PHY&lt;br&gt;冗余路径 FRER 双发去重"]
+</div>
+<p><strong>为什么车载里几乎总是"Qbv 门控 + CBS 整形"一起配？</strong> 因为 <strong>Qbv 是闸门，不是减速带</strong>：</p>
+<div class="mermaid">
+flowchart LR
+    G1["只配 Qbv：开门瞬间"] --&gt; B1["队列里积压一整周期的帧&lt;br&gt;以线速涌出（脉冲突发）"]
+    B1 --&gt; C1["下游缓冲被打满&lt;br&gt;关键帧被挤 / 抖动 / 丢帧"]
+    G2["Qbv + CBS：开门期间按 idleSlope 限速"] --&gt; B2["积压帧被摊平&lt;br&gt;平缓流出（速率有界）"]
+    B2 --&gt; C2["下游缓冲可控&lt;br&gt;时延更可预测"]
+</div>
+
+<h2>五、工程要点</h2>
+<ol>
+  <li><strong>idleSlope 之和 ≤ 端口带宽</strong>：把所有 SR 类的预留相加，工程上常控制在端口速率的 75% 以内（经典 AVB 的"75% 规则"），给最坏干扰留余量。</li>
+  <li><strong>idleSlope 要对齐"流的最大需求"，不是平均需求</strong>：配小了流跑不上去，配大了白占带宽。要拿流的真实码率 + 突发去标定。</li>
+  <li><strong>hiCredit 必须配，不能放任</strong>：否则闲久了的队列会攒出巨型突发，把下游一次打穿。</li>
+  <li><strong>CBS ≠ Qbv</strong>：CBS 只承诺"平均速率 + 有限突发"，<strong>不提供硬时延上界</strong>。需要确定性时延，还得靠 Qbv 的时刻表。</li>
+  <li><strong>有门控的队列几乎都该配 CBS</strong>：否则开门瞬间就是一次脉冲突发。</li>
+  <li><strong>冗余路径的 CBS 必须对称</strong>：FRER 两侧配置不一致 → 去重窗口被迫放大 → 吃掉时延预算。</li>
+  <li><strong>队列积压不等于丢帧，但积压终会溢出</strong>：CBS 只是"延后"，不保证"不丢"。要与 PSFP / 入队监管 / 队列长度管理配合。</li>
+  <li><strong>验证要靠计数与抓包</strong>：per-queue 的入队 / 出队 / 丢弃计数，以及芯片的 CBS 状态 / 信用诊断计数，是排查"整形到底有没有生效"的第一手证据。</li>
+</ol>
+
+<h2>六、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>两条斜率 + 一道门槛</strong>：队列空闲时信用按 <strong>idleSlope</strong> 上涨，发送时按 <strong>sendSlope（= idleSlope − 端口速率，负值）</strong> 下降；<strong>只有信用 ≥ 0 才准开始发新帧</strong>，而<strong>一旦开始必须发完</strong>（loCredit 兜底）。</li>
+  <li><strong>idleSlope 是预留、hiCredit 是刹车</strong>：一个完整周期 = <strong>帧长 / idleSlope</strong>，所以<strong>长期平均速率 = idleSlope</strong>；hiCredit ≈ <code>idleSlope ×</code> 最大干扰帧时间（100 M / 25 M / 1500 B 下约 <strong>386 字节</strong>），把突发锁在<strong>一个帧以内</strong>。</li>
+  <li><strong>它管"平均"不管"准点"</strong>：CBS 不给硬时延上界，常与 <strong>Qbv 门控</strong>组合（开门限速防脉冲突发）、与 <strong>PSFP</strong> 分工（入口资格 vs 出口速率）、与 <strong>帧抢占</strong>接续（CBS 管不了已在发的帧）。</li>
+</ol>
+
+<h2>七、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <h3>Q1：用"储值卡"打比方：为什么信用要分两种斜率——不发送时慢慢涨、发送时快速掉？为什么必须"余额 ≥ 0 才能开始发，但一旦开始就必须把这一帧发完"？这套规则为什么能让长期平均速率刚好等于 idleSlope？（提示：一帧的"发送耗时 + 攒回信用的耗时"合起来正好是 帧长 ÷ idleSlope；发送时它按整口速度花钱、却只有 idleSlope 的"工资"）</h3>
+  <textarea id="feynman1" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q2：什么是 idleSlope？为什么说它代表"带宽预留"——队列一直闲着，这份额度也不会被别人抢走？为什么必须给信用设一个上限 hiCredit？如果不设上限，一个空闲了很久的队列会干出什么事？（提示：信用按时间累积、与别的队列无关；闲置期照样计息；长期空闲攒出巨型突发）</h3>
+  <textarea id="feynman2" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q3（进阶）：CBS（Qav）、Qbv 门控、PSFP 入口监管、帧抢占 四者各在哪个位置、管什么、能不能互相替代？为什么车载里常用"Qbv 门控 + CBS 整形"组合——门一开、队列里积压的帧会以线速冲出去，这对下游意味着什么？CBS 为什么给不了硬时延上界？再想一想：FRER 的双路径为什么要求 CBS 对称配置？（提示：闸门 vs 减速带；CBS 承诺只有"平均速率 + 有限突发"；去重靠时序窗口）</h3>
+  <textarea id="feynman3" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+
+<h2>八、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：关于 CBS（信用整形）的信用规则，以下哪项描述正确？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. 信用在发送时以 idleSlope 上升、空闲时以 sendSlope 下降；只要信用不超过 hiCredit 就可以发送</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. 信用在队列空闲时以 idleSlope 上升、在发送时以 sendSlope（= idleSlope − 端口速率，负值）下降；只有信用 ≥ 0 才允许开始发送一个帧，且一旦开始就发完整个帧</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. 信用的单位是微秒，与帧长无关，所以 CBS 一定能保证硬时延上界</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. 只要配好了 idleSlope，队列就不会再有任何排队时延</label>
+  <div class="mcq-result" id="mc1-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ2：某 100 Mbps 出口，某 SR 队列的 idleSlope 配成 25 Mbps，而这条流的真实需求约 40 Mbps。上线后现象是：吞吐被稳定压在约 25 Mbps、队列持续积压、时延不断攀升，甚至开始丢帧。最可能的原因是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. CBS 天然只能跑出 idleSlope 的 80%，这是标准损耗，无法改善</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. idleSlope 就是整形器给出的长期平均上限，它低于该流的真实码率 → 预留带宽不足、队列持续积压；应重新对照流的真实码率与突发标定 idleSlope，并检查所有 SR 类的 idleSlope 之和是否超过端口带宽（工程上常按 75% 以内控制）</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 因为没有同时启用帧抢占，CBS 无法生效</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 因为 hiCredit 被设成了 0，队列不允许发送任何帧</label>
+  <div class="mcq-result" id="mc2-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ3：车载里为什么经常把 Qbv 门控和 CBS 整形一起用？以下哪项最准确？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. 因为 CBS 需要 Qbv 提供全局时钟，没有 Qbv 的时钟 CBS 根本无法工作</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. 因为 Qbv 只决定"闸门什么时候开"，门一开队列里积压的帧会以线速涌出（脉冲突发），可能超出下游缓冲与整形能力；CBS 在开门期间按 idleSlope 限速，把脉冲"摊平"成平缓流。二者职责不同：Qbv 管准点与确定性，CBS 管平均速率与有限突发</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. 因为 CBS 能提供硬时延上界、可以替代 Qbv，两者一起用只是为了冗余备份</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. 因为 Qbv 会中途打断正在发送的帧，必须靠 CBS 把这些帧切小</label>
+  <div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson55',
+    title: '车载以太网 Qav 信用整形',
+    feynman: [],
+    mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson55',
+  title: '车载以太网 Qav 信用整形——一个空闲的队列凭什么在偷偷攒额度？',
+  feynman: [
+    { q: 'Q1', ref: '核心是两条斜率就是工资与支出，门槛卡在开始那一刻，于是长期只能跑出预留速率。①为什么分两种斜率：把信用想成储值卡余额。队列空闲（没轮到它发）时，它没占用出口，按公平原则应该把它的份额补回来，所以余额按 idleSlope 这个比较慢的速率上涨，这就是空闲斜率，意思是闲着也在攒额度。开始发送时，它花的是整个出口的速度（整口带宽），可它被允许占用的只有 idleSlope 这份工资，收支不对称，余额就快速往下掉，掉的速度就是 sendSlope 等于 idleSlope 减去端口速率，一定是负数，可以理解为发送时在还债。②为什么门槛卡在开始、且一旦开始就必须发完：余额就是准入证，只有余额大于等于零才准开始发送一个新帧，这样它才不会无限制地占用出口，别的类才有机会。而一旦开始发送就必须把整个帧发完，这是以太网的物理约束：前导码、数据和尾部校验是一个不可切分的传输单元，中途停下对端只会把残帧当坏帧丢掉。所以规则被设计成：卡在开始那一刻准入，放行之后就保证这一帧能走完；信用下限存在的意义，就是留足把已经开始的这一帧发完的余额深度。③为什么长期平均速率刚好等于 idleSlope：一帧 L 字节，发送耗时是 L 除以端口速率，这段时间余额掉 L 乘以一减预留率；要攒回零需要掉掉的量除以 idleSlope。两段时间相加，恰好等于 L 除以 idleSlope。也就是说一个帧的完整周期正好是帧长除以 idleSlope，那么平均吞吐就是 L 除以 L 除以 idleSlope，等于 idleSlope。这就是整形器的守恒定律：你预留多少，长期就只能跑多少，既不会超发，也不会被别人挤掉。' },
+    { q: 'Q2', ref: '核心是额度按时间攒、与别人无关，所以它是预留；上限是防止闲久了一次暴发。①idleSlope 是什么：名字直译就是队列空闲时信用上涨的斜率，也就是储值卡在不消费时慢慢涨的那部分。它真正的身份是带宽预留：信用是按时间累积的，跟这个队列有没有流量、别的队列忙不忙都没有关系。所以哪怕这个类整天一帧都不发，它的额度也不会被普通流抢走，等于在出口上给它留了一块专属容量。这就是空闲率闲置的含义：闲置期照样计息。好处是带宽承诺有保障，代价是这份额度别人也用不了，因此所有预留类相加不能超过端口带宽，工程上常说按端口速率的百分之七十五以内控制，为最坏情况的干扰留余量。②要清醒的一点是：预留承诺的是速率，不是实际需求。配小了，流跑不上去，队列会一直积压、时延不断攀升，最后溢出丢帧；配大了，就等于白占出口容量，把别的业务挤掉。所以必须按这条流真实的码率和最大突发来标定。③为什么必须设上限：信用如果无上限，一个空闲了很久的队列会攒下巨额余额，比如闲了一秒就攒了一秒乘以 idleSlope 的量，一旦有帧到达它就连续全速发一大串，这比完全不整形还糟，因为这种突发是被攒出来的，而且往往在最坏的时刻把下游的缓冲一次打穿。上限的作用就是给余额封顶，标准要求它不小于 idleSlope 乘以最大干扰帧的传输时间。举个例子，100 Mbps 口、预留 25 Mbps、最大帧一千五百字节时，上限只有约三百八十六字节，妙处在于即使刚被一个最大帧挡了一百二十三微秒，攒下的额度也不够额外多发一帧，突发就被锁死在一个帧的范围之内。' },
+    { q: 'Q3', ref: '核心是四道关各在一处、互相替代不了，而闸门不等于减速带。①位置与职责：CBS 信用整形在交换机出口队列，按流量类别控制平均速率与突发；Qbv 门控也在出口队列，按全局时间表决定什么时候开闸，管的是准点与确定性；PSFP 在交换机入口，按每一条流过滤、门控、限速，管这帧有没有资格进场；帧抢占在出口的 MAC 内部，让正在发送的普通帧给关键帧让路。②为什么常用门控加整形组合：Qbv 只回答闸门什么时候开，它本身不是减速带。门一开，队列里积压了整整一个周期的帧会以线速一口气涌出去，这就是脉冲突发，下游的缓冲区、入队速率甚至令牌桶都可能被这一下打满，造成关键帧被挤、时延抖动，严重时直接丢帧。所以在每个预留队列上再配 CBS，让开门期间按 idleSlope 限速，把一整周期的量平缓地摊在开门时段里发出去。Qbv 给准点，CBS 给平缓，缺一个都不完整。③为什么给不了硬时延上界：CBS 的承诺只有两条，长期平均速率不超过 idleSlope，突发被上限锁住。它不引用任何全局时间，所以无法回答这一帧最晚几点几分必须发出去。一个流的时延取决于它上游的全部干扰，包括同一出口其它队列和后面每一跳的队列积压，CBS 只能把最坏干扰压小一些，压不成有界。要做到有界得靠 Qbv 的时刻表，配合全网的时延计算。所以不要把 CBS 当 Qbv 用，反过来 Qbv 也替代不了 CBS 抑制突发。④冗余路径为什么要对称：FRER 去重靠时序窗口判断同一条流的两个副本谁先到、哪个该丢。如果两条冗余路径上的排队时延被配置得不一致，比如一侧预留配小了，窗口就必须放大才能容忍差异，而窗口一放大就等于把冗余本来换来的时延预算又送掉了。所以冗余路径的整形配置必须成对、对称。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</div>
+</body>
+</html>

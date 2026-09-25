@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 06 答案 — 数字车钥匙通信</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.4rem;font-weight:700;color:#1a1a2e;margin-bottom:.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding-bottom:.5rem;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.1rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+.q-block{background:#fafafc;border-radius:10px;border:1px solid #ececf2;padding:.8rem 1.2rem;margin:.8rem 0}
+.q-label{font-weight:600;margin-bottom:.4rem;font-size:.95rem;color:#1a1a2e}
+.q-label .tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+.ref{color:#444;font-size:.9rem}
+.mcq-answer{display:inline-block;background:#e8f5e9;color:#2e7d32;font-weight:700;padding:.15rem .6rem;border-radius:4px;font-size:.9rem}
+.back-link{display:inline-block;margin-top:1rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>📖 Lesson 06 标准答案</h1>
+<div class="meta">数字车钥匙通信 — 2026-06-26 22:42</div>
+
+<div class="nav-bar">
+  <a href="../Lesson05-座舱--2026-06-25/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <a href="../Lesson07-舱联知识--2026-06-26--2304/课程.html">下一课 →</a>
+</div>
+
+<h2>费曼简答题参考答案</h2>
+
+<div class="q-block">
+<div class="q-label"><span class="tag">Q1</span>用小学生能听懂的话解释无感解锁</div>
+<div class="ref">
+手机和车之间一直在"偷偷说话"。你口袋里的手机通过蓝牙不停地小声广播"我在这里"，车听到后就问"你是谁？"手机悄悄回答了一个只有你们俩知道的暗号，车确认了是你，就开门了。整个过程像两个朋友对暗号，不用把暗号本掏出来给对方看。
+</div>
+</div>
+
+<div class="q-block">
+<div class="q-label"><span class="tag">Q2</span>超远程开锁的安全问题 vs UWB 如何避免</div>
+<div class="ref">
+超远程开锁最大的问题是"你怎么确认那个想开门的人真的是你"——如果 100 米外就能开锁，坏人在楼顶用设备就能开你停在路边的车。UWB 的厉害之处在于它能精确测量距离，误差只有几厘米。车能知道"钥匙信号是从距离驾驶座门 80 厘米的位置发来的"还是"信号虽然对，但实际从 50 米外传过来的"。如果是后者，说明有人在搞中继攻击，车就不开门。
+</div>
+</div>
+
+<div class="q-block">
+<div class="q-label"><span class="tag">Q3</span>数字钥匙分享的安全问题</div>
+<div class="ref">
+分享数字钥匙至少需要解决三件事：<br><br>
+<strong>1. 防止二次转发：</strong>分享出去的钥匙应该只能被接收人使用，不能再被转发给第三个人。技术上可以通过绑定接收人的手机设备 ID 来实现。<br><br>
+<strong>2. 时效控制：</strong>车厂会提供一个"钥匙管理平台"，发出去的时候可以设置有效期（比如今天 14:00-20:00），过期自动失效。也可以限制只开锁不能启动发动机。<br><br>
+<strong>3. 撤销能力：</strong>车主可以在手机 App 上一键撤销已经分享出去的钥匙，就像删掉一个 Wi-Fi 密码分享链接。
+</div>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<div class="q-block">
+<div class="q-label"><span class="tag">Q1</span>哪种技术能精确区分驾驶座门和副驾门？</div>
+<div class="ref">
+<span class="mcq-answer">C. UWB（超宽带）</span><br>
+UWB 的测距精度可达厘米级，能区分你在驾驶座门还是副驾门。BLE 只能判断大概 10 米范围内有钥匙，但无法精确定位。NFC 需要贴上去，没有"远距离测距"能力。
+</div>
+</div>
+
+<div class="q-block">
+<div class="q-label"><span class="tag">Q2</span>手机没电关机了哪种方式还能工作？</div>
+<div class="ref">
+<span class="mcq-answer">C. NFC（关机可用安全芯片）</span><br>
+很多手机的 NFC 芯片有独立供电的安全模块，手机主电池没电关机后，NFC 芯片还能利用手机天线的余电和车辆的 NFC 读卡器通信几小时。苹果的"电量储备"模式就是这个原理。
+</div>
+</div>
+
+<div class="q-block">
+<div class="q-label"><span class="tag">Q3</span>哪种技术最能防住中继攻击？</div>
+<div class="ref">
+<span class="mcq-answer">B. 精确测距</span><br>
+中继攻击的核心原理是"拉长距离"——用设备把车附近的钥匙信号拉到远处。UWB 通过测量信号的飞行时间（ToF，Time of Flight）可以精确知道信号实际发射的距离。当车检测到"钥匙信号虽然合法，但来自 100 米外"时，就会拒绝开锁。
+</div>
+</div>
+
+<hr>
+
+<a href="../Lesson06-数字车钥匙通信--2026-06-26--2242/课程.html" class="back-link">← 返回课程页</a>
+
+<hr>
+
+<div style="font-size:.8rem;color:#aaa;text-align:center;margin-top:1rem;">
+  Lesson 06 — 数字车钥匙通信 | 2026-06-26 22:42
+</div>
+
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

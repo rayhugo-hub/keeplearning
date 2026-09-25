@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 45：Classic 与 Adaptive 混合架构——一辆车里为什么有"两个 AUTOSAR"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+.feynman-label{font-weight:600;margin:.8rem 0 .3rem}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 45（23:00）：Classic 与 Adaptive 混合架构</h1>
+<p class="meta">📅 2026-08-26 | 🚗 AUTOSAR Classic / Adaptive 混合架构 · 服务型网关 · S2S 通信 | ⏰ 23:00</p>
+<div class="nav-bar">
+  <a href="../Lesson44-多SoC互联与算力调度--2026-08-25--2300/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景</h2>
+<p>Lesson 26 讲了 AUTOSAR 是什么，Lesson 43 讲了 Adaptive 平台的"运行时"，Lesson 44 讲了多 SoC 怎么互联调度。但你有没有想过一个问题：<strong>一辆车里，为什么同时存在"两套 AUTOSAR"？</strong></p>
+<ul>
+  <li>刹车、转向这些 ECU 里跑的是 <strong>AUTOSAR Classic（CP）</strong>——静态、确定、毫秒级响应；</li>
+  <li>智驾、座舱的大算力芯片上跑的是 <strong>AUTOSAR Adaptive（AP）</strong>——动态、服务化、按需扩展；</li>
+  <li>它们说的"语言"都不一样：CP 世界里是<strong>信号</strong>（CAN 报文里的字节），AP 世界里是<strong>服务</strong>（SOME/IP 接口）。</li>
+</ul>
+<p>那问题来了：</p>
+<ul>
+  <li>这两套平台<strong>各自管什么</strong>？为什么不能统一成一套？</li>
+  <li>它们之间要互相传数据，<strong>怎么"对话"</strong>？</li>
+  <li>谁负责在中间<strong>翻译</strong>？</li>
+</ul>
+<blockquote><strong>这一课讲清楚：一辆车 = 一个"确定性世界"（CP，管安全）+ 一个"智能世界"（AP，管算力）——它们分工协作，靠"服务型网关 + S2S 通信"跨域对话。</strong></blockquote>
+
+<h2>二、为什么是"两套"，而不是"一套"？</h2>
+<table>
+<tr><th>维度</th><th>AUTOSAR Classic（CP）</th><th>AUTOSAR Adaptive（AP）</th></tr>
+<tr><td>诞生背景</td><td>2003 年，面向单个 ECU</td><td>2017 年，面向高性能计算平台</td></tr>
+<tr><td>运行环境</td><td>OSEK 风格实时 OS，<strong>静态配置</strong></td><td>POSIX OS（Linux/QNX），<strong>动态部署</strong></td></tr>
+<tr><td>通信模型</td><td><strong>信号级</strong>：RTE 静态路由，编译期定死</td><td><strong>服务级</strong>：ara::com 动态发现/调用</td></tr>
+<tr><td>调度方式</td><td>静态优先级、周期任务</td><td>多线程、按需启停、负载均衡</td></tr>
+<tr><td>认证能力</td><td>确定性好，<strong>ASIL-D 易认证</strong></td><td>算力强、生态丰富，但确定性难保证</td></tr>
+<tr><td>典型场景</td><td>底盘、动力、车身、网关</td><td>智驾、座舱、OTA、云端互联</td></tr>
+</table>
+<p><strong>类比：</strong>CP 像<strong>铁路调度室</strong>——所有列车时刻表提前排好，绝不临时改点，安全可靠；AP 像<strong>网约车平台</strong>——乘客随时下单、车辆动态调配，灵活高效。</p>
+<ul>
+  <li>铁路不能像网约车一样"临时派单"（安全关键功能要确定性、可证明）；</li>
+  <li>网约车平台不能像铁路一样"提前锁定每一分钟"（智驾算法、座舱应用负载波动大，需要动态资源）。</li>
+</ul>
+<p><strong>结论：不是替代关系，是分工关系。</strong>一辆现代汽车，恰恰需要"两个 AUTOSAR"各管一摊。</p>
+
+<h2>三、混合架构怎么"混"？——三种典型形态</h2>
+<table>
+<tr><th>形态</th><th>做法</th><th>典型例子</th></tr>
+<tr><td><strong>物理分离</strong></td><td>CP ECU 与 AP 平台是独立硬件，通过域间网关互联</td><td>VCU/EPS 等 ECU ↔ 智驾域控制器</td></tr>
+<tr><td><strong>虚拟机共存</strong></td><td>一颗大 SoC 上跑 Hypervisor，同时承载 AP 与 CP 虚拟机</td><td>座舱 SoC：Android（AP 侧）+ 仪表 CP 应用</td></tr>
+<tr><td><strong>服务化桥接</strong></td><td>CP 侧把信号"包装"成服务，AP 侧用 ara::com 直接调用</td><td>车速/档位等信号以服务形式暴露给智驾</td></tr>
+</table>
+<div class="mermaid">
+flowchart LR
+    subgraph CP["AUTOSAR Classic 域（确定性世界）"]
+        E1["制动 ECU"]
+        E2["转向 ECU"]
+        E3["车身 ECU"]
+    end
+    subgraph AP["AUTOSAR Adaptive 平台（智能世界）"]
+        A1["智驾应用"]
+        A2["座舱应用"]
+    end
+    G["服务型网关&lt;br&gt;（信号 ↔ 服务）"]
+    E1 -- CAN 信号 --&gt; G
+    E2 -- CAN 信号 --&gt; G
+    E3 -- CAN 信号 --&gt; G
+    G -- SOME/IP 服务 --&gt; A1
+    G -- SOME/IP 服务 --&gt; A2
+</div>
+<p><strong>注意</strong>：无论哪种形态，跨域通信都绕不开一个角色——<strong>服务型网关</strong>。</p>
+
+<h2>四、跨域通信的桥梁：服务型网关 + S2S</h2>
+<h3>1. 为什么需要"翻译"？</h3>
+<p>CP 世界说的是"信号语"：CAN 报文 0x123，第 0 字节低 8 位是车速，分辨率 0.01 km/h；AP 世界说的是"服务语"：<code>Vehicle.Speed</code> 接口，一调用就返回一个浮点数。</p>
+<p><strong>两种语言不通，直接对话会"鸡同鸭讲"。</strong></p>
+<h3>2. 服务型网关做三件事</h3>
+<table>
+<tr><th>职责</th><th>说明</th><th>类比</th></tr>
+<tr><td><strong>协议转换</strong></td><td>CAN/LIN ↔ 以太网（SOME/IP）</td><td>把"电报"换成"电话线路"</td></tr>
+<tr><td><strong>语义翻译</strong></td><td>原始信号值 → 服务接口（含单位换算、打包/解包）</td><td>把"摩尔斯电码"译成"普通话"</td></tr>
+<tr><td><strong>路由与安全</strong></td><td>跨域转发、访问控制、限流防攻击</td><td>海关+邮局：检查包裹再放行</td></tr>
+</table>
+<h3>3. S2S 通信：CP 与 AP 的"官方语言"</h3>
+<p><strong>S2S（Service-to-Service）通信</strong>是 AUTOSAR 在 <strong>21-11 版本</strong>正式标准化的 CP ↔ AP 服务通信机制：</p>
+<ul>
+  <li><strong>以前（R20-11 之前）</strong>：没有标准，每家 OEM 自己写专有网关桥接，代码不可复用、难维护；</li>
+  <li><strong>现在</strong>：CP 侧的 SWC（软件组件）可以把自己的 Port <strong>暴露成服务</strong>（S2S 模块 + RTE 扩展），AP 侧用 ara::com <strong>像调用本地服务一样调用它</strong>——CP 的 SWC 既能当服务提供者，也能当服务消费者。</li>
+</ul>
+<div class="mermaid">
+sequenceDiagram
+    participant APP as AP 应用
+    participant GW as 服务型网关
+    participant ECU as CP ECU
+    APP-&gt;&gt;GW: 订阅服务 Vehicle.Speed
+    GW-&gt;&gt;ECU: 请求周期信号（0x123）
+    ECU--&gt;&gt;GW: 返回车速原始值
+    GW--&gt;&gt;APP: 换算并返回服务响应
+</div>
+<p><strong>一句话：</strong>服务型网关负责"翻译"，S2S 负责"定标准"——两者合起来，让 2003 年的"老世界"和 2017 年的"新世界"顺畅对话。</p>
+
+<h2>五、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>CP 管"安全与确定"，AP 管"智能与灵活"</strong>——不是谁替代谁，而是分工（铁路调度室 vs 网约车平台）。</li>
+  <li><strong>混合架构的关键不是"跑在一起"，而是"说得通"</strong>——跨域对话靠服务型网关：协议转换、语义翻译、路由安全。</li>
+  <li><strong>S2S 是 CP 与 AP 之间的"官方语言"</strong>（AUTOSAR 21-11 标准化）——让 Classic 的 SWC 也能以服务身份参与 Adaptive 的世界。</li>
+</ol>
+
+<hr>
+
+<h2>六、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <label class="feynman-label">Q1：为什么一辆车里要同时存在 Classic 和 Adaptive 两套平台，而不是统一成一套？请用"铁路调度室 vs 网约车平台"的类比，说明各自不可替代的原因。</label>
+  <textarea id="feynman1" placeholder="在这里写下你的解释……"></textarea>
+  <label class="feynman-label">Q2："服务型网关"在 CP 和 AP 之间做了什么？用"翻译官"的类比，解释为什么跨域通信不能直接"鸡同鸭讲"。</label>
+  <textarea id="feynman2" placeholder="在这里写下你的解释……"></textarea>
+  <label class="feynman-label">Q3：S2S 通信解决了什么问题？在 AUTOSAR 21-11 标准化之前，CP 与 AP 跨域通信为什么很麻烦？</label>
+  <textarea id="feynman3" placeholder="在这里写下你的解释……"></textarea>
+</div>
+
+<h2>七、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：下面哪一项最准确地概括了 AUTOSAR Classic（CP）与 Adaptive（AP）的核心区别？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. CP 面向安全关键 ECU、信号级静态通信；AP 面向高性能计算、服务级动态通信</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. CP 只能跑在 MCU 上，AP 只能跑在 SoC 上</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. CP 比 AP 诞生更晚，功能更强大</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. 两者通信方式完全相同，只是名字不同</label>
+
+  <h3>MCQ2：制动冗余控制（ASIL-D，需要毫秒级确定性响应）应该部署在哪个平台？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. 部署在 AP 平台，因为它算力更强</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. 部署在 CP 平台，因为静态配置、确定性好、可认证</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 必须部署在云端服务器</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 部署在哪个平台都可以</label>
+
+  <h3>MCQ3：关于 S2S 通信，下列说法正确的是？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. S2S 让 CP 的 SWC 也能作为服务提供者/消费者与 AP 应用通信，AUTOSAR 21-11 标准化</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. S2S 是替代 CAN 的物理层总线协议</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. S2S 只能在 AP 内部的两个应用之间使用</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. S2S 与 SOME/IP 完全无关</label>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 45,
+    title: 'Classic 与 Adaptive 混合架构',
+    feynman: [],
+    mcq: { mc1: 'A', mc2: 'B', mc3: 'A' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 45,
+  title: 'Classic 与 Adaptive 混合架构——一辆车里为什么有"两个 AUTOSAR"？',
+  feynman: [
+    { q: 'Q1', ref: 'CP管安全与确定(铁路调度室:静态配置、编译期定死、ASIL-D 可证明)，AP管智能与灵活(网约车平台:动态部署、服务发现、POSIX 生态)；统一成一套会两头不讨好，是分工不是替代' },
+    { q: 'Q2', ref: '服务型网关三件事:协议转换(CAN/LIN 到 SOME/IP)、语义翻译(信号到服务接口,单位换算/打包解包)、路由与安全(转发/访问控制/限流)；语言不通所以要翻译官,不是简单转发' },
+    { q: 'Q3', ref: '21-11 前无标准,每家自研专有网关桥接:不可复用、难维护、联调成本高；标准化后 CP 的 SWC Port 可暴露为服务,AP 用 ara::com 直接调用,CP SWC 可作提供者/消费者' }
+  ],
+  mcq: { mc1: 'A', mc2: 'B', mc3: 'A' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 04 (21:33)：T-BOX是什么——车联网的"手机"</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.code-block{background:#f3f4f8;border-radius:8px;padding:.8rem 1.2rem;font-family:"SF Mono","Consolas",monospace;font-size:.85rem;line-height:1.5;margin:.6rem 0;white-space:pre-wrap;color:#333}
+.tip-box{background:#f0f4ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.6rem 1rem;margin:.8rem 0;font-size:.9rem;color:#333}
+.rule-list{margin:.8rem 0}
+.rule-item{display:flex;align-items:flex-start;gap:.7rem;padding:.5rem 0;border-bottom:1px solid #f0f0f5}
+.rule-num{flex-shrink:0;width:1.4rem;height:1.4rem;border-radius:50%;background:#4f6ef7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;margin-top:.2rem}
+.quiz-section{margin-top:1.5rem}
+.q-item{margin:1.2rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.4rem;font-size:.95rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+textarea{width:100%;min-height:70px;padding:.6rem;font-size:.9rem;border:1px solid #d4d4de;border-radius:8px;resize:vertical;font-family:inherit;line-height:1.6;margin-top:.4rem;transition:border-color .15s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.1)}
+.options{margin-top:.4rem}
+.option{display:flex;align-items:flex-start;gap:.5rem;padding:.35rem 0;cursor:pointer}
+.option input[type="radio"]{margin-top:.3rem;flex-shrink:0;accent-color:#4f6ef7}
+.option label{cursor:pointer}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+.footer-note{margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #e8e8ee;font-size:.85rem;color:#888;text-align:center}
+</style>
+<script src="../assets/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 04 (21:33) — 2026-06-21 | 🚗 T-BOX知识</div>
+  <h1>T-BOX是什么——车联网的"手机"</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson03-量化投资学习入门--2026-06-28--1400/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <span class="nav-disabled">下一课 →</span>
+</div>
+
+<h2>一、你有没有想过这些问题？</h2>
+<ul>
+  <li>你是怎么在手机上远程开空调、锁车门的？</li>
+  <li>事故发生时，车为什么能自动拨打救援电话？</li>
+  <li>导航是怎么知道实时路况的？</li>
+</ul>
+<p><strong>答案都指向同一个东西——T-BOX。</strong></p>
+<p>T-BOX（Telematics Box，车载远程通信终端）可以理解为<strong>给汽车装了一部"智能手机"</strong>。它让车能上网、能定位、能和云端对话。</p>
+<div class="tip-box">没有 T-BOX 的车就像没有手机的人——信息封闭、无法远程沟通。</div>
+
+<hr>
+
+<h2>二、T-BOX 到底是什么？</h2>
+<p>T-BOX 是一个巴掌大小的黑盒子，藏在汽车的中控台或座椅下面。它由几个关键部件组成：</p>
+
+<div class="mermaid" style="text-align:center;margin:.8rem 0">
+flowchart TB
+    subgraph TBOX["T-BOX 内部结构"]
+        direction TB
+        A["📡 4G/5G 通信模组（带SIM卡）&lt;br&gt;← 车的上网卡"]
+        B["🛰️ GPS/GNSS 定位芯片&lt;br&gt;← 知道车在哪"]
+        C["🧠 MCU 主控芯片&lt;br&gt;← 大脑，处理逻辑"]
+        D["📶 Wi-Fi/蓝牙模块&lt;br&gt;← 短距离通信"]
+        E["🔋 备用电池&lt;br&gt;← 断电也能工作"]
+        F["📍 eSIM（嵌入式SIM）&lt;br&gt;← 出厂内置"]
+    end
+</div>
+
+<table>
+  <tr><th>你想做的……</th><th>T-BOX 是怎么帮忙的？</th></tr>
+  <tr><td>夏天提前开空调</td><td>手机发指令 → 云端 → T-BOX 接收 → 控制空调</td></tr>
+  <tr><td>查看车辆位置</td><td>T-BOX 通过 GPS 定位 → 上传到云端 → 你手机看到</td></tr>
+  <tr><td>车辆碰撞自动求救</td><td>安全气囊触发 → T-BOX 自动拨打 SOS → 发送位置</td></tr>
+  <tr><td>系统在线升级</td><td>云端推送新软件 → T-BOX 下载 → 交给车机安装</td></tr>
+</table>
+
+<hr>
+
+<h2>三、重点记住三个要点</h2>
+<div class="rule-list">
+  <div class="rule-item"><span class="rule-num">1</span><span><strong>T-BOX = 车的"手机"</strong> — 有 SIM 卡、能上网、能定位，让车不再是信息孤岛</span></div>
+  <div class="rule-item"><span class="rule-num">2</span><span><strong>远程控车全靠它</strong> — 手机上的开空调、锁车门、查位置，T-BOX 是背后真正干活的</span></div>
+  <div class="rule-item"><span class="rule-num">3</span><span><strong>安全守护者</strong> — 发生事故时自动报警，关键时刻能救命</span></div>
+</div>
+
+<hr>
+
+<h2>四、测验</h2>
+
+<div class="quiz-section">
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+    <p>用一句话跟外行人解释：T-BOX 到底是干什么的？为什么说它是"车的手机"？</p>
+    <textarea placeholder="用自己的话写……不用术语"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+    <p>假设有人问"为什么我能在手机上远程开空调？"——用"发出指令→中间传递→执行"的过程来回答，不用术语。</p>
+    <textarea placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+    <p>T-BOX 为什么要装备用电池？在什么情况下备用电池会用到？</p>
+    <textarea placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>1</div>
+    <p>T-BOX 最核心的功能是什么？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc1" value="A" id="mc1a"><label for="mc1a">A. 播放音乐和视频</label></div>
+      <div class="option"><input type="radio" name="mc1" value="B" id="mc1b"><label for="mc1b">B. 让汽车能和外界通信（上网、定位、发数据）</label></div>
+      <div class="option"><input type="radio" name="mc1" value="C" id="mc1c"><label for="mc1c">C. 记录行车录像</label></div>
+      <div class="option"><input type="radio" name="mc1" value="D" id="mc1d"><label for="mc1d">D. 调节座椅和方向盘</label></div>
+    </div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>2</div>
+    <p>以下哪个场景不需要 T-BOX 参与？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc2" value="A" id="mc2a"><label for="mc2a">A. 手机 APP 远程锁车门</label></div>
+      <div class="option"><input type="radio" name="mc2" value="B" id="mc2b"><label for="mc2b">B. 事故后自动拨打救援电话</label></div>
+      <div class="option"><input type="radio" name="mc2" value="C" id="mc2c"><label for="mc2c">C. 车辆通过 OTA 升级系统</label></div>
+      <div class="option"><input type="radio" name="mc2" value="D" id="mc2d"><label for="mc2d">D. 仪表盘显示当前车速</label></div>
+    </div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>3</div>
+    <p>T-BOX 里的 SIM 卡是干什么用的？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc3" value="A" id="mc3a"><label for="mc3a">A. 存储导航地图</label></div>
+      <div class="option"><input type="radio" name="mc3" value="B" id="mc3b"><label for="mc3b">B. 让车能接入移动网络（4G/5G）</label></div>
+      <div class="option"><input type="radio" name="mc3" value="C" id="mc3c"><label for="mc3c">C. 验证车主身份</label></div>
+      <div class="option"><input type="radio" name="mc3" value="D" id="mc3d"><label for="mc3d">D. 记录加油记录</label></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+</div>
+
+<div class="nav-bar" style="margin-top:1.5rem">
+  <a href="../Lesson03-量化投资学习入门--2026-06-28--1400/课程.html">← 上一课</a>
+  <span class="nav-spacer"></span>
+  <span class="nav-disabled">下一课 →</span>
+</div>
+
+<div class="footer-note">做完随时问我：我的理解对不对？</div>
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY='teachme_lesson04'
+function saveProgress(){
+  const qs=document.querySelectorAll('textarea')
+  const mc1=document.querySelector('input[name="mc1"]:checked')
+  const mc2=document.querySelector('input[name="mc2"]:checked')
+  const mc3=document.querySelector('input[name="mc3"]:checked')
+  const data={
+    q1:qs[0]?.value||'', q2:qs[1]?.value||'', q3:qs[2]?.value||'',
+    mc1:mc1?.value||'', mc2:mc2?.value||'', mc3:mc3?.value||''
+  }
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data))
+}
+function restoreProgress(){
+  const raw=localStorage.getItem(STORAGE_KEY)
+  if(!raw)return
+  try{
+    const d=JSON.parse(raw)
+    const qs=document.querySelectorAll('textarea')
+    if(qs[0]&&d.q1)qs[0].value=d.q1
+    if(qs[1]&&d.q2)qs[1].value=d.q2
+    if(qs[2]&&d.q3)qs[2].value=d.q3
+    if(d.mc1){const el=document.querySelector('input[name="mc1"][value="'+d.mc1+'"]');if(el)el.checked=true}
+    if(d.mc2){const el=document.querySelector('input[name="mc2"][value="'+d.mc2+'"]');if(el)el.checked=true}
+    if(d.mc3){const el=document.querySelector('input[name="mc3"][value="'+d.mc3+'"]');if(el)el.checked=true}
+  }catch(e){}
+}
+document.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',saveProgress))
+document.querySelectorAll('input[type="radio"]').forEach(r=>r.addEventListener('change',saveProgress))
+restoreProgress()
+
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson04',
+  title: 'T-BOX是什么——车联网的"手机"',
+  feynman: [
+    { q: 1, ref: 'T-BOX 就像给车装了一部能上网、能定位、能打电话的"专用手机"——没有它，车就是一个信息孤岛，不能远程控制，不会自动求救，也连不上云端。' },
+    { q: 2, ref: '你在手机上点"开空调"→ 指令发到车厂云服务器 → 云服务器找到你的车 → 通过 4G/5G 把指令发给 T-BOX → T-BOX 告诉空调系统"开！"→ 空调启动。' },
+    { q: 3, ref: '备用电池是为了应对车辆断电的情况。比如严重事故时车辆主电瓶可能被撞断，T-BOX 靠备用电池还能继续拨打救援电话、发送 GPS 位置。另外熄火状态下远程控制也需要备用电池供电。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'D', mc3: 'B' }
+};
+
+function submitAll() {
+  const correct = ANSWERS.mcq;
+  let score = 0, total = Object.keys(correct).length;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (selected && selected.value === ans) {
+      resultDiv.className = 'mcq-result correct'; resultDiv.textContent = '✅ 正确！'; score++;
+    } else {
+      resultDiv.className = 'mcq-result wrong'; resultDiv.textContent = '❌ 正确答案是：' + ans;
+    }
+  }
+  let scoreDiv = document.getElementById('mcq-score');
+  if (!scoreDiv) {
+    scoreDiv = document.createElement('div');
+    scoreDiv.id = 'mcq-score';
+    scoreDiv.style.cssText = 'margin:.8rem 0;padding:.6rem 1rem;background:#e8f5e9;border-radius:8px;font-size:.9rem;font-weight:500;border-left:4px solid #4caf50;';
+    document.querySelector('.btn-group').before(scoreDiv);
+  }
+  scoreDiv.textContent = '📊 选择题得分：' + score + '/' + total;
+}
+</script>
+<script src="../ai-grader.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

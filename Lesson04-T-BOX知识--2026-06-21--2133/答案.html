@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 04 标准答案 — T-BOX是什么</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e;margin-bottom:.3rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1.5rem}
+.nav-bar{display:flex;gap:1rem;margin-bottom:1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.1rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+.q-card{margin:.8rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.3rem;font-size:.9rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+.q-question{font-size:.85rem;color:#666;margin-bottom:.4rem}
+.q-answer{font-size:.9rem;padding:.5rem .7rem;background:#f0fdf4;border-left:3px solid #16a34a;border-radius:4px;color:#1a1a2e}
+.mcq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6rem;margin-top:.4rem}
+.mcq-item{padding:.5rem .7rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:.85rem}
+.mcq-item strong{color:#16a34a}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.back-link{display:inline-flex;align-items:center;gap:.4rem;margin-top:1.5rem;padding:.5rem 1rem;background:#4f6ef7;color:#fff;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:500;transition:background .15s}
+.back-link:hover{background:#3d5ce5}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<h1>📖 标准答案</h1>
+<p class="meta">Lesson 04（21:33）— T-BOX是什么：车联网的"手机"</p>
+
+<h2>费曼简答题</h2>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+  <div class="q-question">用一句话跟外行人解释：T-BOX 到底是干什么的？为什么说它是"车的手机"？</div>
+  <div class="q-answer">T-BOX 就像给车装了一部能上网、能定位、能打电话的"专用手机"——没有它，车就是一个信息孤岛，不能远程控制，不会自动求救，也连不上云端。</div>
+</div>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+  <div class="q-question">为什么能在手机上远程开空调？用"发出指令→中间传递→执行"的过程回答。</div>
+  <div class="q-answer">你在手机上点"开空调"→ 指令发到车厂云服务器 → 云服务器找到你的车 → 通过 4G/5G 把指令发给 T-BOX → T-BOX 告诉空调系统"开！"→ 空调启动。就像"你说话→中间人传话→车里的人照做"。</div>
+</div>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+  <div class="q-question">T-BOX 为什么要装备用电池？在什么情况下备用电池会用到？</div>
+  <div class="q-answer">备用电池为了应对车辆断电。比如严重事故时主电瓶被撞断，T-BOX 靠备用电池还能拨打救援电话、发 GPS 位置。熄火远程控制也需要备用电池供电。</div>
+</div>
+
+<hr>
+
+<h2>选择题</h2>
+
+<div class="mcq-grid">
+  <div class="mcq-item">
+    <strong>Q1</strong> T-BOX 最核心的功能是什么？<br>
+    ✅ <strong>B</strong>. 让汽车能和外界通信（上网、定位、发数据）
+  </div>
+  <div class="mcq-item">
+    <strong>Q2</strong> 哪个场景不需要 T-BOX 参与？<br>
+    ✅ <strong>D</strong>. 仪表盘显示当前车速
+  </div>
+  <div class="mcq-item">
+    <strong>Q3</strong> T-BOX 里的 SIM 卡是干什么用的？<br>
+    ✅ <strong>B</strong>. 让车能接入移动网络（4G/5G）
+  </div>
+</div>
+
+<a href="课程.html" class="back-link">← 返回课程</a>
+
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

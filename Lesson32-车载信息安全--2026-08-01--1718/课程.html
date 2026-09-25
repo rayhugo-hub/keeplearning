@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 32（17:18）：车载信息安全——HSM、SecOC、Secure Boot 如何守住"车轮上的电脑"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 32（17:18）— 2026-08-01 | 🚗 车载信息安全</div>
+  <h1>车载信息安全——HSM、SecOC、Secure Boot 如何守住"车轮上的电脑"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson31-多传感器融合算法--2026-08-01--1718/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson33-V2X车路协同--2026-08-01--1718/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>2015 年，两位安全研究员 Charlie Miller 和 Chris Valasek 做了一件震惊全球的事：他们坐在 10 英里外的沙发上，通过车辆的娱乐系统（Uconnect 车机），一路攻进 CAN 总线，<strong>远程控制了一辆正在高速上行驶的 Jeep Cherokee</strong>——关掉空调、启动雨刮、切断变速箱，最后让车在高速上熄火停了下来。克莱斯勒因此召回 140 万辆车。</p>
+
+<p><strong>问题来了：</strong></p>
+
+<ul>
+<li>车机（娱乐系统）和刹车、转向之间，为什么能"一竿子捅到底"？</li>
+<li>网关不是有防火墙吗？为什么没拦住？</li>
+<li>今天的新车都在宣传"信息安全"——它们到底用什么技术来防这类攻击？</li>
+</ul>
+
+<div class="callout">
+<p><strong>答案是三大安全支柱：Secure Boot（可信启动）、HSM（硬件安全模块）、SecOC（安全车载通信）。</strong> 这三大技术分别守住"启动关"、"密钥关"和"通信关"。汽车正在从"机械产品"变成"车轮上的数据中心"，信息安全已经从"可选"变成"法规强制"（UN R155/R156）。往下看，这三大支柱分别怎么工作。</p>
+</div>
+
+<hr>
+
+<h2>二、先搞懂敌人：汽车的攻击面有多大？</h2>
+
+<p>黑客要入侵一辆车，总得有个"入口"。现代汽车的攻击面比你想象的大得多：</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph EXT["外部攻击面（远程）"]
+        E1["4G/5G 蜂窝<br>(T-BOX)"]
+        E2["Wi-Fi / 蓝牙<br>(车机、车钥匙)"]
+        E3["OTA 升级通道"]
+        E4["云端 App / 服务器"]
+    end
+    subgraph INT["内部攻击面（物理接触）"]
+        I1["OBD-II 诊断口"]
+        I2["USB 接口"]
+        I3["维修工具 / 刷机设备"]
+    end
+    E1 --&gt; GATEWAY["网关 / 域控制器"]
+    E2 --&gt; GATEWAY
+    E3 --&gt; GATEWAY
+    E4 --&gt; GATEWAY
+    I1 --&gt; GATEWAY
+    I2 --&gt; GATEWAY
+    I3 --&gt; GATEWAY
+    GATEWAY --&gt; ECU["ECU 群<br>(动力/制动/转向/座舱)"]
+</div>
+
+<p><strong>关键认知：</strong> 攻击者不一定直接攻刹车——更常见的路径是"<strong>从最软的入口进，横向移动，再打关键 ECU</strong>"。所以信息安全的本质不是"堵住一个口"，而是<strong>纵深防御（Defense in Depth）</strong>：每一层都有独立防护，攻破一层还有下一层。</p>
+
+<hr>
+
+<h2>三、支柱一：Secure Boot——"启动关"，保证跑起来的代码是可信的</h2>
+
+<h3>为什么需要它？</h3>
+
+<p>攻击者可以刷写 ECU 的 Flash，植入恶意固件（比如让刹车 ECU"听黑客的话"）。Secure Boot 要保证：<strong>ECU 每次上电，只运行"经过签名验证"的代码</strong>。</p>
+
+<h3>信任链（Chain of Trust）</h3>
+
+<div class="mermaid">
+flowchart LR
+    ROM["BootROM<br>(硬件固化，不可改)<br>含根公钥"] --&gt;|"验证签名"| SBL["一级引导 SBL<br>(Secondary Bootloader)"]
+    SBL --&gt;|"验证签名"| APP["应用固件<br>(App Firmware)"]
+    APP --&gt;|"验证签名"| DATA["关键数据/配置<br>(签名+加密)"]
+</div>
+
+<ol class="ol-decimal">
+<li><strong>BootROM</strong>：出厂烧死在芯片里，物理上不可修改——它是信任的"根"</li>
+<li><strong>一级引导</strong>：BootROM 用<strong>根公钥</strong>验证 SBL 的签名，通过才执行</li>
+<li><strong>应用固件</strong>：SBL 验证 App 固件的签名，通过才跳转</li>
+<li><strong>每一级都验签</strong>，任何一级失败 → 拒绝启动（或进入安全恢复模式）</li>
+</ol>
+
+<div class="callout">
+<p><strong>打个比方：</strong> 就像机场安检——你进航站楼（BootROM）查一次证件，登机口（SBL）再查一次，上飞机（App）还要对一次座位号。每一道门都验证上一道门给的凭证，整条链才可信。</p>
+</div>
+
+<h3>配套：Secure Debug / Secure Flash</h3>
+
+<ul>
+<li>调试口（JTAG/SWD）要<strong>认证后才开放</strong>，防止攻击者用调试器直接读内存</li>
+<li>Flash 刷写要<strong>签名校验</strong>，非授权固件写不进去</li>
+</ul>
+
+<hr>
+
+<h2>四、支柱二：HSM——"密钥关"，把钥匙锁进保险柜</h2>
+
+<h3>为什么软件加密不够？</h3>
+
+<p>密钥如果存在普通 Flash 里，攻击者读出固件就能把密钥一起挖走——<strong>加密形同虚设</strong>。</p>
+
+<h3>HSM 是什么？</h3>
+
+<p><strong>HSM（Hardware Security Module，硬件安全模块）</strong> 是芯片里的一块<strong>独立安全岛</strong>：</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph HSM["🔒 HSM 安全岛"]
+        CPU["安全 CPU<br>(独立内核)"]
+        KEY["密钥存储<br>(不可读出的安全区)"]
+        CRYPTO["硬件加速器<br>AES/RSA/ECC/SHA"]
+        TRNG["真随机数发生器"]
+    end
+    MCU["主控 MCU<br>(应用处理器)"] --&gt;|"请求：帮我签名/加密"| CPU
+    CPU --&gt;|"返回：密文/签名结果"| MCU
+</div>
+
+<h3>HSM 的核心特性：</h3>
+
+<table>
+<tr><th>特性</th><th>说明</th><th>防什么</th></tr>
+<tr><td>密钥不可读</td><td>密钥存于安全存储区，<strong>任何软件（包括主控）都读不出来</strong></td><td>固件被逆向，密钥挖不走</td></tr>
+<tr><td>运算不外出</td><td>加解密/签名在 HSM 内部完成，密钥不出芯片</td><td>总线窃听拿不到密钥</td></tr>
+<tr><td>独立 CPU</td><td>即使主控被攻破，HSM 仍在运行</td><td>攻击者无法利用主控漏洞操作密钥</td></tr>
+<tr><td>真随机数</td><td>硬件 TRNG 生成高质量随机数</td><td>随机数可预测导致密钥被破解</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>打个比方：</strong> 普通软件加密 = 把钥匙藏在床垫下（黑客翻一翻就找到了）；HSM = 钥匙存在银行保险柜，你只能请柜员（HSM）帮你开门，柜员绝不把钥匙给你。</p>
+</div>
+
+<hr>
+
+<h2>五、支柱三：SecOC——"通信关"，让总线上的每条消息都"验明正身"</h2>
+
+<h3>攻击者能对 CAN 总线做什么？</h3>
+
+<p>CAN 总线是广播式的——只要物理接上去，任何节点都能<strong>伪造报文</strong>（比如伪造"刹车指令"）或<strong>重放旧报文</strong>（把之前录下的合法刹车指令再发一遍）。</p>
+
+<h3>SecOC（Secure On-board Communication，安全车载通信）原理</h3>
+
+<p>给每条关键报文加"<strong>认证标签（MAC）</strong>"，接收方验证通过才执行：</p>
+
+<div class="mermaid">
+sequenceDiagram
+    participant S as 发送 ECU
+    participant R as 接收 ECU
+    Note over S,R: 双方共享密钥 K（存于各自 HSM）
+    S->>S: 报文数据 + 新鲜值(滚动计数器) 拼接
+    S->>S: 用密钥 K 计算 MAC
+    S->>R: 发送 [数据 + 新鲜值 + MAC]
+    R->>R: 用密钥 K 重新计算 MAC
+    R->>R: 比对 MAC + 检查新鲜值是否单调递增
+    alt MAC 匹配 且 新鲜值有效
+        R->>R: ✅ 执行该报文（可信）
+    else MAC 不匹配 或 新鲜值过期
+        R->>R: ❌ 丢弃报文（防伪造/防重放）
+    end
+</div>
+
+<h3>SecOC 防住的两类攻击</h3>
+
+<table>
+<tr><th>攻击类型</th><th>攻击方式</th><th>SecOC 的防御</th></tr>
+<tr><td><strong>伪造（Spoofing）</strong></td><td>伪造一条"刹车指令"报文</td><td>没有密钥 K，伪造的 MAC 验证失败 → 丢弃</td></tr>
+<tr><td><strong>重放（Replay）</strong></td><td>录下合法报文，稍后重发</td><td>新鲜值（滚动计数器）必须<strong>单调递增</strong>，旧值重放 → 丢弃</td></tr>
+</table>
+
+<div class="callout-warn">
+<p><strong>注意权衡：</strong> 每帧报文多了 MAC 和新鲜值字段，带宽开销增加（CAN 帧只有 8 字节数据域）。所以 SecOC <strong>只保护关键报文</strong>（制动、转向、动力、解锁等），非安全相关报文不走 SecOC。</p>
+</div>
+
+<hr>
+
+<h2>六、串起来看：一辆车如何做到"纵深防御"？</h2>
+
+<div class="mermaid">
+flowchart TB
+    subgraph L1["第一道：边界防护"]
+        B1["网关防火墙<br>报文过滤/路由白名单"]
+    end
+    subgraph L2["第二道：启动防护"]
+        B2["Secure Boot 信任链<br>保证固件可信"]
+    end
+    subgraph L3["第三道：密钥防护"]
+        B3["HSM 硬件安全模块<br>密钥锁进保险柜"]
+    end
+    subgraph L4["第四道：通信防护"]
+        B4["SecOC 报文认证<br>防伪造/防重放"]
+    end
+    B1 --&gt; B2
+    B2 --&gt; B3
+    B3 --&gt; B4
+</div>
+
+<p><strong>完整攻击场景推演（2015 Jeep 式攻击为什么今天很难成功）：</strong></p>
+
+<ol class="ol-decimal">
+<li>黑客攻破车机（最软的入口）✅ 仍可能发生</li>
+<li>想横向移动到制动 ECU → 网关防火墙先挡一道</li>
+<li>就算进了网关，想刷恶意固件 → Secure Boot 验签不通过，拒绝启动</li>
+<li>想伪造 CAN 报文 → 没有 HSM 里的密钥，SecOC 验 MAC 失败，报文被丢弃</li>
+<li>想读密钥 → 密钥在 HSM 安全区，物理上读不出来</li>
+</ol>
+
+<div class="callout">
+<p><strong>结论：</strong> 单靠任何一项都不够，但四道防线串起来，攻击成本呈指数上升。信息安全的目标从来不是"绝对攻不破"，而是<strong>让攻击成本远高于攻击收益</strong>。</p>
+</div>
+
+<hr>
+
+<h2>七、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：汽车安全 = 纵深防御，不是单点防护</h3>
+<p>攻击者永远挑最软的入口（车机、蓝牙、OBD）。所以防护必须分层：边界（网关）→ 启动（Secure Boot）→ 密钥（HSM）→ 通信（SecOC）。攻破一层还有下一层，这才是现代车规安全的正确姿势。</p>
+
+<h3>📌 规则二：密钥必须"硬件锁死"，软件加密等于没加密</h3>
+<p>密钥存在普通 Flash 里，固件被读出来密钥就没了。HSM 的价值在于：密钥物理不可读、运算不外出、独立于主控运行。<strong>"安全强度"最终取决于密钥藏在哪。</strong></p>
+
+<h3>📌 规则三：SecOC 防的是"伪造 + 重放"，新鲜值（计数器）和 MAC 缺一不可</h3>
+<p>MAC 保证"这条消息确实是持钥者发的"（防伪造）；单调递增的新鲜值保证"这条消息不是旧消息重放"（防重放）。只验 MAC 不查新鲜值，录下合法报文重放照样能骗过系统。</p>
+
+</div>
+
+<hr>
+
+<h2>八、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你的朋友听说"汽车会被黑客远程控制"后很害怕。请用"银行保险柜"或你自己编的比喻，给他讲清楚：HSM 是怎么保护汽车密钥的？为什么把密钥存在普通软件里不安全？</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>假设你是黑客，录下了一段合法的"解锁车门"CAN 报文。请解释：为什么有了 SecOC 之后，你把这报文重放一遍就失灵了？SecOC 用哪个机制专门对付你？</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>"Secure Boot" 的"信任链"和机场安检有什么相似之处？请用安检流程类比，讲清楚为什么 BootROM 必须是"不可修改"的，以及每一级为什么要验证上一级。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>九、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：关于 HSM（硬件安全模块），下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc1" value="A"> A. 密钥存放在普通 Flash 中，方便固件读取</label>
+<label><input type="radio" name="mc1" value="B"> B. 密钥只能在 HSM 内部使用，任何软件都读不出来</label>
+<label><input type="radio" name="mc1" value="C"> C. HSM 只负责加密，不负责签名</label>
+<label><input type="radio" name="mc1" value="D"> D. HSM 是一段运行在应用层的纯软件程序</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：SecOC 中"新鲜值（Freshness Value）"的主要作用是？</div>
+<label><input type="radio" name="mc2" value="A"> A. 提高 CAN 总线带宽利用率</label>
+<label><input type="radio" name="mc2" value="B"> B. 防止报文被伪造（MAC 验证失败）</label>
+<label><input type="radio" name="mc2" value="C"> C. 防止已录制的合法报文被重放</label>
+<label><input type="radio" name="mc2" value="D"> D. 替代 MAC 完成身份认证</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：攻击者攻破了车机（娱乐系统），想进一步控制制动 ECU。按"纵深防御"的思路，以下哪项<strong>不是</strong>有效的后续防线？</div>
+<label><input type="radio" name="mc3" value="A"> A. 网关防火墙限制车机域到动力域的报文路由</label>
+<label><input type="radio" name="mc3" value="B"> B. 制动 ECU 启用 Secure Boot，拒绝刷入未签名固件</label>
+<label><input type="radio" name="mc3" value="C"> C. 制动报文启用 SecOC 认证，伪造报文被丢弃</label>
+<label><input type="radio" name="mc3" value="D"> D. 关闭制动 ECU 的所有安全校验以提升响应速度</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson32',
+    title: 'Lesson 32（17:18）：车载信息安全',
+    mcq: { mc1: 'B', mc2: 'C', mc3: 'D' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson32', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson32');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson32');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson32',
+  title: 'Lesson 32（17:18）：车载信息安全——HSM、SecOC、Secure Boot 如何守住"车轮上的电脑"？',
+  feynman: [
+    { q: 1, ref: '银行保险柜比喻：普通软件存密钥=钥匙藏床垫下，固件被读出密钥就暴露；HSM=银行保险柜，密钥物理不可读、运算不外出（只能请柜员帮忙开门）、独立CPU即使主控被攻破仍运行。安全强度最终取决于密钥藏在哪' },
+    { q: 2, ref: '对付重放的是新鲜值（滚动计数器）：发送方每次+1，接收方记住上次值；重放旧报文时计数值过期（≤上次值）被丢弃。黑客改不了计数值，因为 MAC 是用密钥对数据+新鲜值一起算的，改了就对不上。MAC 防伪造、新鲜值防重放，两者配合' },
+    { q: 3, ref: '机场安检类比：BootROM=国境线（起点不可绕过，存根公钥，物理固化不可改，否则信任链地基崩塌）；SBL=航站楼安检验证件；App=登机口验登机牌；数据=对座位号。信任逐级传递，每一级不验签攻击者就能在这一级偷换下一级代码' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'D' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

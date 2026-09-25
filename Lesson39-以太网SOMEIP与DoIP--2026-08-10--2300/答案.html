@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 39：答案 — SOME/IP 与 DoIP——车载以太网上的"服务"是怎么被找到和调用的？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+.ans-item{margin:.3rem 0}
+.ans-label{font-weight:600;color:#2e7d32}
+.ans-label-wrong{color:#c62828}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson38-车载嵌入式Linux--2026-08-09--1500/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson40-CANFD与网络管理--2026-08-10--2330/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 39 — 答案</div>
+  <h1>SOME/IP 与 DoIP——车载以太网上的"服务"是怎么被找到和调用的？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（用"点外卖"类比 SOME/IP-SD 服务发现，并解释 TTL 续租）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（点外卖类比）：</strong></p>
+<table>
+<tr><th>报文</th><th>点外卖类比</th><th>技术含义</th></tr>
+<tr><td><strong>FindService</strong></td><td>你打开美团，搜索"附近有哪些餐厅"</td><td>客户端<strong>广播</strong>："谁提供空调服务？"（带服务 ID）</td></tr>
+<tr><td><strong>OfferService</strong></td><td>餐厅在平台上亮出招牌、地址、营业时间</td><td>服务端回应："我提供！这是我的 IP + 端口 + 服务 ID"</td></tr>
+<tr><td><strong>SubscribeEventgroup</strong></td><td>你关注了这家餐厅的公众号</td><td>客户端订阅事件组，之后服务端有新状态<strong>自动推送</strong></td></tr>
+</table>
+<p><strong>为什么要周期性重发 OfferService（TTL 续租）？</strong></p>
+<ul>
+<li>网络是<strong>动态</strong>的：ECU 会重启、会休眠唤醒、服务会下线</li>
+<li>OfferService 报文带一个<strong>有效期（TTL）</strong>，客户端收到后"记住了"这个服务</li>
+<li>服务端<strong>周期重发</strong> Offer（默认几秒一次）＝"我还活着、我还提供服务"</li>
+<li>客户端如果<strong>长时间收不到</strong>续租 → 认为服务下线，不再调用它——避免调用一个不存在/已失效的服务</li>
+</ul>
+<p><strong>一句话：</strong> TTL 续租就是"心跳"——服务端定期刷存在感，客户端据此判断服务是否可用。这和 Lesson 10 里 MQTT 的 Keep Alive 是同一个思路。</p>
+</div>
+
+<h3>Q2（Method 和 Event 的区别？各自适合什么场景？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<table>
+<tr><th>对比</th><th>Method（方法）</th><th>Event（事件）</th></tr>
+<tr><td>通信方式</td><td><strong>请求-响应</strong>（你问我答）</td><td><strong>订阅-推送</strong>（我主动报）</td></tr>
+<tr><td>触发时机</td><td>客户端需要时才发起</td><td>服务端状态变化时自动推送</td></tr>
+<tr><td>典型场景</td><td>一次性动作指令</td><td>持续变化的状态量</td></tr>
+<tr><td>车载例子</td><td>中控发"座椅加热开到 3 档"、"打开天窗"</td><td>BMS 推送"电量从 80% 变 79%"、车速变化</td></tr>
+</table>
+<p><strong>为什么 Event 能减少网络流量？</strong></p>
+<ol>
+<li><strong>变化才发</strong>：传统 CAN 是<strong>周期发送</strong>（不管变没变都发）；Event 只在<strong>状态变化时</strong>推送，没变化就不占网络</li>
+<li><strong>订阅才推</strong>：客户端<strong>订阅了才推送</strong>，没订阅的节点收不到——避免广播轰炸全网</li>
+<li><strong>一次推送，多方共享</strong>：同一个 Event 可被多个订阅者共享，而 Method 每次调用都要一问一答</li>
+</ol>
+<p><strong>一句话：</strong> Method 适合"一次性动作指令"（开、关、设置），Event 适合"持续变化的状态"（温度、车速、电量）——Event 按需推送，天然省流量。</p>
+</div>
+
+<h3>Q3（为什么"信号通信 → 服务通信"是软件定义汽车的必经之路？DoIP 的角色？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p><strong>为什么必须服务化：</strong></p>
+<table>
+<tr><th>角度</th><th>CAN 信号通信</th><th>SOME/IP 服务通信</th></tr>
+<tr><td>迭代速度</td><td>改功能 = 改报文矩阵、重新标定、全车联调（以月计）</td><td>服务独立封装，OTA 只更新相关软件（以天计）</td></tr>
+<tr><td>扩展性</td><td>加功能要动全网配置，牵一发动全身</td><td>加新服务<strong>即插即用</strong>，不影响其他节点</td></tr>
+<tr><td>动态组合</td><td>静态绑定，组合困难</td><td>运行时发现、按需调用（如"语音开空调"组合两个服务）</td></tr>
+</table>
+<p><strong>软件定义汽车的本质 = 功能由软件动态组合，而不是出厂焊死。</strong> SOME/IP 的服务发现（SD）让 ECU 之间"临时组队"，正是软件定义汽车通信层的地基。</p>
+<p><strong>DoIP 的角色（结合 OTA）：</strong></p>
+<ul>
+<li><strong>带宽</strong>：一个整车固件几百 MB ~ 几个 GB，CAN 只有几 Mbps，刷不动；DoIP 走以太网 100/1000 Mbps，<strong>快几十上百倍</strong></li>
+<li><strong>安全</strong>：路由激活（Routing Activation）校验诊断仪权限，VIN 识别保证请求路由到<strong>正确的车、正确的 ECU</strong></li>
+<li><strong>结论</strong>：<strong>没有 DoIP，就没有今天的整车 OTA 刷写能力</strong></li>
+</ul>
+<p><strong>一句话：</strong> SOME/IP 让软件"说得上话、找得到服务"，DoIP 让软件"送得进门、刷得动固件"——两者是软件定义汽车时代通信层的"两条腿"。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<h3>MCQ 1：关于 SOME/IP 的四种服务元素，下列说法正确的是？</h3>
+<p><strong>正确答案：C. Field 是可以读取和修改的属性（getter/setter）</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. Method 是服务端主动推送数据的机制</td><td>❌ 说反了：<strong>Method 是"你问我答"的请求-响应</strong>；服务端主动推送数据的是 <strong>Event</strong></td></tr>
+<tr><td>B. Event 是"你问我答"的请求-响应机制</td><td>❌ 说反了：<strong>Event 是订阅-推送</strong>，不是请求-响应</td></tr>
+<tr><td>C. Field 是可以读取和修改的属性</td><td>✅ Field（字段）就是"可读可写的属性"——getter 读、setter 写、notifier 通知变化，比如"当前温度""目标温度"</td></tr>
+<tr><td>D. Eventgroup 是 Method 的另一种叫法</td><td>❌ <strong>Eventgroup 是事件组</strong>——一组相关事件的打包订阅单位，不是 Method 的别称</td></tr>
+</table>
+
+<h3>MCQ 2：服务端启动后主动宣告"我提供某某服务"的报文是？</h3>
+<p><strong>正确答案：C. OfferService</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. FindService</td><td>❌ <strong>FindService 是客户端</strong>发的（"谁提供服务？"），不是服务端</td></tr>
+<tr><td>B. SubscribeEventgroup</td><td>❌ <strong>SubscribeEventgroup 是客户端</strong>发的订阅请求</td></tr>
+<tr><td>C. OfferService</td><td>✅ <strong>OfferService 是服务端</strong>启动后（或收到 Find 后）主动宣告"我提供某某服务"，带 IP、端口、服务 ID 和 TTL</td></tr>
+<tr><td>D. SubscribeAck</td><td>❌ SubscribeAck 是服务端<strong>回应订阅成功</strong>的确认报文，不是宣告服务</td></tr>
+</table>
+
+<h3>MCQ 3：相比传统 UDS over CAN，DoIP 最本质的优势是？</h3>
+<p><strong>正确答案：B. 把 UDS 封装进 TCP/IP 跑在以太网上，速度快几十上百倍，支撑 OTA 大数据刷写</strong></p>
+<table>
+<tr><th>选项</th><th>分析</th></tr>
+<tr><td>A. 不需要建立连接，即发即收</td><td>❌ DoIP 恰恰<strong>需要先建立 TCP 连接</strong>（端口 13400），不是即发即收</td></tr>
+<tr><td>B. 把 UDS 封装进 TCP/IP，速度快，支撑 OTA</td><td>✅ DoIP = UDS 报文封装进 TCP/IP，跑在以太网上，带宽从几 Mbps 提到 100/1000 Mbps——<strong>OTA 刷写、大数据诊断的前提</strong></td></tr>
+<tr><td>C. 不需要 VIN 识别和权限校验</td><td>❌ DoIP <strong>必须</strong>做 VIN 识别和路由激活——这正是它的安全设计</td></tr>
+<tr><td>D. 只能用于产线，售后不能用</td><td>❌ DoIP 在产线（EOL）、售后（远程诊断）、OTA 都能用，不止产线</td></tr>
+</table>
+
+<hr>
+
+<p><a href="课程.html" class="back-link">← 返回课程</a></p>
+
+</div>
+</body>
+</html>

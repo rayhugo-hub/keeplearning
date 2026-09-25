@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 48：车载以太网物理层——一根双绞线怎么"塞"进 1Gbps？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.4rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1rem}
+.nav-bar{display:flex;gap:1rem;margin:0 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.2rem;font-weight:600;margin:1.6rem 0 .8rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:1rem 0 .5rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+blockquote{margin:.8rem 0;padding:.7rem 1rem;background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;font-size:.92rem}
+code{background:#f0f2f7;border-radius:4px;padding:.1rem .35rem;font-size:.88rem}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.quiz-section{margin:1.2rem 0;padding:1rem 1.2rem;background:#fafbfd;border:1px solid #e8eaf0;border-radius:10px}
+.quiz-section h3{margin-top:0}
+.feynman-label{font-weight:600;margin:.8rem 0 .3rem}
+textarea{width:100%;min-height:90px;border:1px solid #d5d9e2;border-radius:8px;padding:.6rem .8rem;font-size:.9rem;font-family:inherit;resize:vertical}
+textarea:focus{outline:none;border-color:#4f6ef7}
+.mcq-option{display:block;margin:.35rem 0;padding:.45rem .7rem;border:1px solid #e4e7ee;border-radius:8px;cursor:pointer;transition:background .1s;font-size:.92rem}
+.mcq-option:hover{background:#f0f4ff}
+.mcq-option input{margin-right:.5rem}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{display:inline-block;padding:.6rem 1.2rem;border:none;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .1s}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-secondary{background:#eef0f6;color:#333}
+.btn:hover{filter:brightness(1.06)}
+.result-box{margin:1rem 0;padding:1rem;border-radius:10px;font-size:.95rem;display:none}
+.result-box.show{display:block}
+.result-ok{background:#e8f5e9;border:1px solid #c8e6c9}
+.result-warn{background:#fff8e1;border:1px solid #ffe082}
+.result-info{background:#e3f2fd;border:1px solid #bbdefb}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lesson 48（00:05）：车载以太网物理层</h1>
+<p class="meta">📅 2026-09-01 | 🚗 PAM3 三电平 · 回声消除 · 100BASE-T1 / 1000BASE-T1 / 10BASE-T1S | ⏰ 00:05</p>
+<div class="nav-bar">
+  <a href="../Lesson47-车载以太网TSN--2026-08-30--0001/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson49-车载以太网交换机与VLAN--2026-09-04--0006/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="答案.html">📖 标准答案</a>
+</div>
+
+<h2>一、先想想这个场景</h2>
+<p>你家里那根网线：<strong>RJ45 水晶头 + 8 根芯线（4 对）</strong>，又粗又硬。电脑后面插一根无所谓。</p>
+<p>但车不一样：</p>
+<ul>
+  <li>一辆智能汽车里，摄像头、域控、传感器之间的以太网线加起来有<strong>几十根甚至上百根</strong>；</li>
+  <li>每根都像家里网线那么粗 → 线束比发动机还重，<strong>油耗/电耗全被线吃掉</strong>；</li>
+  <li>摄像头装在 A 柱、后视镜上，<strong>接口比摄像头本体还大</strong>，根本塞不进去；</li>
+  <li>更麻烦的是电磁干扰：电机、点火、大电流线束都是"噪声源"，普通网线那点抗干扰能力在车里<strong>活不过三天</strong>。</li>
+</ul>
+<p>于是工程师问了一个反常识的问题：</p>
+<blockquote><strong>能不能只用 1 对线（2 根芯），就把 1Gbps 的数据"塞"进去，还抗得住车里的电磁干扰？</strong></blockquote>
+<blockquote><strong>这一课讲清楚：车载以太网物理层（PHY）——用"单对双绞线 + PAM3 三电平 + 回声消除"三招，让最少的线传最快的数，还最抗干扰。</strong></blockquote>
+
+<h2>二、为什么普通网线"进不了车"？</h2>
+<table>
+<tr><th>对比项</th><th>普通以太网（办公室）</th><th>车载以太网（车内）</th></tr>
+<tr><td><strong>线对数</strong></td><td>1000BASE-T 要 <strong>4 对线（8 芯）</strong></td><td><strong>1 对线（2 芯）</strong></td></tr>
+<tr><td><strong>接口</strong></td><td>RJ45，宽约 <strong>16mm</strong></td><td>小型连接器（MATEnet、H-MTD 等），<strong>几毫米</strong></td></tr>
+<tr><td><strong>环境温度</strong></td><td>0~40℃ 空调房</td><td><strong>-40℃ ~ +105℃</strong>（发动机舱更热）</td></tr>
+<tr><td><strong>电磁环境</strong></td><td>干扰少</td><td>电机、点火、大电流，<strong>强干扰</strong></td></tr>
+<tr><td><strong>寿命/振动</strong></td><td>几年、不动</td><td><strong>十几年、持续振动</strong></td></tr>
+<tr><td><strong>减重</strong></td><td>——</td><td>整车线束可<strong>减重数公斤</strong></td></tr>
+</table>
+<p><strong>结论：普通以太网的物理层是为"办公桌"设计的，车载必须重新发明一套"瘦身+抗造"的物理层。</strong></p>
+
+<h2>三、车载以太网"三兄弟"：100BASE-T1 / 1000BASE-T1 / 10BASE-T1S</h2>
+<table>
+<tr><th>标准</th><th>速率</th><th>调制</th><th>符号率</th><th>拓扑 / 距离</th><th>典型场景</th></tr>
+<tr><td><strong>100BASE-T1</strong>（802.3bw）</td><td>100 Mbps</td><td>PAM3</td><td>66.7 MBd</td><td>点对点，≤15m</td><td>诊断口、OTA、低带宽传感器</td></tr>
+<tr><td><strong>1000BASE-T1</strong>（802.3bp）</td><td>1 Gbps</td><td>PAM3</td><td>750 MBd</td><td>点对点，≤15m</td><td>摄像头视频流、域控主干、ADAS</td></tr>
+<tr><td><strong>10BASE-T1S</strong>（802.3cg）</td><td>10 Mbps</td><td>PAM3</td><td>12.5 MBd</td><td><strong>多点总线 ≤25m</strong> / 点对点 15m</td><td>灯、开关、门锁等边缘节点（替代 CAN/LIN）</td></tr>
+</table>
+<p>三个都是<strong>单对双绞线</strong>，差别在速率、距离和拓扑：</p>
+<ul>
+  <li>100BASE-T1 和 1000BASE-T1 是<strong>点对点</strong>——一根线只连两个设备（如摄像头 → 域控）；</li>
+  <li>10BASE-T1S 是<strong>多点总线</strong>——一根线上可以挂最多 8 个节点，<strong>不需要交换机</strong>，像 CAN 总线一样"共用一条线"。</li>
+</ul>
+<div class="mermaid">
+flowchart LR
+    subgraph P2P["100BASE-T1 / 1000BASE-T1（点对点，≤15m）"]
+        A["PHY A&lt;br&gt;（摄像头 / 传感器）"]
+        LINE1["单对双绞线"]
+        B["PHY B&lt;br&gt;（域控制器 / 交换机）"]
+        A --- LINE1 --- B
+    end
+    subgraph BUS["10BASE-T1S（多点总线，≤25m）"]
+        N1["灯控 ECU"]
+        LINE2["共享总线（最多 8 节点）"]
+        N2["开关 ECU"]
+        N3["门锁传感器"]
+        N1 --- LINE2
+        N2 --- LINE2
+        N3 --- LINE2
+    end
+</div>
+
+<h2>四、PAM3：三电平的"摩尔斯电码"</h2>
+<p><strong>问题：1 对线凭什么比 4 对线传得还快？</strong></p>
+<p>关键在编码方式——<strong>PAM3（三电平脉冲幅度调制）</strong>：</p>
+<table>
+<tr><th>编码</th><th>电平数</th><th>每符号携带信息</th><th>类比</th></tr>
+<tr><td>NRZ（普通两电平）</td><td>2 种（0 / 1）</td><td>1 bit</td><td>开关：只有"开/关"两档</td></tr>
+<tr><td><strong>PAM3</strong></td><td><strong>3 种（-1 / 0 / +1）</strong></td><td><strong>约 1.58 bit</strong></td><td>油门：轻踩 / 不踩 / 重踩</td></tr>
+</table>
+<p><strong>类比：</strong> 同样的"踩踏板次数"（符号率），两档开关只能表达"开/关"两个意思；三档油门能表达"轻/中/重"三个意思——<strong>信息量多了近 60%</strong>。</p>
+<p>所以：</p>
+<ul>
+  <li>1000BASE-T1 用 <strong>750 MBd 符号率 × PAM3</strong>，单对线就能到 <strong>1Gbps</strong>；</li>
+  <li>而普通千兆以太网靠 <strong>4 对线 × 两电平 NRZ</strong> 才凑够同样的带宽。</li>
+</ul>
+<blockquote><strong>一句话：车载以太网不是"线更多"，而是"每个符号装的信息更多"。</strong></blockquote>
+
+<h2>五、单对线怎么同时收发？——全双工 + 回声消除</h2>
+<p><strong>问题：只有一对线，发送和接收共用两根芯，怎么同时双向传？</strong></p>
+<p>两个设备同时往同一根线上"喊话"，信号会<strong>混在一起</strong>——怎么分清哪句是对方说的？</p>
+<p>答案是 <strong>回声消除（Echo Cancellation）</strong>：</p>
+<div class="mermaid">
+flowchart LR
+    TX["本端发送信号 TX&lt;br&gt;（自己完全知道内容）"]
+    MIX["混合电路&lt;br&gt;（收发共用一对线）"]
+    ECHO["接收路径混入&lt;br&gt;自己的回声 TX'"]
+    EC["回声消除器&lt;br&gt;用 TX 做参考，减去 TX'"]
+    RX["剩下的就是&lt;br&gt;对方发来的信号"]
+    TX --&gt; MIX --&gt; ECHO --&gt; EC --&gt; RX
+    TX -. 参考信号 .-&gt; EC
+</div>
+<p><strong>原理三步：</strong></p>
+<ol>
+  <li>本端发送的信号会"漏"回自己的接收路径，形成<strong>回声</strong>；</li>
+  <li>但本端<strong>完全知道自己刚发了什么</strong>（发送序列是已知的）；</li>
+  <li>回声消除器用"已知的发送序列"做参考，把接收信号里属于自己的部分<strong>精确减掉</strong>，剩下的就是对方发来的信号。</li>
+</ol>
+<p><strong>类比：</strong> 同一条电话线上两个人同时说话——你听到自己的声音，知道"这是我说的"，自动屏蔽掉，只留对方的声音。<strong>耳机主动降噪</strong>也是同一思路：已知噪声长什么样，就把它反相抵消。</p>
+<blockquote><strong>关键：回声消除能成立，靠的是"发送内容已知 + 信号线性叠加"——这正是数字通信能精确保证的。</strong></blockquote>
+
+<h2>六、上电先"握手"：链路训练（Master/Slave）</h2>
+<p>PHY 上电后<strong>不能立刻传数据</strong>，要先"自我介绍"：</p>
+<ol>
+  <li><strong>定主从（Master/Slave）</strong>——谁是时钟基准，避免两个设备各按各的节奏发信号；</li>
+  <li><strong>校准发送电平</strong>——把信号幅度调到对方能"舒适接收"的范围；</li>
+  <li><strong>训练接收均衡器</strong>——让接收端学会"抵消线缆带来的失真"，通信质量达到最佳。</li>
+</ol>
+<p><strong>类比：</strong> 两个人打电话，接通后先"喂？喂？听得到吗？声音清楚吗？"——确认好了才开始正经说话。</p>
+<blockquote>1000BASE-T1 通过<strong>训练帧（training frames）</strong>完成这个过程，通常在<strong>毫秒级</strong>完成。</blockquote>
+
+<h2>七、EMC：为什么车载以太网抗干扰？</h2>
+<p>车里是"电磁战场"（电机、点火、大电流线束），物理层必须<strong>既抗得住干扰、又不辐射干扰别人</strong>。四件武器：</p>
+<table>
+<tr><th>武器</th><th>原理</th><th>效果</th></tr>
+<tr><td><strong>差分信号</strong></td><td>两根线互为镜像（一根 +、一根 −），干扰同时落在两线上</td><td>接收端<strong>相减抵消</strong>（共模抑制）</td></tr>
+<tr><td><strong>双绞</strong></td><td>两根线不断绞合，受到的干扰更均匀</td><td>配合差分，干扰进一步抵消</td></tr>
+<tr><td><strong>PAM3 紧凑频谱</strong></td><td>同样速率下带宽占用更小</td><td><strong>辐射更低</strong>，不易干扰别的线束</td></tr>
+<tr><td><strong>车规测试</strong></td><td>大电流注入（BCI）、辐射抗扰（ISO 11452 系列）</td><td>出厂前验证"抗造"能力</td></tr>
+</table>
+<p>另外还有<strong>屏蔽（STP）与非屏蔽（UTP）</strong>之分：屏蔽线抗扰更强但更贵更重，非屏蔽更便宜轻便——整车厂按区域电磁环境选型。</p>
+
+<h2>八、PHY 在协议栈的哪里？</h2>
+<p>上一课讲的 TSN 调度在<strong>数据链路层（二层）</strong>，而 PHY 是<strong>最底层（物理层，一层）</strong>——它是"电信号"和"数据帧"之间的翻译官。</p>
+<div class="mermaid">
+flowchart TB
+    subgraph STACK["车载以太网协议栈"]
+        APP["应用层&lt;br&gt;（SOME/IP 服务、诊断、OTA）"]
+        TP["传输层&lt;br&gt;（TCP / UDP）"]
+        NET["网络层&lt;br&gt;（IP）"]
+        MAC["数据链路层 MAC&lt;br&gt;（帧、VLAN、TSN 调度）"]
+        PHY["物理层 PHY&lt;br&gt;（PCS 编码 / PMA 信号 / PMD 介质）"]
+        APP --&gt; TP --&gt; NET --&gt; MAC --&gt; PHY
+    end
+    WIRE["单对双绞线&lt;br&gt;（差分信号 ±）"]
+    PHY --&gt; WIRE
+</div>
+<p>PHY 内部还分三个子层：</p>
+<ul>
+  <li><strong>PCS（物理编码子层）</strong>：把数据编码成 PAM3 符号（"翻译"）；</li>
+  <li><strong>PMA（物理介质附加子层）</strong>：把符号变成实际的电信号（"发声"）；</li>
+  <li><strong>PMD（物理介质相关子层）</strong>：负责和双绞线这个"介质"对接（"贴着嘴说话"）。</li>
+</ul>
+
+<h2>九、三条铁律（记住这三句）</h2>
+<ol>
+  <li><strong>车载以太网用"单对双绞线"，靠 PAM3 三电平"多装信息"</strong>——不是线更多，而是每个符号装的信息更多。</li>
+  <li><strong>一对线同时收发靠"回声消除"</strong>——自己发的信号自己知道，精确减掉自己的"回声"，剩下的就是对方的声音。</li>
+  <li><strong>选型看拓扑：100BASE-T1 / 1000BASE-T1 点对点传大流量，10BASE-T1S 多点总线管边缘小节点</strong>——一车以太网，从骨干铺到末梢。</li>
+</ol>
+
+<h2>十、费曼简答题（用自己的话，不许用术语）</h2>
+<div class="quiz-section">
+  <h3>Q1：用"打电话"的类比，解释单对线上怎么做到同时收发？回声消除为什么能分清"自己的声音"和"对方的声音"？</h3>
+  <textarea id="feynman1" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q2：为什么车里不能用家里那根 RJ45 网线（4 对线）？从线束重量、接口尺寸、电磁干扰三个角度讲，为什么必须专门搞一套车载以太网物理层？</h3>
+  <textarea id="feynman2" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+<div class="quiz-section">
+  <h3>Q3：100BASE-T1、1000BASE-T1、10BASE-T1S 三个"兄弟"各适合什么场景？为什么速率最低的 10BASE-T1S 反而用"多点总线"而不是点对点？</h3>
+  <textarea id="feynman3" placeholder="用你自己的话写在这里…（不许堆术语）"></textarea>
+</div>
+
+<h2>十一、选择题</h2>
+<div class="quiz-section">
+  <h3>MCQ1：车载以太网和普通以太网在物理层上最大的区别是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc1" value="A"> A. 车载以太网速率更高</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="B"> B. 用单对双绞线 + PAM3 三电平，而不是 4 对线 + 两电平</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="C"> C. 车载以太网用光纤传输</label>
+  <label class="mcq-option"><input type="radio" name="mc1" value="D"> D. 车载以太网用无线传输</label>
+  <div class="mcq-result" id="mc1-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ2：PAM3（三电平）相比传统 NRZ（两电平 0/1）的优势是什么？</h3>
+  <label class="mcq-option"><input type="radio" name="mc2" value="A"> A. 抗干扰能力提升一倍</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="B"> B. 每个符号能携带更多信息，同样的符号率下数据率更高</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="C"> C. 传输距离翻倍</label>
+  <label class="mcq-option"><input type="radio" name="mc2" value="D"> D. 不需要时钟同步</label>
+  <div class="mcq-result" id="mc2-result"></div>
+</div>
+<div class="quiz-section">
+  <h3>MCQ3：单对线上全双工同时收发，靠的是什么技术？</h3>
+  <label class="mcq-option"><input type="radio" name="mc3" value="A"> A. 时分复用——两个设备轮流说话</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="B"> B. 半双工——同一时刻只允许一个方向</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="C"> C. 回声消除——接收端减去自己发送的"回声"，留下对方信号</label>
+  <label class="mcq-option"><input type="radio" name="mc3" value="D"> D. 两根芯线各管一个方向</label>
+  <div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a class="btn btn-secondary" href="答案.html">📖 标准答案</a>
+</div>
+<div id="resultBox" class="result-box"></div>
+
+<script>
+function submitAll() {
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 48,
+    title: '车载以太网物理层',
+    feynman: [],
+    mcq: { mc1: 'B', mc2: 'B', mc3: 'C' }
+  };
+  let score = 0, total = 0;
+  const detail = [];
+  for (const q of ['mc1', 'mc2', 'mc3']) {
+    total++;
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const user = sel ? sel.value : '';
+    const correct = ANSWERS.mcq[q];
+    const ok = user === correct;
+    if (ok) score++;
+    detail.push((q.toUpperCase() + ': ' + (ok ? '✅ 正确' : '❌ 你的答案 ' + (user || '未选') + '，正确答案 ' + correct)));
+  }
+  const feynman = ['feynman1', 'feynman2', 'feynman3'].map(function (id) {
+    return document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  });
+  const box = document.getElementById('resultBox');
+  let html = '<strong>选择题：' + score + '/' + total + '</strong><br>' + detail.join('<br>');
+  const answered = feynman.filter(function (t) { return t.length > 0; }).length;
+  html += '<br><strong>费曼题：已作答 ' + answered + '/3</strong>（' + (answered === 3 ? '全部完成，可以对照答案自查' : '写完后可对照标准答案，或配置 API Key 让 AI 评分') + '）';
+  box.className = 'result-box show ' + (score === total ? 'result-ok' : (score > 0 ? 'result-warn' : 'result-info'));
+  box.innerHTML = html;
+}
+window.LESSON_ANSWERS = {
+  lessonId: 48,
+  title: '车载以太网物理层——一根双绞线怎么"塞"进 1Gbps？',
+  feynman: [
+    { q: 'Q1', ref: '电话类比——单对线同时收发靠回声消除：本端发送的信号经过混合电路上到线路，同时会漏回自己的接收路径，形成回声；但本端完全知道自己刚发了什么（发送序列已知），回声消除器用已知的发送序列做参考，把接收信号里属于自己的部分精确减掉，剩下的就是对方发来的信号。类比：同一条电话线上两个人同时说话，你听到自己的声音就知道这是自己说的，自动屏蔽掉，只留对方的声音；耳机主动降噪也是同一个思路——噪声已知，反相抵消。回声消除能成立的关键：发送内容已知 + 信号线性叠加。' },
+    { q: 'Q2', ref: '三个角度——①线束重量：普通千兆以太网要 4 对线 8 芯，车载只用 1 对线 2 芯，整车以太网线几十上百根，每根少一半以上的芯，线束能减重数公斤；②接口尺寸：RJ45 水晶头宽约 16 毫米，摄像头、雷达这类小设备根本装不下，车载小型连接器（MATEnet、H-MTD）只有几毫米；③电磁干扰：车内电机、点火、大电流都是强噪声源，4 对线高速并行串扰大、辐射也大，车载单对线用差分信号加绞合加 PAM3 紧凑频谱，辐射更低、抗扰更强，还要过车规 EMC 测试（如大电流注入 BCI）。再加上温度、振动、寿命等车规要求，普通网线完全不适合。' },
+    { q: 'Q3', ref: '三兄弟定位——100BASE-T1：100Mbps 点对点 15m，成本低，适合诊断口、OTA、低带宽传感器；1000BASE-T1：1Gbps 点对点 15m，带宽大，适合摄像头视频流、域控之间主干、ADAS 高带宽链路；10BASE-T1S：10Mbps 多点总线最长 25m，最多 8 个节点共享一条线，不需要交换机，节点成本极低，专为边缘小节点设计——灯、开关、门锁、传感器这类数量多、数据量小、分布广的节点，用来替代 CAN/LIN。为什么低速反而用总线：边缘节点数量多但每个数据量小，如果点对点要拉几十根线加一堆交换机端口，成本太高；共享一条总线，每个节点数据少，轮流说就够了，成本最低。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'C' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

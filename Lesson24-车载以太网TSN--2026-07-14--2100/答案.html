@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 24：答案 — 车载以太网 TSN——为什么以太网能保证"不卡顿"？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson23-音频通信协议知识--2026-07-12--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+  <a href="../Lesson25-UDS统一诊断服务--2026-07-17--2100/课程.html">下一课 →</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 24 — 答案</div>
+  <h1>车载以太网 TSN——为什么以太网能保证"不卡顿"？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（"潮汐车道 + 警车开道"类比解释 TAS + 帧抢占）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"潮汐车道 + 警车开道"类比）：</strong></p>
+
+<p>想象一条城市主干道（以太网链路），每天有不同种类的车流：</p>
+<ul>
+  <li><strong>救护车（制动指令）</strong>——必须一路绿灯，随时能通过</li>
+  <li><strong>公交车（摄像头视频流）</strong>——需要稳定、频繁通行，可以等几秒但不要太久</li>
+  <li><strong>私家车（OTA 下载）</strong>——不赶时间，堵一会儿无所谓</li>
+</ul>
+
+<p>如果不加管理（标准以太网），所有车在路口（交换机）平等排队——早高峰私家车把路堵死了，救护车也被堵在后面。</p>
+
+<p><strong>TSN 的解决方案 = 潮汐车道 + 警车开道：</strong></p>
+<ol>
+  <li><strong>潮汐车道（TAS）：</strong> 把一天分成固定时段——早高峰 7~9 点只允许公交车和救护车通行（安全时间片），私家车要等到 9 点后才能上路（普通时间片）。这样救护车在高峰期不会被堵。</li>
+  <li><strong>警车开道（帧抢占）：</strong> 如果某个路口正堵着一排私家车（大帧正在发送），突然来了救护车——警车命令私家车靠边停（帧被切分暂停），让救护车先走（紧急小帧插队通过），然后私家车恢复行驶。</li>
+</ol>
+
+<p><strong>为什么不能只用一个？</strong></p>
+<ul>
+  <li>只有潮汐车道（只用 TAS）：如果救护车在 9:01 才到，而潮汐车道 9:00 已经切换到私家车模式——救护车得等到下一个高峰期（最多一个周期 500 μs）。120 km/h 下 = 16.7 米，AEB 来说太长。</li>
+  <li>只有警车开道（只用帧抢占）：虽然救护车随时可以"喊让路"，但如果路上全是救护车（高优先级流量泛滥），警车开道也解决不了根本拥堵——必须有潮汐车道从整体上分配道路资源。</li>
+</ul>
+
+<p><strong>一句话：</strong> 潮汐车道负责"宏观调度"（TAS 时间片分配），警车开道负责"微观插队"（帧抢占紧急打断）。两者互补，既保证整体公平，又保障紧急消息的极限低延迟。</p>
+</div>
+
+<h3>Q2（TAS vs 帧抢占的对比和互补关系）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+
+<table>
+<tr><th>机制</th><th>解决的问题</th><th>优点</th><th>缺点</th></tr>
+<tr><td><strong>TAS 时间片</strong></td><td>高优先级流量不会被低优先级"淹没"（宏观带宽分配）</td><td>确定性延迟（安全消息一定在 500 μs 内发出），带宽利用率高</td><td>严格时间片边界下，紧急消息最多等一个周期</td></tr>
+<tr><td><strong>帧抢占</strong></td><td>正在发大包时，紧急小包的即时插队（微观紧急打断）</td><td>紧急消息延迟降到微秒级，对非紧急流量影响小</td><td>只能插队，不能改变整体带宽分配；需要 MAC 层硬件支持</td></tr>
+</table>
+
+<p><strong>为什么不能只用 TAS？</strong> TAS 的时间片是固定周期。如果一个周期是 500 μs，安全消息最多要等 500 μs。120 km/h 下就是 16.7 米——对自动紧急制动（AEB）来说已经太长了。帧抢占把这个延迟降到 1~2 μs（0.03 毫米）——绝对安全。</p>
+
+<p><strong>为什么不能只用帧抢占？</strong> 帧抢占只能"插队"但不能改变总体带宽。如果高优先级消息太多（比如多个摄像头视频流同时到达），没有 TAS 的时间片管控，高优先级队列内部也可能排长队——所有高优先级流量互相竞争，延迟仍然不可控。</p>
+
+<p><strong>最佳实践：TAS + 帧抢占搭配使用。</strong> TAS 负责保证每个流量类型的最低带宽份额，帧抢占负责为紧急消息提供零等待通道。目前主流车载以太网交换机（如 NXP SJA1110、博通 BCM895 系列）同时支持这两个特性。</p>
+
+<p><strong>一句话：</strong> TAS = 潮汐车道管宏观分配（谁在哪个时段走），帧抢占 = 警车开道管微观插队（紧急情况随时打断）——两者是互补关系，不是替代关系。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>TAS（802.1Qbv）的核心思想是<strong>把时间切成固定窗口，每个窗口只放行特定优先级的流量</strong>。A❌ TAS 不改变物理层速率；C❌ TAS 使用静态配置的 GCL（门控列表），不是 AI 动态调整；D❌ 加密是 MACsec（802.1AE）的功能，不是 TAS 的核心</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>B</strong></td>
+  <td>gPTP（802.1AS）最大的特点是<strong>精度高（&lt; 1 μs）且使用 MAC 层硬件时间戳</strong>（在以太网 MAC 发出/收到消息的瞬间打时间戳，不受软件调度延迟影响）。A❌ gPTP 也需要网络连接来传输同步消息；C❌ gPTP 不仅用于车载，也用于工业控制等领域；D❌ gPTP 和 NTP 都使用标准以太网物理层</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>C</strong></td>
+  <td>帧抢占（802.1Qbu/802.3br）解决的是<strong>当正在发送一个大帧（如 1522 字节的 OTA 包）时，紧急小帧（如制动指令 64 字节）需要等待的时间过长</strong>的问题——它允许大帧被切分暂停，让小帧立即发出。A❌ 信号干扰是物理层问题；B❌ 端口扩展是交换机拓扑问题；D❌ 供电是 PoDL（802.3bu）的问题</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

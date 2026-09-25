@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 02 (15:00)：车载传感器——智能汽车的"感官系统"</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+h4{font-size:.95rem;font-weight:600;margin:.6rem 0 .3rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+li{margin:.2rem 0}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.code-block{background:#f3f4f8;border-radius:8px;padding:.8rem 1.2rem;font-family:"SF Mono","Consolas",monospace;font-size:.85rem;line-height:1.5;margin:.6rem 0;white-space:pre-wrap;color:#333}
+.tip-box{background:#f0f4ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.6rem 1rem;margin:.8rem 0;font-size:.9rem;color:#333}
+.tip-box-green{background:#f0fdf4;border-left:4px solid #16a34a;border-radius:0 8px 8px 0;padding:.6rem 1rem;margin:.8rem 0;font-size:.9rem;color:#333}
+.rule-list{margin:.8rem 0}
+.rule-item{display:flex;align-items:flex-start;gap:.7rem;padding:.5rem 0;border-bottom:1px solid #f0f0f5}
+.rule-num{flex-shrink:0;width:1.4rem;height:1.4rem;border-radius:50%;background:#4f6ef7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;margin-top:.2rem}
+.mermaid-wrap{background:#fafafc;border-radius:10px;padding:1rem;margin:.8rem 0;overflow-x:auto;border:1px solid #ececf2}
+.sensor-card{background:#fafafc;border-radius:10px;padding:.8rem 1.2rem;margin:.8rem 0;border:1px solid #ececf2}
+.sensor-card h3{margin-top:0;font-size:1rem}
+.sensor-icon{font-size:1.4rem;margin-right:.4rem}
+.sensor-table{width:100%}
+.sensor-table td:first-child{font-weight:600;width:80px;color:#666}
+.quiz-section{margin-top:1.5rem}
+.q-item{margin:1.2rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.4rem;font-size:.95rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+textarea{width:100%;min-height:70px;padding:.6rem;font-size:.9rem;border:1px solid #d4d4de;border-radius:8px;resize:vertical;font-family:inherit;line-height:1.6;margin-top:.4rem;transition:border-color .15s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.1)}
+.options{margin-top:.4rem}
+.option{display:flex;align-items:flex-start;gap:.5rem;padding:.35rem 0;cursor:pointer}
+.option input[type="radio"]{margin-top:.3rem;flex-shrink:0;accent-color:#4f6ef7}
+.option label{cursor:pointer}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-secondary{background:#10b981;color:#fff}
+.btn-secondary:hover{background:#059669}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+.result{margin-top:.6rem;padding:.5rem .7rem;border-radius:8px;display:none;font-size:.85rem;font-weight:500}
+.result.show{display:block}
+.result.correct{background:#f0fdf4;color:#16a34a}
+.result.wrong{background:#fef2f2;color:#dc2626}
+.footer-note{margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #e8e8ee;font-size:.85rem;color:#888;text-align:center}
+.lvl-table{width:100%;margin:.8rem 0}
+.lvl-table th{background:#eef1fe}
+.lvl-table .lvl-cell{font-size:.85rem}
+.lvl-badge{display:inline-block;padding:.15rem .6rem;border-radius:4px;font-weight:700;font-size:.8rem;color:#fff}
+.lvl-badge.l2{background:#f59e0b}
+.lvl-badge.l3{background:#f97316}
+.lvl-badge.l4{background:#10b981}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 02 (15:00) — 2026-06-21 | 🚗 车载传感器</div>
+  <h1>车载传感器——智能汽车的"感官系统"</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson01-车载网关--2026-06-21--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson03-域控制器与区域架构--2026-06-21--1800/课程.html">下一课 →</a>
+</div>
+
+<h2>一、为什么要了解车载传感器？</h2>
+<p>你有没有想过——<strong>一辆智能汽车是如何"看见"周围世界的？</strong></p>
+<p>人靠眼睛、耳朵、皮肤来感知环境。智能汽车也一样，它靠的是<strong>车载传感器</strong>——超声波雷达、毫米波雷达、摄像头、激光雷达。这些传感器就是智能汽车的"眼睛"、"耳朵"和"触觉"。</p>
+<p><strong>核心问题：</strong></p>
+<div class="tip-box">没有一种传感器是完美的。如何在雨天、黑夜、隧道等复杂环境下，让汽车始终"看"得清、"感"得准？</div>
+<p>答案就是——<strong>多种传感器配合使用，发挥各自的优势，弥补彼此的短板。</strong></p>
+
+<table>
+  <tr><th>就像人的感官……</th><th>对应车载传感器……</th></tr>
+  <tr><td>眼睛看路</td><td>摄像头 + 激光雷达</td></tr>
+  <tr><td>耳朵听声</td><td>超声波雷达（听回声）</td></tr>
+  <tr><td>手摸距离感</td><td>毫米波雷达（测距）</td></tr>
+  <tr><td>大脑综合所有信息</td><td><strong>传感器融合（Sensor Fusion）</strong></td></tr>
+</table>
+
+<hr>
+
+<h2>二、四大车载传感器详解</h2>
+
+<div class="sensor-card">
+<h3><span class="sensor-icon">🔹</span>1. 超声波雷达（Ultrasonic Radar）</h3>
+<p><strong>工作原理：</strong> 发射人耳听不到的高频声波，碰到障碍物反弹回来，通过计算"发出→返回"的时间来测算距离。</p>
+<div class="code-block">超声波雷达工作示意：
+  📡 →→→→→→→→ 声波 →→→→→→→→ 🧱墙壁
+  📡 ←←←←←←←← 回声 ←←←←←←←← 🧱墙壁
+  距离 = 声速 × 时间 ÷ 2</div>
+<table class="sensor-table">
+  <tr><td>探测距离</td><td>0.2～5 米（短距）</td></tr>
+  <tr><td>优点</td><td>成本极低（几十元/个）、不受光线影响、近距离精度高</td></tr>
+  <tr><td>缺点</td><td>探测距离短、速度慢、受温度/湿度影响</td></tr>
+  <tr><td>典型用途</td><td><strong>倒车雷达、自动泊车</strong>（车周一圈，约 8～12 个）</td></tr>
+</table>
+<div class="tip-box">💡 你的车倒车时"滴滴滴"响，就是超声波雷达在工作。</div>
+</div>
+
+<div class="sensor-card">
+<h3><span class="sensor-icon">🔹</span>2. 毫米波雷达（Millimeter-Wave Radar）</h3>
+<p><strong>工作原理：</strong> 发射毫米级波长的电磁波（24GHz / 77GHz），通过回波的时间和频率变化计算距离、速度和角度。</p>
+<table class="sensor-table">
+  <tr><td>探测距离</td><td>短距 ~30m，长距 ~250m</td></tr>
+  <tr><td>优点</td><td><strong>全天候</strong>（雨、雾、雪都不怕）、测速精准、探测距离远</td></tr>
+  <tr><td>缺点</td><td>分辨率低——"知道有东西，但不知道是什么"</td></tr>
+  <tr><td>典型用途</td><td><strong>自适应巡航（ACC）、自动紧急制动（AEB）、盲区监测（BSD）</strong></td></tr>
+</table>
+<div class="tip-box">💡 毫米波雷达能穿透雨雾，但看不清物体的"形状"——它知道前面有辆车，但分不清是轿车还是卡车。</div>
+</div>
+
+<div class="sensor-card">
+<h3><span class="sensor-icon">🔹</span>3. 摄像头（Camera）</h3>
+<p><strong>工作原理：</strong> 和人的眼睛一样，通过镜头采集光线成像，再用 AI 算法识别画面中的物体（车道线、行人、交通标志等）。</p>
+<table class="sensor-table">
+  <tr><td>探测距离</td><td>50～150m（视焦距而定）</td></tr>
+  <tr><td>优点</td><td><strong>信息最丰富</strong>——能识别颜色、文字、形状、类别</td></tr>
+  <tr><td>缺点</td><td><strong>怕黑、怕雨、怕逆光</strong>——光线不好就"近视"</td></tr>
+  <tr><td>典型用途</td><td><strong>车道保持（LKA）、交通标志识别（TSR）、360°环视</strong></td></tr>
+</table>
+<div class="tip-box">💡 摄像头就是汽车的"眼睛"——看得最清楚，但天气不好就看不远。通常一辆车配 4～8 个摄像头（前视、后视、侧视、环视）。</div>
+</div>
+
+<div class="sensor-card">
+<h3><span class="sensor-icon">🔹</span>4. 激光雷达 / LiDAR（Light Detection And Ranging）</h3>
+<p><strong>工作原理：</strong> 发射激光束扫描周围环境，通过光反射的时间和角度，生成精确的<strong>3D 点云地图</strong>（几百万个点的三维图像）。</p>
+<table class="sensor-table">
+  <tr><td>探测距离</td><td>50～200m（高端可达 300m）</td></tr>
+  <tr><td>优点</td><td><strong>精度最高</strong>——能生成物体精确的 3D 轮廓，不受可见光影响</td></tr>
+  <tr><td>缺点</td><td><strong>成本极高</strong>（数千到数万元）、雨雾天气性能下降</td></tr>
+  <tr><td>典型用途</td><td><strong>L3+ 自动驾驶的核心传感器、高精地图建图</strong></td></tr>
+</table>
+<div class="tip-box">💡 激光雷达像一台"3D 扫描仪"——它把周围世界变成密密麻麻的点，每个点都知道精确的 XYZ 坐标。</div>
+</div>
+
+<hr>
+
+<h2>三、四种传感器对比总结</h2>
+
+<table>
+  <tr><th>传感器</th><th>像什么</th><th>探测距离</th><th>不怕黑？</th><th>不怕雨雾？</th><th>能认颜色？</th><th>成本</th></tr>
+  <tr><td>超声波雷达</td><td>手摸距离</td><td>~5m</td><td>✅</td><td>✅</td><td>❌</td><td>极低</td></tr>
+  <tr><td>毫米波雷达</td><td>蝙蝠回声</td><td>~250m</td><td>✅</td><td>✅</td><td>❌</td><td>低</td></tr>
+  <tr><td>摄像头</td><td>人眼</td><td>~150m</td><td>❌</td><td>❌</td><td>✅</td><td>低</td></tr>
+  <tr><td>激光雷达</td><td>3D扫描</td><td>~200m</td><td>✅</td><td>❌</td><td>❌</td><td>高</td></tr>
+</table>
+
+<hr>
+
+<h2>四、传感器融合（Sensor Fusion）——让 1+1 > 2</h2>
+
+<p><strong>什么是传感器融合？</strong></p>
+<p>就是把多个传感器的数据合在一起，让"各自的缺点"被"对方的优点"覆盖。</p>
+
+<h3>举个真实的例子</h3>
+<p>想象一辆车在大雨中行驶：</p>
+<table>
+  <tr><th>传感器</th><th>单独使用时的问题</th></tr>
+  <tr><td>摄像头</td><td>❌ 雨太大，看不清前方</td></tr>
+  <tr><td>毫米波雷达</td><td>✅ 不受雨雾影响，知道前方有物体</td></tr>
+  <tr><td>激光雷达</td><td>❌ 雨滴反射干扰，精度下降</td></tr>
+</table>
+<p><strong>融合后：</strong> 毫米波雷达提供"前方约 50 米有障碍物"的信息，摄像头虽然看不清细节但能告诉"那是一个灰色物体"，融合系统判断"前方有一辆静止的灰色轿车"→ <strong>触发自动刹车</strong>。</p>
+
+<h3>Mermaid：传感器融合架构</h3>
+<div class="mermaid-wrap">
+<pre class="mermaid">
+flowchart TB
+    subgraph 传感器层
+        US["超声波雷达<br/>0.2~5m"]
+        MWR["毫米波雷达<br/>~250m"]
+        CAM["摄像头<br/>~150m"]
+        LIDAR["激光雷达<br/>~200m"]
+    end
+
+    subgraph 数据融合层
+        F1["原始数据融合<br/>Raw Fusion"]
+        F2["特征级融合<br/>Feature Fusion"]
+        F3["决策级融合<br/>Decision Fusion"]
+    end
+
+    subgraph 感知输出层
+        O1["目标检测<br/>(车辆/行人/障碍物)"]
+        O2["车道线识别"]
+        O3["可行驶区域"]
+        O4["3D 环境建模"]
+    end
+
+    subgraph 决策规划层
+        P1["行为决策<br/>(加速/刹车/转向)"]
+        P2["路径规划"]
+    end
+
+    US --> F1
+    MWR --> F1
+    MWR --> F2
+    CAM --> F2
+    LIDAR --> F2
+    LIDAR --> F3
+    CAM --> F3
+
+    F1 --> O1
+    F2 --> O2
+    F2 --> O3
+    F3 --> O4
+
+    O1 --> P1
+    O2 --> P1
+    O3 --> P2
+    O4 --> P2
+</pre>
+</div>
+
+<hr>
+
+<h2>五、L2 / L3 / L4 级自动驾驶的传感器配置</h2>
+
+<p>不同等级的自动驾驶，需要的传感器数量和类型完全不同。</p>
+
+<table class="lvl-table">
+  <tr><th>级别</th><th>自动驾驶程度</th><th>典型传感器配置</th><th>一句话描述</th></tr>
+  <tr>
+    <td><span class="lvl-badge l2">L2</span></td>
+    <td>部分辅助</td>
+    <td class="lvl-cell">1 个前视摄像头 + 3 个毫米波雷达 + 12 个超声波雷达</td>
+    <td>你开车，车帮你</td>
+  </tr>
+  <tr>
+    <td><span class="lvl-badge l3">L3</span></td>
+    <td>有条件自动驾驶</td>
+    <td class="lvl-cell">2~4 个摄像头 + 5 个毫米波雷达 + 12 个超声波雷达 + 1 个激光雷达（选装）</td>
+    <td>车开，但你要盯着</td>
+  </tr>
+  <tr>
+    <td><span class="lvl-badge l4">L4</span></td>
+    <td>高度自动驾驶</td>
+    <td class="lvl-cell">6~12 个摄像头 + 6 个毫米波雷达 + 12 个超声波雷达 + 1~3 个激光雷达</td>
+    <td>车开，你可以睡觉</td>
+  </tr>
+</table>
+
+<h3>为什么 L4 需要这么多传感器？</h3>
+<div class="tip-box-green">💡 <strong>安全冗余</strong>——每个传感器都可能失效，必须有多套系统互为备份。<br/><br/>好比飞机有 4 台发动机——不是因为它需要 4 台才能飞，而是坏掉 1 台还能安全降落。</div>
+
+<hr>
+
+<h2>六、测验</h2>
+
+<div class="quiz-section">
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+    <p>假如你朋友问："智能汽车又没有眼睛，它怎么知道前面有人的？" 请用"人靠眼睛耳朵，车靠……"的方式解释给 10 岁小孩听。</p>
+    <textarea id="feynman1" placeholder="用自己的话写……不用术语"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+    <p>用你自己的话说说：为什么智能汽车不能只装一个"最好的"传感器，而要装好几种不同类型？</p>
+    <textarea id="feynman2" placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+    <p>"传感器融合"听起来很高大上，用生活中"几个朋友一起帮你做判断"的例子，解释一下什么是传感器融合。</p>
+    <textarea id="feynman3" placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>1</div>
+    <p>以下哪种车载传感器不怕天黑、不怕雨雾，但"知道有东西却看不清是什么"？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc1" value="A" id="mc1a"><label for="mc1a">A. 超声波雷达</label></div>
+      <div class="option"><input type="radio" name="mc1" value="B" id="mc1b"><label for="mc1b">B. 毫米波雷达</label></div>
+      <div class="option"><input type="radio" name="mc1" value="C" id="mc1c"><label for="mc1c">C. 摄像头</label></div>
+      <div class="option"><input type="radio" name="mc1" value="D" id="mc1d"><label for="mc1d">D. 激光雷达</label></div>
+    </div>
+    <div class="result" id="res1"></div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>2</div>
+    <p>想要让汽车识别前方是"红色的停止线"而不是"灰色的路沿"，最依赖哪种传感器？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc2" value="A" id="mc2a"><label for="mc2a">A. 超声波雷达</label></div>
+      <div class="option"><input type="radio" name="mc2" value="B" id="mc2b"><label for="mc2b">B. 毫米波雷达</label></div>
+      <div class="option"><input type="radio" name="mc2" value="C" id="mc2c"><label for="mc2c">C. 摄像头</label></div>
+      <div class="option"><input type="radio" name="mc2" value="D" id="mc2d"><label for="mc2d">D. 激光雷达</label></div>
+    </div>
+    <div class="result" id="res2"></div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>3</div>
+    <p>L4 级自动驾驶汽车为什么需要装那么多传感器？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc3" value="A" id="mc3a"><label for="mc3a">A. 为了让车看起来更酷</label></div>
+      <div class="option"><input type="radio" name="mc3" value="B" id="mc3b"><label for="mc3b">B. 因为单个传感器总有局限性，需要多种传感器配合和备份</label></div>
+      <div class="option"><input type="radio" name="mc3" value="C" id="mc3c"><label for="mc3c">C. 因为法律规定必须装够 12 个</label></div>
+      <div class="option"><input type="radio" name="mc3" value="D" id="mc3d"><label for="mc3d">D. 为了让车更重更稳</label></div>
+    </div>
+    <div class="result" id="res3"></div>
+  </div>
+
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+</div>
+
+<div class="nav-bar" style="margin-top:1.5rem">
+  <a href="../Lesson01-车载网关--2026-06-21--0900/课程.html">← 上一课</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson03-域控制器与区域架构--2026-06-21--1800/课程.html">下一课 →</a>
+</div>
+
+<div class="footer-note">做完随时问我：我的理解对不对？</div>
+
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div>
+
+<script>
+// 自动保存答题进度
+const STORAGE_KEY='teachme_lesson02'
+function saveProgress(){
+  const qs=document.querySelectorAll('textarea')
+  const mc1=document.querySelector('input[name="mc1"]:checked')
+  const mc2=document.querySelector('input[name="mc2"]:checked')
+  const mc3=document.querySelector('input[name="mc3"]:checked')
+  const data={
+    q1:qs[0]?.value||'',
+    q2:qs[1]?.value||'',
+    q3:qs[2]?.value||'',
+    mc1:mc1?.value||'',
+    mc2:mc2?.value||'',
+    mc3:mc3?.value||''
+  }
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data))
+}
+// 恢复答题进度
+function restoreProgress(){
+  const raw=localStorage.getItem(STORAGE_KEY)
+  if(!raw)return
+  try{
+    const d=JSON.parse(raw)
+    const qs=document.querySelectorAll('textarea')
+    if(qs[0]&&d.q1)qs[0].value=d.q1
+    if(qs[1]&&d.q2)qs[1].value=d.q2
+    if(qs[2]&&d.q3)qs[2].value=d.q3
+    if(d.mc1){const el=document.querySelector(`input[name="mc1"][value="${d.mc1}"]`);if(el)el.checked=true}
+    if(d.mc2){const el=document.querySelector(`input[name="mc2"][value="${d.mc2}"]`);if(el)el.checked=true}
+    if(d.mc3){const el=document.querySelector(`input[name="mc3"][value="${d.mc3}"]`);if(el)el.checked=true}
+  }catch(e){}
+}
+// 绑定自动保存
+document.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',saveProgress))
+document.querySelectorAll('input[type="radio"]').forEach(r=>r.addEventListener('change',saveProgress))
+// 页面加载时恢复
+restoreProgress()
+
+// 提交评分
+function submitAll(){
+  // 检查选择题
+  const ans = window.LESSON_ANSWERS.mcq
+  const names = ['mc1','mc2','mc3']
+  names.forEach((name,i)=>{
+    const sel = document.querySelector(`input[name="${name}"]:checked`)
+    const resDiv = document.getElementById(`res${i+1}`)
+    if(!resDiv) return
+    if(!sel){
+      resDiv.textContent = '⚠️ 请选择一个选项'
+      resDiv.className = 'result show wrong'
+      return
+    }
+    if(sel.value === ans[name]){
+      resDiv.textContent = '✅ 回答正确！'
+      resDiv.className = 'result show correct'
+    } else {
+      resDiv.textContent = '❌ 回答错误，查看标准答案了解详情'
+      resDiv.className = 'result show wrong'
+    }
+  })
+  // 如果存在 AI 评分器，调用它
+  if(typeof window.gradeFeynman === 'function'){
+    window.gradeFeynman('lesson02')
+  } else {
+    // 简单反馈
+    const qs = document.querySelectorAll('textarea')
+    qs.forEach((q,i)=>{
+      if(q.value.trim()){
+        // 已有内容，显示提示
+      }
+    })
+  }
+}
+
+// === AI 评分数据 ===
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson02',
+  title: '车载传感器——智能汽车的"感官系统"',
+  feynman: [
+    { q: 1, ref: '你可以说：你没有眼睛也能知道前面有东西——闭着眼睛伸出手摸到墙就知道了。车也是这个道理：超声波雷达像手，发出声音碰东西反弹回来就知道距离；摄像头像眼睛，看路看标志；毫米波雷达像蝙蝠的耳朵，不怕黑不怕雾，知道前面有障碍物；激光雷达像3D扫描仪，把周围变成密密麻麻的点。所以智能汽车不是"看"到的，而是用各种"感官"一起感知到的。' },
+    { q: 2, ref: '因为没有一种传感器是万能的。摄像头看得最清楚，但晚上或下雨天就看不清了；毫米波雷达不怕雨雾，但只知道"前面有东西"，不知道是什么东西；超声波雷达很便宜，但只能看很近的地方；激光雷达精度最高，但太贵了。好比人不能只靠眼睛走路——晚上没光要用手摸，过马路要竖耳朵听声音。每种传感器都有自己的短处，只有合在一起才能互相弥补。' },
+    { q: 3, ref: '想象三个好朋友帮你找一家新餐馆：A眼睛最好，负责看店名和门牌号；B耳朵最灵，负责听路人说"那家店就在前面"；C方向感最强，知道东南西北。如果单凭A一个人，天黑就找不到了；单凭B没有具体方向。三个人一合计——A看到门牌号，B听到"就在前面"，C指出方向——就准确找到了。传感器融合就是这个道理：摄像头说"前面有个红色的东西"，毫米波雷达说"那东西距离50米"，激光雷达说"那东西长4.5米宽2米"，融合在一起就知道"前方50米是一辆红色轿车"。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'B' }
+};
+</script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

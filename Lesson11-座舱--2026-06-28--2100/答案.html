@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 11：答案 — 智能座舱的"大脑与神经"</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson10-T-BOX知识--2026-06-28--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <a href="../Lesson12-数字车钥匙通信--2026-07-04--2100/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 11 — 答案</div>
+  <h1>智能座舱的"大脑与神经"——参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<div class="q-label">Q1（域控制器 vs 多 ECU 比喻）</div>
+<div class="ref-box"><strong>"一个家庭合租 vs 每人各租一套房子"比喻：</strong><br><br>
+<strong>传统多 ECU 架构</strong>就像<strong>家里每个人各租一套独立的房子</strong>：<br>
+- 你住一套（音响主机）、你老婆住一套（仪表盘）、你孩子住一套（空调控制）<br>
+- 每套房子有自己的水电表（独立 MCU）、自己的大门（独立通信接口）<br>
+- 你想叫老婆吃饭？得打电话（跨 ECU 通信）<br>
+- 帮孩子交水电费？得跑三个地方分别办（OTA 刷写要逐个 ECU）<br><br>
+<strong>域控制器架构</strong>就像<strong>全家人合住一套大房子</strong>：<br>
+- 大家都在同一套房子里（同一颗 SoC），各自有自己的房间（不同 VM）<br>
+- 共用客厅、厨房、水电（共享内存、GPU、总线）<br>
+- 喊一声"吃饭了"，所有人都能听到（本地通信，毫秒级）<br>
+- 交一次水电费全搞定（一次 OTA 升级覆盖全部功能）<br><br>
+<strong>核心对比：</strong><br>
+- 传统：每人各租一套 → 浪费资源、通信麻烦、维护困难<br>
+- 域控：合住一套大房子 → 节省资源、通信快、升级方便<br><br>
+<strong>更深一层：</strong>域控制器的"合住"还能做到传统架构做不到的事——中控导航可以实时把"下个路口右转"传给仪表盘显示，这在传统架构中需跨越多个 ECU 和总线，延迟高且实现复杂。
+</div>
+
+<div class="q-label">Q2（Hypervisor 比喻）</div>
+<div class="ref-box"><strong>"合租公寓楼"比喻：</strong><br><br>
+假设你和室友合租一套公寓，但你们生活习惯完全不同：<br>
+- 你喜欢周末开派对（Android——内容丰富但不可靠）<br>
+- 室友是程序员，周末在家写代码（QNX——需要稳定可靠）<br><br>
+<strong>方案 A：你们共享一个房间（不用 Hypervisor）</strong><br>
+- 你开派对，室友没法写代码（Android 崩溃导致仪表盘黑屏）<br>
+- 室友关灯睡觉，你也没法玩（QNX 独占资源导致娱乐系统卡顿）<br>
+- ❌ 不隔离，互相干扰<br><br>
+<strong>方案 B：公寓管理员（Hypervisor）给你们分房间</strong><br>
+- 你住 301 开派对，室友住 302 写代码——各有各的独立空间<br>
+- 管理员（Hypervisor）确保：302 不会断电（QNX 独占安全关键资源）<br>
+- 管理员还帮你传纸条：你在 301 写"下个路口右转"通过管理员传给 302 的室友看（跨 VM 通信）<br>
+- ✅ 安全隔离 + 资源共享 + 可通信<br><br>
+<strong>为什么不能跑在同一个系统里？</strong><br>
+- Android 像派对动物——可能卡顿、死机、App 崩溃。你接受导航卡一下，但不能接受车速表卡一下<br>
+- QNX 像有强迫症的精算师——绝对稳定和实时，但你没法在 QNX 上装抖音、跑高德地图<br>
+- 本质：仪表盘是功能安全关键系统（ISO 26262 ASIL-B/D），必须与娱乐系统物理隔离
+</div>
+
+<div class="q-label">Q3（NPU 算力越来越重要的原因）</div>
+<div class="ref-box"><strong>座舱中至少两个只有 AI 才能完成的场景：</strong><br><br>
+<strong>场景 1：语音识别 + 自然语言理解</strong><br>
+- 传统方式：需要用户记忆固定短语（"导航到某处"）<br>
+- AI 方式：你说"我想去朝阳公园看花"，AI 理解意图→提取"朝阳公园"→自动导航<br>
+- NPU 需实时运行几百 MB 的语音模型，CPU 跑不动<br><br>
+<strong>场景 2：驾驶员监测系统（DMS）</strong><br>
+- 通过红外摄像头实时分析驾驶员面部：闭眼超 2 秒→疲劳提醒；视线偏航→分心提醒<br>
+- 每秒处理 30 帧人脸图像→运行深度学习模型→NPU 比 CPU 效率高 10~100 倍<br><br>
+<strong>场景 3（加分）：AI 虚拟助手 + 手势交互</strong><br>
+- 用户做 OK 手势→系统识别→切换场景模式<br>
+- 3D 虚拟形象（AIGC 生成）实时渲染在屏幕上和用户对话<br><br>
+<strong>结论：</strong>未来智能座舱的体验差异就在 AI 能力。没有足够 NPU 算力的芯片，无法提供流畅语音对话、精准疲劳检测和沉浸式交互体验。
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>Hypervisor 的核心作用是资源隔离——在一颗芯片上划分多个虚拟机，运行不同的操作系统，互不干扰。A❌ 加快 Android 不是 Hypervisor 的目标；C❌ GPU 渲染由 GPU 硬件完成；D❌ 空调压缩机是车身域的事。</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>C</strong></td>
+  <td>域控制器将 5~8 颗 ECU 合并为 1 颗 SoC，减少芯片数量、线束重量和总成本。OTA 升级只需一次刷写。A❌ 域控制器倾向于统一芯片平台；B❌ 硬件数量减少而非增加；D❌ 空调和导航可以跑在不同 VM 里。</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>C</strong></td>
+  <td>NPU 专为 AI 推理任务设计，如运行语音识别模型、驾驶员监测模型等。A❌ 3D 渲染靠 GPU；B❌ 仪表盘动画是简单 2D 图形；D❌ 车窗升降由车身域 MCU 控制。</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

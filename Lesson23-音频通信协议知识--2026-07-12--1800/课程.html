@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 23（18:00）：I2S 与 PDM——数字音频在芯片内部的"高速公路"</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 23（18:00）— 2026-07-12 | 🎵 音频通信协议知识：I2S 和 PDM 数字音频接口</div>
+  <h1>I2S 与 PDM——数字音频在芯片内部的"高速公路"</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson22-舱驾知识--2026-07-12--1200/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson24-车载以太网TSN--2026-07-14--2100/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>你对着车载麦克风说"打开空调，温度设到 24 度"。</p>
+
+<p>从你说出这句话，到车机听懂并执行，中间只用了不到 1 秒。但在这 1 秒里，<strong>声音经历了四次"翻译"</strong>：</p>
+
+<ol>
+  <li><strong>麦克风</strong>把声波（机械振动）变成电信号（模拟电压）</li>
+  <li><strong>模数转换器（ADC）</strong>把模拟电压变成一串数字（0101...）</li>
+  <li><strong>DSP 或 AI 芯片</strong>处理这串数字，识别出"打开空调"</li>
+  <li><strong>扬声器</strong>说"好的，空调已打开"——又变回声波</li>
+</ol>
+
+<p>每一步都在不同的芯片上发生：麦克风芯片 → 音频编解码器（CODEC）→ SoC（主控芯片）→ 功放芯片 → 扬声器。</p>
+
+<p><strong>这些芯片之间用什么"语言"交流？为什么要用专门的音频协议，而不是直接用 I²C 或 SPI？</strong></p>
+
+<p>今天的重点：<strong>I2S（Inter-IC Sound）</strong> 和 <strong>PDM（Pulse Density Modulation）</strong>——车载音频系统内部的两大数字接口协议。</p>
+
+<hr>
+
+<h2>二、车载音频系统的"三截路"</h2>
+
+<p>音频信号在车上走的路可以分成三段，每段用不同的协议：</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph MIC["🎤 MEMS 麦克风"]
+        M1["PDM 输出<br>1-bit 脉冲密度"]
+    end
+    subgraph CODEC["🎛️ 音频 CODEC"]
+        C1["PDM→PCM 转换<br>降采样滤波器"]
+        C2["I2S/TDM 接口<br>3 线输出"]
+    end
+    subgraph SOC["🧠 SoC 主芯片"]
+        S1["I2S/TDM 接收<br>语音/AI 处理"]
+    end
+    subgraph AMP["🔊 功放 (AMP)"]
+        A1["A2B/模拟输出<br>驱动扬声器"]
+    end
+    subgraph SPK["🔈 扬声器群"]
+        SP1["~40 个扬声器<br>菊花链"]
+    end
+    M1 ==&gt;|"PDM&lt;br&gt;第1段"| C1
+    C2 ==&gt;|"I2S/TDM&lt;br&gt;第2段"| S1
+    S1 ==&gt;|"I2S"| C2
+    C2 ==&gt;|"A2B/模拟&lt;br&gt;第3段"| A1
+    A1 ==&gt;|"A2B"| SP1
+</div>
+
+<table>
+<tr><th>路段</th><th>范围</th><th>常用协议</th><th>特点</th></tr>
+<tr><td><strong>第1段</strong></td><td>麦克风 → 音频 CODEC</td><td><strong>PDM</strong></td><td>仅 1 根数据线+1 根时钟线，适合远距离放麦克风</td></tr>
+<tr><td><strong>第2段</strong></td><td>CODEC ↔ SoC（主芯片）</td><td><strong>I2S / TDM</strong></td><td>立体声/多通道，3 根线，延迟极低</td></tr>
+<tr><td><strong>第3段</strong></td><td>功放 → 扬声器群</td><td><strong>A2B</strong></td><td>菊花链，一根线串起几十个扬声器（Lesson 08 已讲）</td></tr>
+</table>
+
+<p>第二节课（Lesson 08）已经详细讲了第 3 段（A2B）。今天聚焦<strong>第 1 段和第 2 段</strong>——芯片之间的"短途高速路"。</p>
+
+<hr>
+
+<h2>三、I2S——音频芯片之间的"普通话"</h2>
+
+<h3>3.1 I2S 是什么</h3>
+
+<p><strong>I2S（Inter-IC Sound，集成电路间音频总线）</strong>是 Philips 公司在 1986 年发明的数字音频接口标准。它的设计目标非常明确：<strong>让音频芯片之间能干净、同步地传输数字音频数据</strong>。</p>
+
+<h3>3.2 I2S 的三根线</h3>
+
+<p>I2S 只用三根线就能传输立体声音频：</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph TX["🎛️ 发送端（SoC/CODEC）"]
+        T["I2S 发送器"]
+    end
+    subgraph RX["🎛️ 接收端（CODEC/DSP）"]
+        R["I2S 接收器"]
+    end
+    T -->|"SCK（位时钟）&lt;br&gt;每个数据位一个脉冲"| R
+    T -->|"WS（字时钟/帧时钟）&lt;br&gt;左声道=低电平，右声道=高电平"| R
+    T -->|"SD（串行数据）&lt;br&gt;二进制音频采样值"| R
+</div>
+
+<table>
+<tr><th>信号线</th><th>全称</th><th>干什么</th><th>频率</th></tr>
+<tr><td><strong>SCK</strong></td><td>Serial Clock（位时钟）</td><td>每个时钟脉冲传输 1 个 bit 数据</td><td>采样率 × 位深 × 声道数</td></tr>
+<tr><td><strong>WS</strong></td><td>Word Select（字时钟/帧时钟）</td><td>区分左右声道：低=左声道，高=右声道</td><td><strong>等于采样率</strong>（如 48 kHz）</td></tr>
+<tr><td><strong>SD</strong></td><td>Serial Data（串行数据）</td><td>实际的音频采样值，二进制补码格式</td><td>与 SCK 同步</td></tr>
+</table>
+
+<p><strong>举例：</strong> 48 kHz 采样率、24 位立体声的 I2S 信号：</p>
+<ul>
+  <li>WS = 48 kHz（每 1/48000 秒切换一次左右声道）</li>
+  <li>SCK = 48,000 × 24 × 2 = <strong>2.304 MHz</strong></li>
+  <li>每个 WS 周期内传输一个完整的声道采样（24 bit）</li>
+</ul>
+
+<h3>3.3 I2S 的数据格式</h3>
+
+<pre class="code-block">
+WS:  __左声道(L)__|__右声道(R)__|__左声道(L)__|__右声道(R)__...
+        ↑                   ↑                   ↑
+SCK:  ▄▄▄▄█▄▄▄▄█▄▄▄▄█▄▄▄▄█▄▄▄▄█▄▄▄▄█▄▄▄▄█▄▄▄...
+        ↑  ↑  ↑  ↑  ↑  ↑  ↑  ↑  ↑  ↑  ↑  ↑
+SD:   [MSB] [bit22] ... [LSB] [MSB] [bit22] ... [LSB]
+        ←-- 左声道 24 bit --→   ←-- 右声道 24 bit --→
+</pre>
+
+<p><strong>重要规则：</strong> I2S 的数据在 WS 切换后<strong>延迟一个 SCK 周期</strong>才开始传输 MSB（最高有效位）。这保证了发送端和接收端有足够的准备时间。</p>
+
+<h3>3.4 I2S 的关键参数</h3>
+
+<table>
+<tr><th>参数</th><th>典型值</th><th>说明</th></tr>
+<tr><td><strong>采样率</strong></td><td>48 kHz（车载基准）、96 kHz、192 kHz</td><td>越高音质越好，数据量越大</td></tr>
+<tr><td><strong>位深</strong></td><td>16 bit、24 bit、32 bit</td><td>动态范围：16 bit=96 dB，24 bit=144 dB</td></tr>
+<tr><td><strong>声道数</strong></td><td>2（I2S 标准）、4/8/16（TDM 扩展）</td><td>TDM 是 I2S 的多通道版本</td></tr>
+<tr><td><strong>SCK 频率</strong></td><td>采样率 × 位深 × 声道数</td><td>48k×24×2=2.304 MHz；192k×32×2=12.288 MHz</td></tr>
+<tr><td><strong>延迟</strong></td><td>&lt; 10 μs（芯片间直连）</td><td>比 A2B 还低一个数量级</td></tr>
+</table>
+
+<h3>3.5 TDM——I2S 的多车道版本</h3>
+
+<p>车里有 6 个麦克风、8 个扬声器通道，如果每个都走一对 I2S，SoC 上的引脚根本不够用。</p>
+
+<p><strong>TDM（Time Division Multiplexing，时分复用）</strong> 是 I2S 的"多车道版"：</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph SOC["🧠 SoC 主芯片"]
+        TDM_M["TDM 接口&lt;br&gt;1 组 SCK+WS+SD"]
+    end
+    subgraph NODE1["🎛️ CODEC 1&lt;br&gt;（前座麦克风阵列）"]
+        C1["通道 0-3"]
+    end
+    subgraph NODE2["🎛️ CODEC 2&lt;br&gt;（后座麦克风阵列）"]
+        C2["通道 4-7"]
+    end
+    TDM_M &lt;--&gt; C1
+    TDM_M &lt;--&gt; C2
+</div>
+
+<p><strong>对比：</strong></p>
+
+<table>
+<tr><th></th><th>I2S（标准）</th><th>TDM（时分复用）</th></tr>
+<tr><td><strong>声道数</strong></td><td>2（立体声）</td><td>2~16+</td></tr>
+<tr><td><strong>信号线</strong></td><td>SCK + WS + SD</td><td>SCK + WS + SD（<strong>线数不变！</strong>）</td></tr>
+<tr><td><strong>SCK 频率</strong></td><td>2.304 MHz (48k×24×2)</td><td>9.216 MHz (48k×24×8)</td></tr>
+<tr><td><strong>应用</strong></td><td>立体声 Hi-Fi 播放</td><td>多麦克风阵列、多通道 ANC</td></tr>
+</table>
+
+<p><strong>TDM 的精髓：</strong> 用<strong>更高的位时钟频率</strong>在<strong>同一组线</strong>上塞进更多声道。SCK 频率 = 采样率 × 位深 × 声道数——线还是 3 根，但速度更快。</p>
+
+<hr>
+
+<h2>四、PDM——麦克风的"1-bit 语言"</h2>
+
+<h3>4.1 PDM 是什么</h3>
+
+<p>车载 MEMS 麦克风（微机电麦克风）的内部结构决定了它天生输出 <strong>PDM（Pulse Density Modulation，脉冲密度调制）</strong> 信号——一种只有 1 位数据的"粗信号"。</p>
+
+<h3>4.2 PDM vs PCM：两个世界的对比</h3>
+
+<pre class="code-block">
+PCM（脉冲编码调制——I2S 用的格式）：
+采样值：  [10010110]  [10010111]  [10010101]  [10010100]
+           ← 24 bit →  ← 24 bit →  ← 24 bit →  ← 24 bit →
+          每个采样点用 24 个 bit 精确表示振幅
+
+PDM（脉冲密度调制——MEMS 麦克风输出）：
+采样值：  10111011101110111011101110111011...
+          ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
+          每个 bit 只告诉你是"高"(1)还是"低"(0)
+          "1"多 = 信号强，"0"多 = 信号弱
+</pre>
+
+<table>
+<tr><th>对比维度</th><th>PCM（I2S）</th><th>PDM（麦克风）</th></tr>
+<tr><td><strong>位深</strong></td><td>16~32 bit 多比特</td><td><strong>1 bit</strong>（只有 0 或 1）</td></tr>
+<tr><td><strong>数据率</strong></td><td>48k×24=1.152 Mbps（单声道）</td><td><strong>64×48k=3.072 MHz</strong>（远高于 PCM）</td></tr>
+<tr><td><strong>抗干扰</strong></td><td>中（多线传输）</td><td><strong>高</strong>（单线差分传输）</td></tr>
+<tr><td><strong>解码复杂度</strong></td><td>低（直接读取）</td><td><strong>高</strong>（需要数字降采样滤波器）</td></tr>
+<tr><td><strong>应用场景</strong></td><td>CODEC ↔ SoC</td><td>MEMS 麦克风 → CODEC</td></tr>
+</table>
+
+<h3>4.3 PDM 的两根线</h3>
+
+<pre class="code-block">
+         ┌────────────────────────┐
+CLK: ▄▄▄█▄▄▄█▄▄▄█▄▄▄█▄▄▄█▄▄▄█▄▄▄█▄▄▄█  （CODEC 提供给麦克风的时钟）
+         ┌─┐ ┌─┐   ┌─┐ ┌─┐ ┌─┐   ┌─┐
+DATA:   0 1 1 0 1 1 1 0 1 1 1 1 0 1 0 0 （1-bit 密度流）
+        ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
+       每个时钟上升沿输出 1 个 bit
+</pre>
+
+<table>
+<tr><th>信号线</th><th>方向</th><th>说明</th></tr>
+<tr><td><strong>CLK</strong></td><td>CODEC → 麦克风</td><td>时钟信号，频率通常为采样率的 <strong>64 倍</strong>（如 48k×64=3.072 MHz）</td></tr>
+<tr><td><strong>DATA</strong></td><td>麦克风 → CODEC</td><td>1-bit PDM 数据流，每个时钟输出 1 位</td></tr>
+</table>
+
+<h3>4.4 PDM 的工作过程</h3>
+
+<ol>
+  <li><strong>麦克风采样：</strong> MEMS 麦克风内部有一个 1-bit Σ-Δ（Sigma-Delta）调制器，以极高的频率（3.072 MHz）对模拟信号进行 1-bit 量化</li>
+  <li><strong>输出脉冲流：</strong> 信号振幅大 → "1" 脉冲多；信号振幅小 → "0" 脉冲多</li>
+  <li><strong>CODEC 解码：</strong> CODEC 内部的数字降采样滤波器（Decimation Filter）将 3.072 MHz 的 1-bit 流转换为 48 kHz 的 24-bit PCM 数据</li>
+  <li><strong>送给 SoC：</strong> 转换后的 PCM 数据通过 I2S/TDM 送给 SoC 做进一步处理（语音识别、ANC 等）</li>
+</ol>
+
+<pre class="code-block">
+麦克风 →  Σ-Δ调制器 → 1-bit PDM  →    CODEC     → 24-bit PCM → I2S → SoC
+模拟信号     3.072 MHz   3.072 Mbps  降采样滤波器   48 kHz        3线    AI 语音识别
+</pre>
+
+<h3>4.5 为什么车载用 PDM？</h3>
+
+<ul>
+  <li><strong>线束少：</strong> 每个麦克风只需要 1 根数据线 + 1 根时钟线（有些还可以共享时钟），门板里的麦克风不用拉粗线束</li>
+  <li><strong>抗干扰强：</strong> PDM 是数字信号（只有 0 和 1），不像模拟麦克风线容易被电机干扰</li>
+  <li><strong>麦克风便宜：</strong> MEMS 麦克风是半导体工艺，批量成本不到 1 元/个，车上可以装 6~10 个做麦克风阵列</li>
+</ul>
+
+<hr>
+
+<h2>五、I2S / PDM / A2B 的定位对比</h2>
+
+<table>
+<tr><th>对比维度</th><th><strong>PDM</strong></th><th><strong>I2S / TDM</strong></th><th><strong>A2B</strong></th></tr>
+<tr><td><strong>传输范围</strong></td><td>芯片内/PCB 内（&lt; 30 cm）</td><td>PCB 到 PCB（&lt; 1 m）</td><td>整车（~10 m）</td></tr>
+<tr><td><strong>线数</strong></td><td>2 根（CLK+DATA）</td><td>3 根（SCK+WS+SD）</td><td>1 根双绞线（菊花链）</td></tr>
+<tr><td><strong>最大通道数</strong></td><td>2（立体声 PDM）</td><td>2（I2S）~16+（TDM）</td><td>32 通道</td></tr>
+<tr><td><strong>每通道数据率</strong></td><td>3.072 Mbps（64×Fs）</td><td>1.152 Mbps（24 bit×48k）</td><td>50 Mbps 共享</td></tr>
+<tr><td><strong>延迟</strong></td><td>&lt; 1 μs（单芯片内）</td><td>&lt; 10 μs（芯片间）</td><td>&lt; 50 μs（整车间）</td></tr>
+<tr><td><strong>供电</strong></td><td>单独供电</td><td>单独供电</td><td><strong>总线供电</strong></td></tr>
+<tr><td><strong>典型用途</strong></td><td>MEMS 麦克风数字化</td><td>CODEC ↔ SoC 音频传输</td><td>扬声器群菊花链</td></tr>
+</table>
+
+<p><strong>一句话概括三层关系：</strong></p>
+<ul>
+  <li><strong>PDM</strong> — 麦克风把声音变成"粗信号"（1-bit 流）</li>
+  <li><strong>I2S/TDM</strong> — 主芯片之间传"精信号"（24-bit PCM 立体声/多通道）</li>
+  <li><strong>A2B</strong> — 从功放到 40 个扬声器的"一个串一个"总线</li>
+</ul>
+
+<hr>
+
+<h2>六、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>PDM 是"粗筛子"，I2S 是"精加工"</strong></td><td>麦克风输出 1-bit PDM（粗筛子：只告诉你信号偏大还是偏小）；CODEC 降采样成 24-bit PCM（精加工：告诉你精确的振幅值）；SoC 通过 I2S 接收精加工后的数据做语音识别。粗筛子效率高、线少；精加工精度高、适合处理。两者分工明确</td></tr>
+<tr><td><strong>2</strong></td><td><strong>I2S 用 3 根线解决时钟同步问题</strong></td><td>SCK（位时钟）、WS（字时钟/帧同步）、SD（数据）三线合一。发送端和接收端共享同一个时钟，自然同步——不需要额外的握手协议。这是 I2S 诞生近 40 年仍是音频芯片间首选接口的根本原因：<strong>同步信号不需要额外开销</strong></td></tr>
+<tr><td><strong>3</strong></td><td><strong>TDM 是"高速版的 I2S"，线数不变、通道翻倍</strong></td><td>I2S 标准只支持立体声（2 通道）。TDM 把 SCK 频率提高，在同一个 WS 周期内塞进 4/8/16 个声道的数据。线还是 3 根，但速度更快。车载 ANC（主动降噪）需要同时处理 6~10 个麦克风信号——TDM 实现"一根总线传所有麦克风数据"</td></tr>
+</table>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你的朋友看到你在车里说"打开天窗"，车就打开了天窗。他问："麦克风听到我的声音，怎么告诉车机我在说什么——是像打电话一样把声音传过去吗？" 请用"<strong>把整首曲子变成简谱 vs 只告诉谱子的高低</strong>"的类比，解释 PDM（1-bit 粗信号）和 PCM/I2S（24-bit 精信号）之间的区别。为什么麦克风不能直接输出"精信号"？</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>你的朋友问："为什么车里要用三种不同的音频线（PDM、I2S、A2B），不能只用一种线连所有东西？" 请用"<strong>快递的三种运输方式</strong>"的类比（<strong>小区内步行送件 vs 城市配送 vs 跨省物流</strong>），解释 PDM（芯片内部）、I2S（板间）、A2B（整车）三种协议的分工理由。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>你朋友在学吉他，他问："乐队演奏时，如果鼓手和吉他手听到的节拍不一样，音乐就乱套了。车载几十个扬声器播放同一首歌，怎么保证它们'听到的节拍'完全一致？" 请用"<strong>指挥家 vs 各自凭感觉演奏</strong>"的类比，解释 I2S 三线（SCK、WS、SD）中的时钟同步机制——为什么 SCK 和 WS 必须由同一个芯片提供？</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. I2S 总线中，WS（Word Select）信号的频率等于什么？</div>
+<label><input type="radio" name="mc1" value="A"> A. CPU 主频</label>
+<label><input type="radio" name="mc1" value="B"> B. 音频采样率（如 48 kHz）</label>
+<label><input type="radio" name="mc1" value="C"> C. 位时钟（SCK）频率的一半</label>
+<label><input type="radio" name="mc1" value="D"> D. 扬声器的功率</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. PDM 信号相比 PCM（I2S 传输的格式）的核心特点是？</div>
+<label><input type="radio" name="mc2" value="A"> A. 需要 24 根数据线并行传输</label>
+<label><input type="radio" name="mc2" value="B"> B. 用 1-bit 极高频率的脉冲密度来表示模拟信号，线数少、抗干扰强</label>
+<label><input type="radio" name="mc2" value="C"> C. 只能传输立体声，不支持多通道</label>
+<label><input type="radio" name="mc2" value="D"> D. 传输距离可达 100 米以上</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. TDM（时分复用）相比标准 I2S 的最大优势是什么？</div>
+<label><input type="radio" name="mc3" value="A"> A. 只需要 2 根线（比 I2S 少一根）</label>
+<label><input type="radio" name="mc3" value="B"> B. 不增加信号线数量的前提下，支持更多音频通道</label>
+<label><input type="radio" name="mc3" value="C"> C. 延迟比 I2S 低 10 倍</label>
+<label><input type="radio" name="mc3" value="D"> D. 不需要时钟信号</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div id="btn-group-container" class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除</button>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ====== Auto-save / Load from localStorage ======
+const LS_KEY = 'teachme_lesson23';
+function saveProgress() {
+  const data = {};
+  data.f1 = document.getElementById('feynman1').value;
+  data.f2 = document.getElementById('feynman2').value;
+  data.f3 = document.getElementById('feynman3').value;
+  document.querySelectorAll('input[type="radio"]').forEach(el => {
+    if (el.checked) data[el.name] = el.value;
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!saved) return;
+    if (saved.f1) document.getElementById('feynman1').value = saved.f1;
+    if (saved.f2) document.getElementById('feynman2').value = saved.f2;
+    if (saved.f3) document.getElementById('feynman3').value = saved.f3;
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      if (saved[el.name] === el.value) el.checked = true;
+    });
+  } catch(e) {}
+}
+// Auto-save on input change
+document.addEventListener('input', saveProgress);
+
+// ====== Clear All: clear both inline MCQ results and ai-grader.js panel ======
+function clearAll() {
+  if (!confirm('确定清除所有已保存的答案？')) return;
+  localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(el => { el.className = 'mcq-result'; el.style.display = 'none'; });
+  const scoreDiv = document.getElementById('mcq-score');
+  if (scoreDiv) scoreDiv.remove();
+  const copyBlock = document.getElementById('copy-block');
+  if (copyBlock) copyBlock.style.display = 'none';
+  const hint = document.getElementById('feynman-score-hint');
+  if (hint) hint.remove();
+  // Clear ai-grader.js result panel
+  const agResults = document.getElementById('agResultsPanel');
+  if (agResults) agResults.style.display = 'none';
+  const agLocal = document.getElementById('agLocalMCQ');
+  if (agLocal) agLocal.style.display = 'none';
+  const agCopy = document.getElementById('agFeynmanCopy');
+  if (agCopy) agCopy.style.display = 'none';
+  const agHint = document.getElementById('agAIHint');
+  if (agHint) agHint.style.display = 'none';
+  const agLoading = document.getElementById('agLoading');
+  if (agLoading) agLoading.style.display = 'none';
+  const agError = document.getElementById('agError');
+  if (agError) agError.style.display = 'none';
+  const agFeynman = document.getElementById('agFeynmanResults');
+  if (agFeynman) agFeynman.style.display = 'none';
+  const agSummary = document.getElementById('agSummary');
+  if (agSummary) agSummary.style.display = 'none';
+  const agTotal = document.getElementById('agTotal');
+  if (agTotal) agTotal.style.display = 'none';
+}
+
+// Load saved progress on page load
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson23',
+  title: 'Lesson 23（18:00）：I2S 与 PDM——数字音频在芯片内部的"高速公路"',
+  feynman: [
+    { q: 1, ref: '用"简谱 vs 只告诉谱子高低"的类比：PCM = 把整首曲子写成完整的简谱——每个音符的音高、时值、力度都精确记录（24-bit 精确振幅值），精度高、数据量大。PDM = 一个极快的指挥每秒拍 300 万次手，每次只喊"高！"（1）或"低！"（0）——信号强时"1"多，信号弱时"0"多。1-bit 的粗信号用极高频率（64×Fs=3.072 MHz）弥补精度不足。为什么麦克风不能直接输出精信号？MEMS 麦克风内部用 Σ-Δ 调制器——仅需 1 个比较器+1 个积分器，电路极简、成本极低，天然输出 1-bit 流。要得到 24-bit PCM 需要复杂的数字降采样滤波器和大面积逻辑电路。所以分工：麦克风负责"粗筛"（低成本、高速率），CODEC 负责"精加工"（数字滤波→24-bit PCM），SoC 负责"理解"（AI 语音处理）' },
+    { q: 2, ref: '用"快递三种运输方式"类比：PDM = 小区内步行送件——距离短（<30 cm）、送的东西简单（1-bit 粗信号）、极低成本。适合同一 PCB 上的麦克风到 CODEC。不能用 PDM 送整车——距离太远信号衰减。I2S/TDM = 面包车城市配送——适合几米到几十厘米的距离（CODEC↔SoC），每次拉几箱货（2~16 通道高精度音频）。面包车不能上高速跨省——I2S 不能传 10 米到车门。A2B = 大卡车跨省物流——适合整车范围（驾驶舱到所有车门），一次拉几十箱货（32 通道），自带 UPS（Power Over Cable）。大卡车开不进小区——A2B 延迟 50 μs 比 I2S 的 10 μs 大，不适合芯片间紧耦合。为什么不能只用一种？三种场景对距离、通道数、成本、延迟要求完全不同——用 A2B 传麦克风信号=用跨省物流车送小区快递：太贵太重；用 PDM 传扬声器信号=用步行送跨省包裹：根本到不了' },
+    { q: 3, ref: '用"指挥家 vs 各自凭感觉演奏"的类比：没有时钟同步 = 乐队没有指挥——鼓手和吉他手各自凭感觉演奏，虽然都觉得自己在打"四四拍"，但一个快 0.1%、一个慢 0.05%，前 5 秒还合拍，30 秒后彻底对不上。I2S 的解决方案：SCK 和 WS 由同一个芯片提供，如同唯一的指挥家。I2S 三线对应：(1) SCK = 指挥的节拍器——每个脉冲是一拍，所有乐手按统一节拍演奏。(2) WS = 指挥的手势——向左摆=左声道，向右摆=右声道。(3) SD = 乐手演奏的音符——按节拍和手势方向在规定的拍子上演奏。为什么不能各自独立时钟？如果发送端用自己的时钟发数据，接收端用自己的时钟收数据，即使标称都是 2.304 MHz，实际频率也有 ±50 ppm 的偏差。48k×24×2 下，50 ppm 偏差意味着每秒多读或少读约 110 个 bit——数据完全错位。所以 I2S 的铁律：SCK 和 WS 由发送端/主设备产生，接收端完全跟随，不自己产生时钟——所有芯片看着同一个节拍器演奏' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

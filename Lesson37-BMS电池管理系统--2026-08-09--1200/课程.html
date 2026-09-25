@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 37（12:00）：BMS 电池管理系统——动力电池的"大脑"如何决定你能跑多远？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 37（12:00）— 2026-08-09 | 🚗 BMS 电池管理系统（SOC/SOH 估算 / 均衡 / 热管理 / 主从架构）</div>
+  <h1>BMS 电池管理系统——动力电池的"大脑"如何决定你能跑多远？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson36-ASPICE软件开发流程--2026-08-09--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson38-车载嵌入式Linux--2026-08-09--1500/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你买了一辆纯电车，标称续航 600 公里。结果：</p>
+
+<ul>
+<li>冬天零下 10 度，续航"缩水"到 380 公里</li>
+<li>仪表显示还有 15% 电量，一踩油门动力却"蔫"了</li>
+<li>快充到 80% 后充电速度骤降，后面 20% 要充半小时</li>
+</ul>
+
+<p><strong>问题来了：</strong> 电池里到底还有多少电？什么时候该充电？充多快才不伤电池？这些"没人看得见"的问题，全靠一个藏在电池包里的电子系统回答——<strong>BMS（Battery Management System，电池管理系统）</strong>。</p>
+
+<div class="callout">
+<p><strong>一句话：</strong> 电池是"哑巴"，BMS 是它的"大脑和管家"。这一课讲清楚：<strong>BMS 管什么、怎么估算电量、为什么电池要"均衡"和"热管理"。</strong></p>
+</div>
+
+<hr>
+
+<h2>二、先认识动力电池的基本结构</h2>
+
+<table>
+<tr><th>术语</th><th>含义</th><th>类比</th></tr>
+<tr><td><strong>电芯（Cell）</strong></td><td>电池的最小单元（如 18650、方形、软包）</td><td>一节 5 号电池</td></tr>
+<tr><td><strong>模组（Module）</strong></td><td>多个电芯串联/并联组成的单元</td><td>一板电池</td></tr>
+<tr><td><strong>电池包（Pack）</strong></td><td>多个模组 + BMS + 热管理 + 结构件</td><td>整块动力电池</td></tr>
+</table>
+
+<p><strong>核心物理量：</strong></p>
+
+<ul>
+<li><strong>SOC（State of Charge）</strong>：剩余电量百分比（0~100%），就是仪表上的"电量条"</li>
+<li><strong>SOH（State of Health）</strong>：电池健康度（新电池 100%，衰减后下降），决定"还能存多少电"</li>
+<li><strong>内阻（Internal Resistance）</strong>：电池内部的电阻，越大发热越多、放电能力越差</li>
+</ul>
+
+<div class="mermaid">
+flowchart LR
+    subgraph PACK["🔋 电池包（Pack）"]
+        subgraph M1["模组 1"]
+            C1["电芯"] --- C2["电芯"] --- C3["电芯"]
+        end
+        subgraph M2["模组 2"]
+            C4["电芯"] --- C5["电芯"] --- C6["电芯"]
+        end
+        BMS["🧠 BMS 主控"]
+        TM["🌡️ 热管理系统"]
+    end
+    PACK --&gt; ECU["整车 VCU / 电机控制器"]
+</div>
+
+<hr>
+
+<h2>三、BMS 的四大核心职责</h2>
+
+<h3>1️⃣ 采样与监测（感知）</h3>
+
+<p>BMS 实时采集每一个电芯的<strong>电压、电流、温度</strong>（关键参数），这是所有决策的基础：</p>
+
+<ul>
+<li>电压：每颗电芯都要量（串联电芯必须逐个监测）</li>
+<li>电流：霍尔传感器/分流器测量充放电电流</li>
+<li>温度：电芯表面布置 NTC 热敏电阻，监测温度分布</li>
+</ul>
+
+<h3>2️⃣ 状态估算（SOC / SOH / SOP）</h3>
+
+<p>这是 BMS 的"大脑"功能，直接决定用户体验：</p>
+
+<table>
+<tr><th>状态量</th><th>是什么</th><th>怎么估</th></tr>
+<tr><td><strong>SOC</strong></td><td>剩余电量 %</td><td>安时积分法（电流 × 时间累计）+ 开路电压法 + <strong>卡尔曼滤波</strong>修正</td></tr>
+<tr><td><strong>SOH</strong></td><td>健康度 %</td><td>内阻变化 + 容量衰减 + 日历老化综合评估</td></tr>
+<tr><td><strong>SOP</strong></td><td>峰值功率能力</td><td>当前温度/电量下"还能输出/吸收多大功率"——这就是"电量还有 15% 但动力蔫了"的原因</td></tr>
+</table>
+
+<h3>3️⃣ 均衡管理（让电芯"齐步走"）</h3>
+
+<p>串联的电芯天生有差异：制造公差、温度不均 → 有的电芯满得快、有的满得慢。<strong>木桶效应</strong>：最弱的电芯决定整个电池包可用容量。</p>
+
+<table>
+<tr><th>均衡方式</th><th>原理</th><th>特点</th></tr>
+<tr><td><strong>被动均衡</strong></td><td>把高电量电芯的能量用电阻"放掉"</td><td>简单便宜，但浪费能量、发热</td></tr>
+<tr><td><strong>主动均衡</strong></td><td>把高电量电芯的能量"搬"给低电量电芯</td><td>高效省电，但电路复杂、成本高</td></tr>
+</table>
+
+<h3>4️⃣ 安全保护（最后防线）</h3>
+
+<table>
+<tr><th>保护类型</th><th>触发条件</th><th>动作</th></tr>
+<tr><td>过充保护</td><td>电压超过上限</td><td>切断充电回路</td></tr>
+<tr><td>过放保护</td><td>电压低于下限</td><td>切断放电回路</td></tr>
+<tr><td>过流保护</td><td>电流超过阈值</td><td>断开主继电器</td></tr>
+<tr><td>过温保护</td><td>温度超限</td><td>限制功率 / 断开回路</td></tr>
+<tr><td>绝缘监测</td><td>高压对地绝缘下降</td><td>报警 + 切断高压</td></tr>
+</table>
+
+<hr>
+
+<h2>四、主从架构：BMS 是怎么"分而治之"的？</h2>
+
+<p>一个电池包可能有几百颗电芯，一颗芯片管不过来，所以 BMS 用<strong>主从架构</strong>：</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph SLAVE["🔗 从控板（CSC / BMU）——每个模组一块"]
+        S1["采集电芯电压 / 温度"]
+        S2["执行均衡控制"]
+    end
+    subgraph MASTER["🧠 主控板（BCU / BMU）"]
+        M1["汇总所有从控数据"]
+        M2["SOC / SOH 估算"]
+        M3["故障诊断与保护决策"]
+        M4["与 VCU 通信（CAN）"]
+    end
+    SLAVE -- "菊花链 / SPI / CAN" --&gt; MASTER
+    MASTER --&gt; VCU["整车 VCU / 充电机"]
+</div>
+
+<ul>
+<li><strong>从控（CSC）</strong>：贴近电芯，负责采样和均衡执行——每颗电芯的电压、温度都从这里来</li>
+<li><strong>主控（BCU）</strong>：负责计算、诊断、保护和对外通信——所有"决策"都在这里</li>
+<li>从控到主控用 <strong>菊花链（Daisy Chain，如 LTC6811）</strong> 或 CAN 通信，减少线束</li>
+</ul>
+
+<div class="callout">
+<p><strong>一句话：</strong> 从控"看得见"每一颗电芯，主控"想得清"整包状态——分而治之，才能管理几百颗电芯。</p>
+</div>
+
+<hr>
+
+<h2>五、热管理：为什么冬天续航"缩水"？</h2>
+
+<p>锂电池的脾气很大：</p>
+
+<ul>
+<li><strong>温度太低</strong>：电解液活性下降，内阻增大 → 可用容量减少、放电能力变弱 → <strong>续航缩水</strong></li>
+<li><strong>温度太高</strong>：加速老化、可能热失控（起火）→ <strong>安全风险</strong></li>
+</ul>
+
+<div class="mermaid">
+flowchart LR
+    subgraph COLD["❄️ 低温（-10℃）"]
+        A1["电解液活性下降"]
+        A2["内阻增大"]
+        A3["可用容量减少 → 续航缩水"]
+    end
+    subgraph HOT["🔥 高温（45℃+）"]
+        B1["SEI 膜分解加速"]
+        B2["老化加快"]
+        B3["热失控风险 → 起火"]
+    end
+    COLD --&gt; BMS2["BMS + 热管理：<br/>加热 / 冷却 / 保温"]
+    HOT --&gt; BMS2
+</div>
+
+<p><strong>热管理手段：</strong></p>
+
+<ul>
+<li>液冷（主流）：冷却液流过电池包底部/侧面的冷板，带走热量</li>
+<li>加热：PTC 加热器或加热膜，低温时先"暖电池"再充电</li>
+<li><strong>策略</strong>：BMS 根据电芯温度决定充电功率——这就是"冬天快充慢"的原因</li>
+</ul>
+
+<hr>
+
+<h2>六、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：BMS 的本质是"感知 → 估算 → 决策 → 保护"</h3>
+<p>采样电压/电流/温度（感知）→ 估算 SOC/SOH/SOP（估算）→ 均衡与功率管理（决策）→ 过充过放过温切断（保护）。<strong>BMS 是电池的"大脑+管家+保镖"。</strong></p>
+
+<h3>📌 规则二：最弱的一颗电芯决定整包容量——所以必须均衡</h3>
+<p>串联电芯是"木桶效应"：一颗电芯到上限，整包就不能再充；一颗到下限，整包就不能再放。<strong>均衡让电芯"齐步走"，榨出最大可用容量。</strong></p>
+
+<h3>📌 规则三：温度是电池的"命门"——BMS 既要防过热，也要防过冷</h3>
+<p>高温加速老化甚至热失控，低温让容量和功率都缩水。<strong>BMS 通过热管理（液冷/加热）和功率限制，让电池始终工作在舒适区。</strong></p>
+
+</div>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你的朋友问："仪表盘不是直接显示剩余电量百分比吗？这有什么难的？" 请解释为什么<strong>准确估算 SOC（剩余电量）其实很难</strong>——请从<strong>电流积分的累计误差</strong>、<strong>温度影响</strong>、<strong>电池老化（SOH 变化）</strong>三个角度讲清楚。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>请用生活类比（比如"一队士兵齐步走"或"木桶装水"）解释：<strong>为什么串联的电芯需要"均衡"？不均衡会带来什么后果？</strong> 类比里要对应上"电芯差异的来源""木桶效应""被动/主动均衡"这三个要点。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>为什么冬天电动车续航会"缩水"？请从<strong>电解液活性</strong>、<strong>内阻变化</strong>、<strong>热管理策略</strong>三个角度解释，并说明 BMS 在其中扮演什么角色。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：BMS（电池管理系统）的<strong>核心职责</strong>不包括以下哪项？</div>
+<label><input type="radio" name="mc1" value="A"> A. 实时采集每颗电芯的电压、电流、温度</label>
+<label><input type="radio" name="mc1" value="B"> B. 估算 SOC（剩余电量）和 SOH（健康度）</label>
+<label><input type="radio" name="mc1" value="C"> C. 控制电机输出扭矩，驱动车辆行驶</label>
+<label><input type="radio" name="mc1" value="D"> D. 过充、过放、过温等安全保护</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：关于电池均衡，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc2" value="A"> A. 均衡的目的是让所有电芯的电压完全一样，防止"木桶效应"浪费容量</label>
+<label><input type="radio" name="mc2" value="B"> B. 被动均衡是把低电量电芯的能量"搬"给高电量电芯</label>
+<label><input type="radio" name="mc2" value="C"> C. 电芯之间天然完全一致，不需要均衡</label>
+<label><input type="radio" name="mc2" value="D"> D. 均衡只在充电时进行，放电时不需要</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：冬天电动车快充变慢、续航缩水，<strong>最直接</strong>的原因是？</div>
+<label><input type="radio" name="mc3" value="A"> A. 充电桩功率在冬天普遍降低</label>
+<label><input type="radio" name="mc3" value="B"> B. 低温下电芯内阻增大、电解液活性下降，BMS 限制充电功率且可用容量减少</label>
+<label><input type="radio" name="mc3" value="C"> C. 电池包在冬天会自动放电</label>
+<label><input type="radio" name="mc3" value="D"> D. 电机在冬天耗电量增加一倍</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson37',
+    title: 'Lesson 37（12:00）：BMS 电池管理系统——动力电池的"大脑"如何决定你能跑多远？',
+    mcq: { mc1: 'C', mc2: 'A', mc3: 'B' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson37', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson37');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson37');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson37',
+  title: 'Lesson 37（12:00）：BMS 电池管理系统——动力电池的"大脑"如何决定你能跑多远？',
+  feynman: [
+    { q: 1, ref: '三个角度：1) 电流积分累计误差：SOC 靠"安时积分"（电流×时间累计）估算，但电流传感器有噪声偏移，误差随时间累积，开一天车可能偏几个百分点，要定期修正；2) 温度影响：低温下电解液活性下降、内阻增大，同样 100% 电量实际可放能量更少，不考虑温度 SOC 会系统性偏高；3) 电池老化：容量衰减（SOH 下降）后"满电"能装的电变少，还用出厂容量做基准 SOC 会偏高，必须结合内阻、容量衰减校准。结论：SOC 是"估出来的"不是"量出来的"，要综合电流、电压、温度、老化模型 + 卡尔曼滤波修正' },
+    { q: 2, ref: '木桶/士兵类比：电芯因制造公差、温度不均、老化速度不同天生有差异（一队士兵身高不同）。串联电池包像一根水管串起来的水桶，最矮的水桶决定能装多少水：一颗电芯先充满整包就不能再充，一颗先放空整包就不能再放——最弱电芯限制整包容量。被动均衡 = 把高个子水桶的水舀掉（高电量电芯能量用电阻耗散，简单便宜但浪费）；主动均衡 = 高个子水舀给矮个子（能量从高电量搬到低电量电芯，高效但复杂贵）' },
+    { q: 3, ref: '三个角度：1) 电解液活性：低温下电解液粘度增大、离子电导率下降，锂离子迁移变慢，可用容量下降；2) 内阻变化：低温内阻增大，放电时内部压降大、发热多，输出功率变小；3) 热管理策略：BMS 为保护电池低温时限制充电功率（先加热再快充），快充变慢，且加热本身耗电。BMS 角色：实时监测温度、启动加热、限制充放电功率、修正 SOC 估算，在安全前提下尽量多榨电' }
+  ],
+  mcq: { mc1: 'C', mc2: 'A', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>

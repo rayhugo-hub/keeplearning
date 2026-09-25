@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 02 标准答案 — 车载传感器</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e;margin-bottom:.3rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:1.5rem}
+.nav-bar{display:flex;gap:1rem;margin-bottom:1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+h2{font-size:1.1rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+.q-card{margin:.8rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.3rem;font-size:.9rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+.q-question{font-size:.85rem;color:#666;margin-bottom:.4rem}
+.q-answer{font-size:.9rem;padding:.5rem .7rem;background:#f0fdf4;border-left:3px solid #16a34a;border-radius:4px;color:#1a1a2e}
+.mcq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6rem;margin-top:.4rem}
+.mcq-item{padding:.5rem .7rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:.85rem}
+.mcq-item strong{color:#16a34a}
+.mcq-explain{font-size:.8rem;color:#555;margin-top:.3rem;padding-top:.3rem;border-top:1px dashed #d4d4de}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.back-link{display:inline-flex;align-items:center;gap:.4rem;margin-top:1.5rem;padding:.5rem 1rem;background:#4f6ef7;color:#fff;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:500;transition:background .15s}
+.back-link:hover{background:#3d5ce5}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<h1>📖 标准答案</h1>
+<p class="meta">Lesson 02（15:00）— 车载传感器：智能汽车的"感官系统"</p>
+
+<h2>费曼简答题</h2>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+  <div class="q-question">用大白话解释"智能汽车如何感知世界"，让 10 岁小孩也能听懂。</div>
+  <div class="q-answer">你可以说：你没有眼睛也能知道前面有东西——闭着眼睛伸出手摸到墙就知道了。车也是这个道理：超声波雷达像手，发出声音碰东西反弹回来就知道距离；摄像头像眼睛，看路看标志；毫米波雷达像蝙蝠的耳朵，不怕黑不怕雾，知道前面有障碍物；激光雷达像3D扫描仪，把周围变成密密麻麻的点。所以智能汽车不是"看"到的，而是用各种"感官"一起感知到的。</div>
+</div>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+  <div class="q-question">为什么智能汽车不能只装一个"最好的"传感器，而要装好几种不同类型？</div>
+  <div class="q-answer">因为没有一种传感器是万能的。摄像头看得最清楚，但晚上或下雨天就看不清了；毫米波雷达不怕雨雾，但只知道"前面有东西"，不知道是什么东西；超声波雷达很便宜，但只能看很近的地方；激光雷达精度最高，但太贵了。好比人不能只靠眼睛走路——晚上没光要用手摸，过马路要竖耳朵听声音。每种传感器都有自己的短处，只有合在一起才能互相弥补。</div>
+</div>
+
+<div class="q-card">
+  <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+  <div class="q-question">用"几个朋友一起帮你做判断"的生活例子解释传感器融合。</div>
+  <div class="q-answer">想象三个好朋友帮你找一家新餐馆：A眼睛最好，负责看店名和门牌号；B耳朵最灵，负责听路人说"那家店就在前面"；C方向感最强，知道东南西北。如果单凭A一个人，天黑就找不到了；单凭B没有具体方向。三个人一合计——A看到门牌号，B听到"就在前面"，C指出方向——就准确找到了。传感器融合就是这个道理：摄像头说"前面有个红色的东西"，毫米波雷达说"那东西距离50米"，激光雷达说"那东西长4.5米宽2米"，融合在一起就知道"前方50米是一辆红色轿车"。</div>
+</div>
+
+<hr>
+
+<h2>选择题</h2>
+
+<div class="mcq-grid">
+  <div class="mcq-item">
+    <strong>Q1</strong> 不怕天黑、不怕雨雾，但"知道有东西却看不清是什么"？<br>
+    ✅ <strong>B</strong>. 毫米波雷达
+    <div class="mcq-explain">毫米波雷达发射电磁波，不怕黑也不怕雨雾，但分辨率低，只能知道"有物体+距离+速度"，无法识别物体的形状和颜色。</div>
+  </div>
+  <div class="mcq-item">
+    <strong>Q2</strong> 识别前方是"红色的停止线"还是"灰色的路沿"，最依赖哪种传感器？<br>
+    ✅ <strong>C</strong>. 摄像头
+    <div class="mcq-explain">只有摄像头能像人眼一样识别颜色、文字和形状（比如红灯、停止线、车道线）。其他传感器只能"测距"或"测轮廓"，不知道颜色。</div>
+  </div>
+  <div class="mcq-item">
+    <strong>Q3</strong> L4 级自动驾驶汽车为什么需要装那么多传感器？<br>
+    ✅ <strong>B</strong>. 因为单个传感器总有局限性，需要多种传感器配合和备份
+    <div class="mcq-explain">摄像头怕黑怕雨，毫米波雷达分辨率低，超声波雷达距离短，激光雷达成本高且怕雨雾。L4需要多种传感器互相弥补并形成冗余备份——即使某个传感器失效，其他传感器仍能保证安全。</div>
+  </div>
+</div>
+
+<a href="课程.html" class="back-link">← 返回课程</a>
+
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

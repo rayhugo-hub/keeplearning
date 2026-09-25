@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 47：答案 — 车载以太网 TSN 时间敏感网络</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.answer-correct{color:#2e7d32;font-weight:700}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Lesson 47：参考答案</h1>
+<p class="meta">车载以太网 TSN 时间敏感网络——关键报文凭什么"准点到"？</p>
+</div>
+<div class="nav-bar">
+  <a href="../Lesson46-域控制器资源隔离与QoS--2026-08-27--2300/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson48-车载以太网物理层PHY--2026-09-01--0005/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">📖 返回课程</a>
+</div>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1：用"城市交通"的类比，解释为什么普通以太网会"堵车迟到"，TSN 又是怎么保证关键"车辆"准点到站的？</h3>
+<table>
+<tr><th>交通元素</th><th>以太网对应物</th><th>TSN 改造</th></tr>
+<tr><td>十字路口</td><td>交换机缓存队列</td><td>门控列表（GCL）</td></tr>
+<tr><td>大货车</td><td>视频/OTA 大帧</td><td>Qav 限速错峰</td></tr>
+<tr><td>救护车</td><td>关键控制报文</td><td>Qbv 固定绿灯窗 + Qbu 插队</td></tr>
+<tr><td>城市时钟</td><td>各节点本地时钟</td><td>802.1AS 全网同步</td></tr>
+</table>
+<div class="ref-box">
+<strong>核心思路：</strong>普通以太网 = 没有信号灯的十字路口：所有车（报文）到路口就挤成一团排队，先来先走；大货车（视频帧）堵在路口时，救护车（关键控制报文）也只能等着，等多久完全看运气（排队延迟不可预测）。
+</div>
+<p><strong>TSN 怎么保证准点：</strong></p>
+<ul>
+<li><strong>全网统一校时</strong>（802.1AS）——所有信号灯按同一个钟走；</li>
+<li><strong>红绿灯</strong>（Qbv）——高峰期给关键流量固定绿灯窗，其他车一律红灯，说几点放行就几点放行；</li>
+<li><strong>应急车道</strong>（Qbu）——救护车来了，大货车先靠边暂停；</li>
+<li><strong>限速</strong>（Qav）——大货车错峰限流，别把路口堵死；</li>
+<li><strong>订票</strong>（Qcc）——关键车辆出发前确认全程有"专属通道"。</li>
+</ul>
+<p><strong>结论：</strong>关键报文有固定通行时段 + 专用通道，所以延迟<strong>可预测、有上界</strong>——这就是"确定性"。</p>
+
+<h3>Q2：为什么 TSN 必须先做全网时间同步？如果各个节点的"表"走得不一样快，Qbv 的"红绿灯"时间窗会出什么问题？</h3>
+<p><strong>为什么先同步：</strong></p>
+<ul>
+<li>Qbv 的时间窗是按<strong>绝对时刻</strong>开关的（如"每 1ms 周期，第 100-200μs 只放行关键流"）；</li>
+<li>时间戳测量、多传感器融合也依赖全网一致的时间基准；</li>
+<li>各走各的表，调度表就无法对齐执行。</li>
+</ul>
+<p><strong>时间不同步会出什么问题：</strong></p>
+<ul>
+<li>发送端以为"到关键窗了"开始发帧，交换机却还停在普通窗/关键窗已错过——<strong>关键帧被红灯拦住</strong>；</li>
+<li>时间窗互相错位 → 关键流量混进普通窗 → 延迟上界被打破，<strong>确定性失效</strong>；</li>
+<li>类比：两个城市的高铁时刻表必须按同一个标准时间排，一个城市快 5 分钟，所有换乘全乱。</li>
+</ul>
+<p><strong>结论：</strong>gPTP 先把全网同步到亚微秒级（百 ns 级），所有门控表才能<strong>对齐执行</strong>——时间同步是 TSN 一切机制的地基。</p>
+
+<h3>Q3：Qbv（红绿灯）、Qav（限速器）、Qbu（应急车道）三个机制分别解决什么类型流量的什么问题？只用其中一种，能不能满足车载需求？</h3>
+<table>
+<tr><th>机制</th><th>管的流量</th><th>解决什么问题</th><th>类比</th></tr>
+<tr><td><strong>Qbv</strong></td><td>时间关键流（控制、同步）</td><td>延迟有上界、抖动趋零——准时放行</td><td>红绿灯</td></tr>
+<tr><td><strong>Qav</strong></td><td>AVB 音视频流</td><td>防止突发流量塞爆交换机——平滑限速</td><td>限速器</td></tr>
+<tr><td><strong>Qbu</strong></td><td>紧急小报文 vs 普通大帧</td><td>大帧发一半被打断，小帧插队先走——降低紧急延迟</td><td>应急车道</td></tr>
+</table>
+<p><strong>只用一种行不行？</strong></p>
+<ul>
+<li><strong>只有 Qbv</strong>：时间窗内如果普通流大量涌入，窗口外排队积压，关键窗内未必干净——需要 Qav 先把普通流限速，保证关键窗内不拥堵；</li>
+<li><strong>只有 Qav</strong>：限速只让流量平滑，但<strong>没有固定放行时刻</strong>——关键流延迟上界依然没有保证；</li>
+<li><strong>只有 Qbu</strong>：只能让紧急小帧插队，但大流量该堵还是堵——延迟上界仍不可预测。</li>
+</ul>
+<p><strong>结论：</strong>三者组合才能覆盖"<strong>准时（Qbv）+ 平滑（Qav）+ 紧急（Qbu）</strong>"三类需求，再叠加 Qcc 流预留从端到端兜底——这才是完整的 TSN。</p>
+
+<hr>
+
+<h2>选择题参考答案</h2>
+
+<h3>MCQ1：TSN 解决的核心问题是什么？</h3>
+<p><span class="answer-correct">✅ B. 让关键流量的延迟可预测、有上界、零丢包</span></p>
+<p>解析：TSN 的目标不是"更快"或"更便宜"，而是<strong>确定性</strong>——把普通以太网不可预测的排队延迟变成有界的、可证明的延迟。A 是带宽话题（TSN 不增加带宽）；C 与成本无关；D 是误解——TSN 甚至可能因为时间窗机制让普通流量更慢，它保的是关键流量。</p>
+
+<h3>MCQ2：802.1AS（gPTP）在 TSN 里的作用是什么？</h3>
+<p><span class="answer-correct">✅ B. 把全网节点时钟同步到亚微秒级</span></p>
+<p>解析：802.1AS（gPTP，广义精确时间协议）选出一个 Grandmaster 主时钟，逐跳分发时间并校准链路延迟，端到端偏差做到百纳秒级。A 是 MACsec 的工作；C 是 802.1Q VLAN；D 与 TSN 无关。没有亚微秒级同步，Qbv 时间窗、时间戳全部失效。</p>
+
+<h3>MCQ3：Qbv 时间感知整形（红绿灯）的工作方式是什么？</h3>
+<p><span class="answer-correct">✅ B. 按门控列表定时放行——关键流量在固定时间窗内独占发送</span></p>
+<p>解析：Qbv 在每个端口配置门控列表（GCL），按固定周期开关门——关键流量有专属时间窗，窗内独占发送，延迟上界可计算。A 是"人人平等"的尽力而为，正是 TSN 要解决的；C 只打优先级标签不做时间控制，是普通 802.1Q 优先级队列，不是 Qbv；D 关缓存不现实且解决不了排队问题。</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 42（23:00）：热管理与整车能量管理——电池为什么"怕冷又怕热"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div class="meta">📅 2026-08-16 | 🚗 整车热管理（四大回路 / PTC vs 热泵 / 能量管理） | ⏰ 23:00</div>
+<h1>热管理与整车能量管理——电池为什么"怕冷又怕热"？</h1>
+</div>
+
+<div class="nav-bar">
+<a href="../Lesson41-SOA与中央计算平台--2026-08-15--1730/课程.html">← 上一课</a>
+<a href="../Content of Lessons.html">☰ 目录</a>
+<span class="nav-spacer"></span>
+<a href="../Lesson43-AUTOSAR-Adaptive深入--2026-08-20--2300/课程.html">下一课 →</a>
+</div>
+
+<h2>一、先想想这个场景</h2>
+<p>冬天开电动车，续航直接从 500 公里"缩水"到 350 公里——是电池坏了吗？不是，只是<strong>电池怕冷</strong>。夏天跑完高速去快充，充电功率从 120kW 掉到 40kW——是充电桩坏了吗？也不是，只是<strong>电池怕热</strong>。</p>
+<p>开暖风一小时，表显续航掉得比实际里程还快——因为暖风用的<strong>也是电池的电</strong>。</p>
+<p>这一课回答三个问题：</p>
+<ol>
+<li><strong>电池为什么"怕冷又怕热"？它的"舒适区"在哪？</strong>（为什么需要热管理）</li>
+<li><strong>整车热管理是怎么组织的？</strong>（四大回路：电池/电机/座舱/耦合）</li>
+<li><strong>冬天怎么省电？PTC 和热泵谁更聪明？能量管理怎么把钱花在刀刃上？</strong>（制热路线 + 能量回收）</li>
+</ol>
+<div class="callout">💡 <strong>这一课讲清楚：热管理 = 让电池、电机、座舱各回各的"舒适区"；能量管理 = 让每一度电都花得值。两者合起来，决定一辆电车的冬天能跑多远。</strong></div>
+
+<hr>
+
+<h2>二、为什么"冷"和"热"都是电池的敌人？</h2>
+
+<h3>电池的"舒适区"：20~40°C</h3>
+<table>
+<tr><th>温度区间</th><th>发生了什么</th><th>后果</th></tr>
+<tr><td><strong>&lt; 0°C（太冷）</strong></td><td>电解液变粘稠，锂离子移动变慢，内阻增大</td><td>可用容量缩水、放电功率下降、<strong>低温充电易析锂</strong>（锂金属析出，可能刺穿隔膜）</td></tr>
+<tr><td><strong>0~20°C（偏冷）</strong></td><td>活性降低，但可用</td><td>续航打折、快充功率受限</td></tr>
+<tr><td><strong>20~40°C（舒适区）</strong></td><td>离子迁移顺畅，内阻最小</td><td>✅ 容量、功率、寿命都在最佳状态</td></tr>
+<tr><td><strong>40~60°C（偏热）</strong></td><td>副反应加速，SEI 膜分解</td><td>容量不可逆衰减，电池"短命"</td></tr>
+<tr><td><strong>&gt; 60°C（过热）</strong></td><td>热失控临界（链式放热反应）</td><td>冒烟、起火——这就是 Lesson 37 讲的"热失控"</td></tr>
+</table>
+
+<div class="callout">💡 <strong>一句话：电池像"恒温动物"——体温必须在 20~40°C 之间，冷了要"穿衣服"（加热），热了要"吹空调"（冷却）。</strong></div>
+
+<h3>其他"怕热"的成员</h3>
+<ul>
+<li><strong>电机 + 逆变器</strong>：铜损铁损发热大户，绕组温度上限约 150~180°C，超温必须降功率（derating）</li>
+<li><strong>座舱里的人</strong>：舒适区 22~26°C——但人不是"怕坏"，是"怕难受"，优先级低于电池和电机</li>
+</ul>
+
+<hr>
+
+<h2>三、整车热管理的"四大回路"</h2>
+
+<p>整车热管理不是一台机器，而是<strong>几套冷却液回路</strong>各管一摊，再用阀把它们串起来：</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph B["① 电池回路（低温回路）"]
+        B1["电池包"]
+        B2["液冷板&lt;br&gt;（贴在电池底部）"]
+        B3["chiller&lt;br&gt;（板式换热器）"]
+        B4["电池 PTC 加热器"]
+        B1 --- B2
+        B2 --- B3
+        B2 --- B4
+    end
+    subgraph M["② 电机电控回路（高温回路）"]
+        M1["电机 + 逆变器"]
+        M2["低温散热器&lt;br&gt;（风冷）"]
+        M1 --- M2
+    end
+    subgraph C["③ 座舱回路（空调回路）"]
+        C1["电动压缩机"]
+        C2["冷凝器 + 蒸发器"]
+        C3["PTC 风暖/水暖"]
+        C1 --- C2
+        C2 --- C3
+    end
+    subgraph V["④ 耦合枢纽：多通阀"]
+        V1["四通/八通阀&lt;br&gt;（切换回路流向）"]
+    end
+    B3 --- V1
+    M2 --- V1
+    C2 --- V1
+</div>
+
+<table>
+<tr><th>回路</th><th>管谁</th><th>热源/冷源</th><th>关键部件</th></tr>
+<tr><td><strong>① 电池回路</strong></td><td>电池包</td><td>冷却走 chiller（把热交给空调系统）；加热走 PTC/热泵</td><td>液冷板、chiller、电池 PTC</td></tr>
+<tr><td><strong>② 电机回路</strong></td><td>电机/逆变器/减速器</td><td>常年发热，只需散热</td><td>低温散热器、电子水泵</td></tr>
+<tr><td><strong>③ 座舱回路</strong></td><td>车内空气</td><td>制冷靠压缩机；制热靠 PTC 或热泵</td><td>压缩机、冷凝器、蒸发器、PTC</td></tr>
+<tr><td><strong>④ 耦合</strong></td><td>把三套回路连起来</td><td>让"废热"流动到需要的地方</td><td>多通阀（四通/八通）</td></tr>
+</table>
+
+<div class="callout">💡 <strong>关键认知：三条回路不是孤岛——通过多通阀，电机回路的"废热"可以引去加热电池或座舱。这就是"余热回收"的物理基础（下文细讲）。</strong></div>
+
+<hr>
+
+<h2>四、制热路线之争：PTC vs 热泵</h2>
+
+<p>冬天座舱要 22°C、电池要 20°C，热量从哪来？两条路线：</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph P["PTC 加热器（电阻丝）"]
+        P1["1 度电"] --> P2["电阻发热"] --> P3["1 度热&lt;br&gt;效率 ≈ 100%"]
+    end
+    subgraph H["热泵（空调反向用）"]
+        H1["1 度电"] --> H2["压缩机做功"] --> H3["从车外空气吸热"] --> H4["2~4 度热&lt;br&gt;COP = 2~4"]
+    end
+</div>
+
+<table>
+<tr><th>对比</th><th>PTC 加热器</th><th>热泵</th></tr>
+<tr><td><strong>原理</strong></td><td>电流通过正温度系数陶瓷，直接发热</td><td>像空调"反向工作"：压缩机把车外空气的热"搬"进车内</td></tr>
+<tr><td><strong>能效（COP）</strong></td><td>≈1（1 度电 = 1 度热）</td><td><strong>2~4</strong>（1 度电搬运 2~4 度热）</td></tr>
+<tr><td><strong>低温表现</strong></td><td>稳定，-30°C 照样发热</td><td>越冷效率越低（-10°C 以下明显衰减，车外没热可吸）</td></tr>
+<tr><td><strong>成本/复杂度</strong></td><td>便宜、简单、可靠</td><td>贵、结构复杂（压缩机+四通换向阀）</td></tr>
+<tr><td><strong>冬季省电</strong></td><td>❌ 暖风是"续航杀手"</td><td>✅ 可省 30~50% 采暖电耗</td></tr>
+</table>
+
+<div class="callout-warn">⚠️ <strong>现实方案：主流是"热泵 + PTC 双热源"——正常温度用热泵省电，极寒时热泵效率暴跌，PTC 兜底补热。所以"热泵版"车型冬天续航更抗打，但极寒地区两者都得开。</strong></div>
+
+<hr>
+
+<h2>五、电池热管理：冷了加热，热了降温</h2>
+
+<h3>冷却路线（散热）</h3>
+<ul>
+<li><strong>液冷板</strong>：冷却液流经电池底部的铝板，把电芯热量带走——目前主流</li>
+<li><strong>浸没式冷却</strong>：电芯直接泡在绝缘冷却液里，散热效率最高（新趋势）</li>
+<li><strong>快充预冷</strong>：导航到快充站，提前把电池冷却到 25°C 左右，到了就能拉满充电功率（预测性热管理）</li>
+</ul>
+
+<h3>加热路线（保暖）</h3>
+<ul>
+<li><strong>电池 PTC 水加热器</strong>：加热冷却液 → 加热液冷板 → 加热电芯（简单粗暴）</li>
+<li><strong>热泵加热电池</strong>：用热泵 COP&gt;1 的优势加热，比 PTC 省电</li>
+<li><strong>电机余热回收</strong>：电机电控的废热通过多通阀引入电池回路（冬天最划算——废热不用白不用）</li>
+</ul>
+
+<h3>保温与安全</h3>
+<ul>
+<li><strong>气凝胶隔热垫</strong>：电芯之间隔热，既防热扩散又保温</li>
+<li><strong>驻车保温</strong>：停车后若温度过低，定时用小功率 PTC 维持电池温度（耗电换寿命）</li>
+<li><strong>热失控防护</strong>：电芯间隔热 + 泄压阀 + 定向排气——万一热失控，给其他电芯争取逃生时间（衔接 Lesson 37）</li>
+</ul>
+
+<hr>
+
+<h2>六、整车能量管理：把电花在刀刃上</h2>
+
+<p>热管理是"用电大户"，能量管理就是"算账先生"。两大手段：</p>
+
+<h3>1️⃣ 开源：制动能量回收</h3>
+<div class="mermaid">
+flowchart LR
+    A["刹车/滑行"] --> B["电机变发电机"] --> C["动能 → 电能"] --> D["回充电池&lt;br&gt;（可回收约 20~30% 制动能量）"]
+</div>
+<ul>
+<li>传统燃油车：刹车把动能变成<strong>刹车片的热</strong>，白白浪费</li>
+<li>电动车：松开电门/踩刹车时<strong>电机反转发电</strong>，把动能存回电池——这就是"单踏板模式"省电的原理</li>
+<li>回收的每一度电都是"白捡的"，冬季尤其珍贵</li>
+</ul>
+
+<h3>2️⃣ 节流：热管理能耗优化</h3>
+<table>
+<tr><th>策略</th><th>怎么省</th><th>场景</th></tr>
+<tr><td><strong>热泵制热</strong></td><td>COP 2~4，比 PTC 省一半以上采暖电</td><td>冬季座舱采暖</td></tr>
+<tr><td><strong>余热回收</strong></td><td>电机废热加热电池/座舱，替代 PTC 耗电</td><td>冬季行驶中</td></tr>
+<tr><td><strong>预测性热管理</strong></td><td>导航知道前方有快充站 → 提前预冷电池，到了直接满功率充</td><td>长途快充</td></tr>
+<tr><td><strong>驻车预热</strong></td><td>插着充电枪时用<strong>电网的电</strong>预热电池和座舱，不耗电池的电</td><td>冬季出发前（App 远程开启）</td></tr>
+<tr><td><strong>分区/按需采暖</strong></td><td>只加热有人坐的区域，座椅/方向盘加热比吹风更省电</td><td>单人短途</td></tr>
+</table>
+
+<div class="callout">💡 <strong>一句话：能量管理 = 制动能量回收"开源" + 热泵/余热回收/预测性调度"节流"。冬天续航差异，一半来自热管理策略的优劣。</strong></div>
+
+<hr>
+
+<h2>七、三条要记住的规则</h2>
+
+<div class="rule-box">
+<p><strong>📌 规则一：电池是"恒温动物"——20~40°C 是舒适区，冷了加热、热了冷却</strong></p>
+<p>低温析锂伤电池、高温衰减伤寿命、超高温可能热失控。热管理的第一优先级永远是<strong>保电池在舒适区</strong>，其次才是座舱舒适。</p>
+</div>
+
+<div class="rule-box">
+<p><strong>📌 规则二：冬天制热，热泵比 PTC 省一半电——但极寒要靠 PTC 兜底</strong></p>
+<p>热泵 COP 2~4（搬运热），PTC 只有 1（制造热）；-10°C 以下热泵效率暴跌，所以量产车用"热泵 + PTC 双热源"组合。看到车型宣传"热泵空调"，就知道它冬天更省电。</p>
+</div>
+
+<div class="rule-box">
+<p><strong>📌 规则三：能量管理 = 开源（制动能量回收）+ 节流（余热回收、热泵、预测性调度）</strong></p>
+<p>电机废热引去加热电池/座舱、导航预冷电池迎接快充、插枪时用电网电预热——把每一度电和每一份热都安排到最需要的地方，是"冬季续航"的胜负手。</p>
+</div>
+
+<hr>
+
+<h2>八、费曼简答题</h2>
+
+<div class="question">
+<div class="q-label">Q1：用"人怕冷怕热"或"保温杯"的类比，给一个没学过汽车的人讲清楚：为什么电动车冬天续航会"缩水"？请至少说出<strong>两个原因</strong>（提示：电池本身 + 座舱采暖），并解释为什么冬天<strong>开暖风比开冷风更费电</strong>？</div>
+<textarea id="feynman1" placeholder="用你自己的话讲清楚，别抄课件……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2：请画一张"整车热管理四大回路"的草图（文字描述即可）：电池回路、电机回路、座舱回路各管什么？<strong>多通阀</strong>把三套回路连起来后，冬天行驶中电机产生的废热可以流向哪里、替代了什么耗电设备？为什么说这是"免费的热"？</div>
+<textarea id="feynman2" placeholder="用你自己的话讲清楚，别抄课件……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3：你是热管理工程师。冬天 -10°C，用户早上要开车去 30 公里外的公司，出发前车还插着充电枪，电池温度 5°C。请设计一套<strong>从"出发前"到"行驶中"</strong>的热管理策略（提示：驻车预热、电池加热、座舱采暖、余热回收各在什么时机做什么），并说明每一步<strong>省的是什么电</strong>。</div>
+<textarea id="feynman3" placeholder="用你自己的话讲清楚，别抄课件……"></textarea>
+</div>
+
+<hr>
+
+<h2>九、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：锂离子动力电池最理想的"舒适区"工作温度区间是？</div>
+<label><input type="radio" name="mc1" value="A"> A. -20~0°C，越冷电池越耐用</label>
+<label><input type="radio" name="mc1" value="B"> B. 20~40°C，容量、功率、寿命都在最佳状态</label>
+<label><input type="radio" name="mc1" value="C"> C. 60~80°C，温度越高活性越大</label>
+<label><input type="radio" name="mc1" value="D"> D. 温度对锂电池没有任何影响</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：关于"热泵 vs PTC 加热器"，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc2" value="A"> A. PTC 的能效（COP）大于 1，比热泵更省电</label>
+<label><input type="radio" name="mc2" value="B"> B. 热泵只能制冷，冬天无法制热</label>
+<label><input type="radio" name="mc2" value="C"> C. 热泵 COP 通常 2~4（1 度电搬运 2~4 度热），更省电；但极低温下效率下降，需 PTC 辅助</label>
+<label><input type="radio" name="mc2" value="D"> D. 热泵和 PTC 的效率完全相同，只是名字不同</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：关于"制动能量回收"，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc3" value="A"> A. 刹车/滑行时电机反转当发电机，把动能转化为电能存回电池，可回收约 20~30% 制动能量</label>
+<label><input type="radio" name="mc3" value="B"> B. 制动能量回收是把发动机产生的热量存进电池</label>
+<label><input type="radio" name="mc3" value="C"> C. 制动能量回收会显著增加刹车片的磨损</label>
+<label><input type="radio" name="mc3" value="D"> D. 只有插电混动车才有制动能量回收</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson42',
+    title: 'Lesson 42（23:00）：热管理与整车能量管理——电池为什么"怕冷又怕热"？',
+    mcq: { mc1: 'B', mc2: 'C', mc3: 'A' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '⚠️ 未作答';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.className = 'mcq-result correct';
+      resultDiv.textContent = '✅ 正确！';
+    } else {
+      resultDiv.className = 'mcq-result wrong';
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+    }
+  }
+  // 费曼题提示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim().length === 0) {
+      ta.style.borderColor = '#ffc107';
+    }
+  }
+}
+
+function saveProgress() {
+  const data = { lessonId: 'lesson42' };
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const radio = g.querySelector('input[type="radio"]:checked');
+    if (q && radio) data[q] = radio.value;
+  });
+  try { localStorage.setItem('teachme_lesson42', JSON.stringify(data)); } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson42');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson42');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson42',
+  title: 'Lesson 42（23:00）：热管理与整车能量管理——电池为什么"怕冷又怕热"？',
+  feynman: [
+    { q: 1, ref: '冬天续航缩水两大原因：①电池本身怕冷——电解液变粘稠、锂离子移动变慢、内阻增大，可用容量和放电功率都下降；低温充电还容易析锂损伤电池。②座舱采暖耗电——PTC 电加热效率约 100%，1 度电只产 1 度热，暖风功率 3~7kW 相当于同时开好几个大功率电器，全从电池里取。为什么开暖风比开冷风更费电：制冷用热泵/压缩机搬运热，COP 通常 2~4（1 度电搬运 2~4 度热），且夏天电池不需要额外加热；制热在冬天既要加热座舱、又要加热冰冷的电池，双份耗电，且 PTC 制热效率只有 1。类比：电池像恒温动物，冬天既要给自己保暖又要给乘客供暖，能量自然消耗翻倍。一句话：冬天续航缩水 = 电池活性下降（供给端） + 采暖耗电（需求端）双杀' },
+    { q: 2, ref: '四大回路：①电池回路（低温回路）——液冷板贴电池底部，冷却时冷却液把热交给 chiller（板式换热器），加热时用电池 PTC 或热泵；②电机回路（高温回路）——电机/逆变器/减速器常年发热，冷却液把热带到低温散热器散掉；③座舱回路（空调回路）——压缩机+冷凝器+蒸发器制冷，PTC 风暖/水暖或热泵制热；④耦合枢纽——四通/八通阀把三套回路连起来，可切换冷却液流向。冬天行驶中电机废热流向：通过多通阀把电机回路的热量引到电池回路加热电池，或引到座舱回路加热车内。替代了：电池 PTC 和座舱 PTC 的耗电——本来电机废热要被散热器白白排掉，现在"废物利用"。为什么是免费的热：电机发热是驱动车辆不可避免的副产品（效率损失的必然结果），把它引去加热就是零成本；而 PTC 每 1 度热都要花 1 度电。一句话：多通阀让"废热"变成"免费的热"，冬天每回收一份电机废热，就省下一份电池的电' },
+    { q: 3, ref: '策略分三段：①出发前（插枪状态）：App 远程开启驻车预热——用充电桩的电网电（不是电池的电）把电池从 5°C 加热到 15~20°C、座舱预热到 22°C。省的是：电池的电（电网电便宜且不损耗续航）；电池在舒适区起步，放电效率高。②刚出发（-10°C 行驶中）：电池仍需维持温度——热泵+电池 PTC 双热源继续加热电池（优先保电池，否则放电功率不足且伤电池）；座舱采暖用热泵（COP 2~4）而不是 PTC，省一半采暖电；如果热泵低温效率差，PTC 辅助但设定低功率。省的是：采暖电耗（热泵 vs PTC 差一半）。③行驶 10~30 分钟后：电机/逆变器开始大量发热——多通阀切换，把电机废热引入电池回路维持电池温度、引入座舱回路采暖，PTC 逐步降功率甚至关闭。省的是：电池 PTC 和座舱 PTC 的电（用免费废热替代）。全程还可以叠加制动能量回收，滑行/刹车时动能回充电池。一句话：插枪预热用电网电、起步用热泵保电池、跑热了用电机废热替代 PTC——省电的本质是把"花钱的电"换成"免费的热和电"' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'A' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

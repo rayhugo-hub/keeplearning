@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 14：答案 — 舱驾融合——座舱和智驾怎么"共享一个大脑"？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson13-座舱互联--2026-07-05--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson15-车载网关--2026-07-05--1500/课程.html">下一课 →</a>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 14 — 答案</div>
+  <h1>舱驾融合——座舱和智驾怎么"共享一个大脑"？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（为什么舱驾融合能省钱？具体哪几个方面？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>省钱主要在三个方面：</p>
+<ol>
+  <li><strong>芯片成本降低：</strong>原来需要买两块独立芯片（一块座舱 SoC + 一块智驾 SoC），现在只需一颗融合 SoC。例如，一颗高通 SA8775 约 $200，而两颗独立芯片（SA8155 + 某智驾 SoC）总价可能超过 $350。</li>
+  <li><strong>PCB 和结构件节省：</strong>原来需要两块电路板、两个散热片（甚至液冷）、两个金属外壳，现在只需一套。节省了 PCB 面积、结构件成本、连接器成本。</li>
+  <li><strong>线束和连接器减少：</strong>原来两个域控制器之间需要高速线束（车载以太网、同轴电缆、CAN）连接，每条线束成本几十到几百元不等。融合后数据在芯片内部走片内总线，省掉了所有外部跨域线束。</li>
+</ol>
+<p><strong>总体估算：硬件 BOM 成本降低 30~40%。</strong></p>
+</div>
+
+<h3>Q2（内存抢占为什么危险？怎么防范？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p><strong>为什么危险：</strong>如果座舱的 Android 系统被恶意应用或 Bug 占用了大量内存和 CPU，操作系统可能变得卡顿甚至死机。在最坏情况下，整个 SoC 的内存被耗尽、中断响应延迟增大，智驾系统的实时控制任务（如 AEB 每 10ms 需要检查一次刹车距离）可能错过执行截止时间——车就可能无法及时刹车。</p>
+<p><strong>防范技术：</strong></p>
+<table>
+<tr><th>技术</th><th>一句话</th></tr>
+<tr><td>Hypervisor 硬件虚拟化</td><td>智驾和座舱跑在完全隔离的虚拟机里，座舱 VM 崩溃不影响智驾 VM</td></tr>
+<tr><td>MMU/MPU 内存分区</td><td>硬件强行分隔内存空间，座舱进程无法访问智驾的内存地址</td></tr>
+<tr><td>安全岛（Safety Island）</td><td>芯片内部有一个独立安全核专门监控智驾，主处理器被攻破也不影响</td></tr>
+<tr><td>时间确定性调度</td><td>芯片调度器保证智驾的实时任务优先获得 CPU 时间，座舱不能抢占</td></tr>
+</table>
+</div>
+
+<h3>Q3（为什么 2024~2025 量产车还是分开的居多？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>至少两个重要原因：</p>
+<ol>
+  <li><strong>功能安全认证周期长：</strong>让一颗芯片同时满足 ASIL-D（智驾）和 QM（座舱）的认证需要全新的芯片架构、Hypervisor 认证、软件栈适配。从芯片 tape-out 到通过 ISO 26262 ASIL-D 认证通常需要 2~3 年。高通的 SA8775 和英伟达的 Thor 刚到量产阶段，大规模上车要到 2026~2027 年。</li>
+  <li><strong>组织壁垒：</strong>绝大多数车厂的组织架构中，座舱团队和智驾团队是独立的部门——使用不同的供应商、不同的开发流程（敏捷 vs V-model）、不同的项目节奏。让两个团队合并使用同一颗芯片和同一套软件栈，涉及复杂的预算分摊、资源争夺、供应商管理问题。</li>
+  <li><strong>冗余设计考虑：</strong>分开的两个域控制器天然提供了物理冗余——座舱域控坏了，智驾还能正常工作。融合后单颗芯片一旦失效，两个域同时失效。这需要额外增加备份 MCU 来弥补。</li>
+</ol>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>舱驾融合最核心的驱动力是降低成本（芯片/PCB/线束省30~40%）+ 高速数据共享（跨域延迟从10ms降到&lt;1ms）。A❌ 与方向盘按键无关；C❌ 播放8K是座舱能力，不是融合驱动力；D❌ 融合本身不解决自动驾驶等级问题。</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>C</strong></td>
+  <td>一颗 SoC 通过 Hypervisor 硬件虚拟化分割为两个隔离分区，各自运行座舱 OS 和智驾 OS——这是真正的"芯片融合"。A❌ USB线方案不现实；B❌ 是"板级融合"（两颗芯片），不是一颗；D❌ Wi-Fi延迟太高不安全。</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>C</strong></td>
+  <td>最大难点是功能安全隔离——座舱域 QM 等级（无安全要求），智驾域 ASIL-D（最高安全等级），把两者放在同一芯片上，必须确保座舱的任何Bug或崩溃都不会影响智驾的实时安全控制。A❌ 功耗差异不是核心问题；B❌ AI模型大小是软件问题，不是融合的难点；D❌ 编程语言不同不是障碍。</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

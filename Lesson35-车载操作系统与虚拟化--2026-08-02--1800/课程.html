@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 35（18:00）：车载操作系统与虚拟化——QNX 和 Android 如何在一颗芯片上“和平共处”？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 35（18:00）— 2026-08-02 | 🚗 车载操作系统与虚拟化（QNX / Hypervisor / Android Automotive）</div>
+  <h1>车载操作系统与虚拟化——QNX 和 Android 如何在一颗芯片上“和平共处”？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson34-车辆运动控制--2026-08-01--1800/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson36-ASPICE软件开发流程--2026-08-09--0900/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个场景</h2>
+
+<p>你在高速上开着车，中控屏正在导航、放歌。突然某个导航 App 卡死，屏幕黑了一下，然后自动重启——但你的<strong>仪表盘（车速、转速、报警灯）从头到尾纹丝不动</strong>。</p>
+
+<p><strong>问题来了：</strong> 中控和仪表明明在同一块屏幕附近，为什么“娱乐系统崩溃”不会连累“仪表系统”？</p>
+
+<div class="callout">
+<p><strong>答案是操作系统与虚拟化。</strong> 这两个系统根本不住在同一个“房间”，中间隔着一堵叫 <strong>Hypervisor（虚拟机监视器）</strong> 的墙。这一课讲清楚：<strong>QNX（安全系统）和 Android（娱乐系统）是怎么在一颗芯片上“和平共处”的</strong>——这是智能座舱的“地基”，也是 L3+ 时代“舱驾一体”的软件前提。</p>
+</div>
+
+<hr>
+
+<h2>二、先分清两种操作系统：RTOS 和 GPOS</h2>
+
+<p>汽车座舱里有两类性格完全不同的操作系统：</p>
+
+<table>
+<tr><th>对比</th><th>QNX（仪表 / 安全域）</th><th>Android（中控 / 娱乐域）</th></tr>
+<tr><td><strong>类型</strong></td><td><strong>硬实时操作系统（RTOS）</strong></td><td><strong>通用操作系统（GPOS）</strong></td></tr>
+<tr><td><strong>内核</strong></td><td>微内核</td><td>Linux 内核</td></tr>
+<tr><td><strong>实时性</strong></td><td>毫秒级、确定性响应</td><td>尽力而为，可能卡顿</td></tr>
+<tr><td><strong>安全认证</strong></td><td>通过功能安全认证（仪表域可达 ASIL-B/C）</td><td>通常不用于安全关键功能</td></tr>
+<tr><td><strong>生态</strong></td><td>封闭、稳定、专用</td><td>开放、应用丰富</td></tr>
+</table>
+
+<div class="mermaid">
+flowchart LR
+    subgraph OLD["🚗 传统：一块屏一颗芯片"]
+        O1["仪表 ECU（QNX）"]
+        O2["中控 ECU（Android）"]
+        O3["座舱域 ECU"]
+    end
+    subgraph NEW["🚀 现在：一颗 SoC 两个系统"]
+        A1["QNX 安全域（仪表）"]
+        A2["Android 娱乐域（中控）"]
+        HV["Hypervisor 虚拟化层"]
+        SOC["座舱 SoC（CPU / GPU / 内存）"]
+    end
+    O1 --&gt; O2 --&gt; O3
+    A1 --&gt; HV
+    A2 --&gt; HV
+    HV --&gt; SOC
+</div>
+
+<p><strong>为什么不能“一个系统通吃”？</strong></p>
+
+<ul>
+<li>把仪表跑在 Android 上 → 功能安全认证过不了，卡顿/死机 = 车速信息丢失 = 生命危险</li>
+<li>把娱乐跑在 QNX 上 → App 生态几乎没有，导航、影音、语音助手都做不出来</li>
+</ul>
+
+<div class="callout-warn">
+<p><strong>核心矛盾：</strong> 安全系统要“确定性”，娱乐系统要“丰富性”。两者都要，于是业界选择：<strong>一颗芯片、两个系统、中间加一层“墙”（虚拟化）</strong>。</p>
+</div>
+
+<hr>
+
+<h2>三、虚拟化：一堵“看不见的墙”</h2>
+
+<p><strong>定义：</strong> Hypervisor（虚拟机监视器，VMM）是直接运行在硬件之上的薄软件层，它把一颗芯片的 CPU、内存、外设“切”成多个<strong>相互隔离的虚拟机</strong>，每个虚拟机里跑一个完整的操作系统。</p>
+
+<table>
+<tr><th>类型</th><th>特点</th><th>车载用不用</th></tr>
+<tr><td><strong>Type-1 裸机型</strong></td><td>直接跑在硬件上（QNX Hypervisor、ACRN、Xen）</td><td>✅ 车载主流</td></tr>
+<tr><td>Type-2 宿主型</td><td>跑在某个操作系统里（如 VirtualBox）</td><td>❌ 开销大、不车规</td></tr>
+</table>
+
+<p><strong>Hypervisor 的三个关键机制：</strong></p>
+
+<ol>
+<li><strong>CPU 虚拟化（vCPU 调度）</strong>：把 CPU 核心“分”给不同系统——安全域用<strong>独占核心</strong>，娱乐域用其余核心或<strong>时间片轮转</strong></li>
+<li><strong>内存隔离</strong>：每个虚拟机有独立内存分区，谁也不能读写对方的内存——这是“崩溃不传染”的物理基础</li>
+<li><strong>设备虚拟化</strong>：GPU、显示、触摸等共享设备，通过“虚拟设备”或驱动隔离的方式共享</li>
+</ol>
+
+<div class="mermaid">
+flowchart TB
+    subgraph QNX["🛡️ QNX 安全域（仪表）"]
+        Q1["仪表 HMI（车速 / 报警）"]
+        Q2["QNX Neutrino RTOS（微内核）"]
+    end
+    subgraph AND["🎮 Android 娱乐域（中控）"]
+        A1["地图 / 影音 / 语音 App"]
+        A2["Android Automotive OS"]
+    end
+    HV2["Hypervisor（核调度 / 内存隔离 / 中断路由）"]
+    HW["硬件层（CPU 核 / GPU / 内存 / 显示控制器）"]
+    Q1 --&gt; Q2
+    A1 --&gt; A2
+    Q2 --&gt; HV2
+    A2 --&gt; HV2
+    HV2 --&gt; HW
+</div>
+
+<hr>
+
+<h2>四、共享设备怎么分？——GPU 和屏幕的“合租”</h2>
+
+<p>一辆车只有一块屏（或几块屏）、一个 GPU，但两个系统都要用。怎么分？</p>
+
+<table>
+<tr><th>共享资源</th><th>怎么分</th></tr>
+<tr><td><strong>屏幕</strong></td><td><strong>虚拟显示</strong>：把物理屏幕切成“仪表区”和“中控区”，或通过显示控制器合成两路画面</td></tr>
+<tr><td><strong>GPU</strong></td><td>两边都发绘图指令，由 GPU 驱动/显示控制器统一合成、按域调度</td></tr>
+<tr><td><strong>触摸 / 方向盘按键</strong></td><td>输入事件按区域<strong>路由</strong>到对应系统（点中控 → 给 Android，点仪表 → 给 QNX）</td></tr>
+<tr><td><strong>音频</strong></td><td>优先级路由：导航提示音和电话可以“抢占”娱乐音</td></tr>
+</table>
+
+<div class="callout">
+<p><strong>一句话：</strong> 共享设备不是“各买一份”，而是“一个物理设备、逻辑上分区使用”——这也是虚拟化比“多芯片方案”更省钱、更省功耗的原因。</p>
+</div>
+
+<hr>
+
+<h2>五、崩溃隔离：为什么 Android 重启不影响仪表</h2>
+
+<p>虚拟化最大的价值不是“省芯片”，而是<strong>故障隔离（Fault Isolation）</strong>：</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph CRASH["💥 Android 域：崩溃 → 重启"]
+        C1["中控 App 卡死"]
+        C2["娱乐域重启（黑屏几秒）"]
+    end
+    subgraph SAFE["🛡️ QNX 安全域：不受影响"]
+        S1["车速 / 转速正常显示"]
+        S2["报警提示正常"]
+    end
+    C1 --&gt; C2
+    C2 -. 隔离边界（Hypervisor） .- S1
+    C2 -. 隔离边界（Hypervisor） .- S2
+</div>
+
+<ul>
+<li>Android 死机 → 只有娱乐域重启，<strong>内存隔离</strong>保证它读不到、写不了 QNX 的内存</li>
+<li>QNX 独占核心 + 高优先级 → 即使娱乐域把 CPU 占满，仪表照样毫秒级响应</li>
+<li>这正是车规要求：<strong>“娱乐可以坏，安全不能坏”</strong></li>
+</ul>
+
+<hr>
+
+<h2>六、三条要记住的规则</h2>
+
+<div class="rule-box">
+
+<h3>📌 规则一：虚拟化的本质是“一台硬件、多个隔离的系统”</h3>
+<p>Hypervisor 直接管硬件，把 CPU、内存、外设分成多个相互隔离的虚拟机。<strong>隔离 = 安全</strong>：一个系统的崩溃、被攻击，都不会扩散到另一个系统。</p>
+
+<h3>📌 规则二：安全系统永远优先——QNX 拿“独占核心”，Android 拿“剩余算力”</h3>
+<p>仪表/安全域跑在硬实时 QNX 上，用独占 CPU 核心和高优先级；娱乐域跑在 Android 上，用其余算力。<strong>资源分配的顺序，就是安全优先级的顺序。</strong></p>
+
+<h3>📌 规则三：共享设备靠“逻辑分区”共享，不是物理上各买一份</h3>
+<p>一块屏幕、一个 GPU，通过虚拟显示、输入路由、音频优先级等机制“合租”。这就是虚拟化比多芯片方案<strong>更省钱、更省功耗、更易维护</strong>的原因。</p>
+
+</div>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p class="callout-warn"><strong>💡 提示：</strong>用你自己的话回答，不给术语堆砌。目标是让一个 12 岁的小朋友也能听懂。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你的朋友说：“汽车中控不就是个大号安卓平板吗？” 请解释为什么中控<strong>不能</strong>用“普通安卓平板”直接当座舱——请从<strong>操作系统（实时性）</strong>、<strong>安全认证</strong>、<strong>崩溃隔离</strong>三个角度讲清楚。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>请用生活类比（比如“合租公寓”或“公司办公室”）解释：<strong>Hypervisor 是怎么让 QNX 和 Android 两个系统在一颗芯片上互不干扰的？</strong> 类比里要能对应上“CPU 分配、内存隔离、设备共享”这三个机制。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>为什么仪表盘这种“人命关天”的系统要跑在 QNX 而不是 Android 上？请从<strong>实时性</strong>、<strong>功能安全认证</strong>、<strong>故障隔离</strong>三个角度解释。</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答……"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group" data-question="mc1">
+<div class="q-label">MCQ 1：Hypervisor（虚拟机监视器）在智能座舱中的<strong>核心作用</strong>是？</div>
+<label><input type="radio" name="mc1" value="A"> A. 让 Android 系统运行得更快</label>
+<label><input type="radio" name="mc1" value="B"> B. 在单一硬件上创建多个相互隔离的虚拟机，让安全系统（QNX）和娱乐系统（Android）共存</label>
+<label><input type="radio" name="mc1" value="C"> C. 替代操作系统内核，直接运行 App</label>
+<label><input type="radio" name="mc1" value="D"> D. 把多个 ECU 用线束物理连接起来</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc2">
+<div class="q-label">MCQ 2：关于 QNX 与 Android 的对比，下列说法<strong>正确</strong>的是？</div>
+<label><input type="radio" name="mc2" value="A"> A. QNX 是通用操作系统，Android 是实时操作系统</label>
+<label><input type="radio" name="mc2" value="B"> B. QNX 是硬实时微内核 RTOS，常用于仪表等安全关键域；Android 生态丰富，但实时性与车规安全认证不足</label>
+<label><input type="radio" name="mc2" value="C"> C. 两者都可以直接用于制动控制等安全关键功能</label>
+<label><input type="radio" name="mc2" value="D"> D. QNX 无法通过功能安全认证，所以只能用于娱乐</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group" data-question="mc3">
+<div class="q-label">MCQ 3：Android（娱乐域）崩溃重启时，为什么仪表（QNX 安全域）不受影响？</div>
+<label><input type="radio" name="mc3" value="A"> A. 因为两个系统各自使用独立的物理芯片</label>
+<label><input type="radio" name="mc3" value="B"> B. 因为 Hypervisor 提供了 CPU、内存、外设的隔离，一个虚拟机的故障不会扩散到另一个虚拟机</label>
+<label><input type="radio" name="mc3" value="C"> C. 因为 Android 系统经过专门优化，永远不会崩溃</label>
+<label><input type="radio" name="mc3" value="D"> D. 因为仪表系统不依赖任何软件，纯硬件显示</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<hr>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">提交评分</button>
+  <a href="答案.html" class="btn btn-outline" style="cursor:pointer">标准答案</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ===== 内联回退方案 =====
+function submitAll() {
+  // 选择题评分
+  const ANSWERS = window.LESSON_ANSWERS || {
+    lessonId: 'lesson35',
+    title: 'Lesson 35（18:00）：车载操作系统与虚拟化——QNX 和 Android 如何在一颗芯片上“和平共处”？',
+    mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+  };
+  const correct = ANSWERS.mcq;
+  for (const [q, ans] of Object.entries(correct)) {
+    const selected = document.querySelector('input[name="' + q + '"]:checked');
+    const resultDiv = document.getElementById(q + '-result');
+    if (!resultDiv) continue;
+    if (!selected) {
+      resultDiv.textContent = '⚠️ 请选择一个选项';
+      resultDiv.className = 'mcq-result wrong';
+      continue;
+    }
+    if (selected.value === ans) {
+      resultDiv.textContent = '✅ 正确！';
+      resultDiv.className = 'mcq-result correct';
+    } else {
+      resultDiv.textContent = '❌ 错误。正确答案是 ' + ans;
+      resultDiv.className = 'mcq-result wrong';
+    }
+  }
+  // 费曼题展示
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta && ta.value.trim()) {
+      console.log('Feynman Q' + i + ' answer: ' + ta.value.substring(0, 50) + '...');
+    }
+  }
+  saveProgress();
+}
+
+// ===== 自动保存 =====
+function saveProgress() {
+  const data = {};
+  for (let i = 1; i <= 3; i++) {
+    const ta = document.getElementById('feynman' + i);
+    if (ta) data['feynman' + i] = ta.value;
+  }
+  document.querySelectorAll('.mcq-group').forEach(function(g) {
+    const q = g.getAttribute('data-question');
+    const sel = g.querySelector('input[type="radio"]:checked');
+    if (q && sel) data[q] = sel.value;
+  });
+  try {
+    localStorage.setItem('teachme_lesson35', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('确定要清除所有作答和结果吗？')) return;
+  localStorage.removeItem('teachme_lesson35');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.mcq-result').forEach(d => { d.className = 'mcq-result'; d.textContent = ''; });
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('teachme_lesson35');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    for (let i = 1; i <= 3; i++) {
+      const ta = document.getElementById('feynman' + i);
+      if (ta && data['feynman' + i]) ta.value = data['feynman' + i];
+    }
+    document.querySelectorAll('.mcq-group').forEach(function(g) {
+      const q = g.getAttribute('data-question');
+      const val = data[q];
+      if (q && val) {
+        const radio = g.querySelector('input[type="radio"][value="' + val + '"]');
+        if (radio) radio.checked = true;
+      }
+    });
+  } catch(e) {}
+}
+
+// 自动保存输入
+document.addEventListener('input', saveProgress);
+window.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson35',
+  title: 'Lesson 35（18:00）：车载操作系统与虚拟化——QNX 和 Android 如何在一颗芯片上“和平共处”？',
+  feynman: [
+    { q: 1, ref: '三个角度：1) 实时性：普通安卓平板是消费级 GPOS，卡顿、死机可接受，但仪表/座舱涉及安全相关信息，需要毫秒级确定性响应；2) 安全认证：车规要求功能安全认证（ASIL），普通安卓没有经过认证，且 App 生态引入不可控代码；3) 崩溃隔离：量产座舱用 Hypervisor 把 Android 隔离在娱乐域，Android 崩溃重启不影响 QNX 安全域。所以中控是定制车规方案，不是大号平板' },
+    { q: 2, ref: '生活类比参考：把芯片想象成一栋合租公寓，Hypervisor 是房东。房东直接管整栋楼（硬件），把楼分成多个独立房间（虚拟机）：QNX 是高级安保房（独占核心），Android 是普通住户（用剩余资源）。每间房有独立门锁和墙壁（内存隔离），一家漏水（崩溃）不会淹到隔壁。水电燃气（CPU 时间、GPU、屏幕）由房东统一分配，各家用各家的，互不干扰' },
+    { q: 3, ref: '三个角度：1) 实时性：仪表要毫秒级确定响应（车速、报警灯、制动提示），Android 为交互优化、可卡顿，不满足硬实时；2) 认证：功能安全要求 ASIL 等级认证（仪表相关可达 ASIL-B/C），QNX 有完整安全认证与成熟案例，Android 娱乐生态未做车规认证；3) 故障隔离：通过 Hypervisor 隔离，Android 重启/崩溃不影响 QNX 安全域，仪表继续工作。结论：人命关天的系统必须跑在经过认证的实时系统上' }
+  ],
+  mcq: { mc1: 'B', mc2: 'B', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 22（12:00）：舱驾融合的软件架构——座舱和智驾如何在同一个芯片上"和平共处"？</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.callout{background:#f0f7ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.callout-warn{background:#fff8e1;border-left:4px solid #ffc107;padding:.7rem 1rem;margin:.6rem 0;font-size:.9rem}
+.rule-box{background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:.8rem 1rem;margin:.8rem 0}
+.rule-box p{margin:.2rem 0}
+.rule-box strong{color:#2e7d32}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+pre.code-block{background:#f4f4f8;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;margin:.6rem 0}
+.mermaid{overflow-x:auto;text-align:center;margin:.8rem 0}
+.mermaid svg{max-width:none}
+.question{margin:1rem 0;padding:0}
+.q-label{font-weight:600;margin:.6rem 0 .3rem;font-size:.95rem}
+textarea{width:100%;min-height:100px;padding:.7rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+.mcq-group{margin:.6rem 0;padding:.5rem .7rem;background:#fafafc;border-radius:8px}
+.mcq-group label{display:block;padding:.25rem 0;cursor:pointer;font-size:.9rem}
+.mcq-group input[type="radio"]{margin-right:.4rem;accent-color:#4f6ef7}
+.mcq-result{font-size:.85rem;margin:.3rem 0 .1rem;padding:.2rem .5rem;border-radius:4px;display:none}
+.mcq-result.correct{background:#e8f5e9;color:#2e7d32;display:block}
+.mcq-result.wrong{background:#fce4ec;color:#c62828;display:block}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+ol.ol-decimal{margin:.6rem 0 .6rem 1.8rem}
+ol.ol-decimal li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 22（12:00）— 2026-07-12 | 🧠 舱驾知识：舱驾融合的软件架构</div>
+  <h1>舱驾融合的软件架构——座舱和智驾如何在同一个芯片上"和平共处"？</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson21-舱联知识--2026-07-12--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson23-音频通信协议知识--2026-07-12--1800/课程.html">下一课 →</a>
+</div>
+
+<!-- ===== 正文开始 ===== -->
+
+<h2>一、先想想这个问题</h2>
+
+<p>你坐在一辆智能电动汽车里：</p>
+
+<ul>
+  <li><strong>中控屏</strong>上运行着 Android 系统——正在播放音乐、显示导航、响应你的语音指令</li>
+  <li><strong>仪表盘</strong>上运行着 QNX 实时操作系统——显示车速、续航、故障报警</li>
+  <li><strong>智驾系统</strong>同时也在运行——处理摄像头图像、识别行人、规划行驶路径</li>
+</ul>
+
+<p>这三个系统过去需要<strong>三颗独立的芯片</strong>。但现在，工程师们想把它们塞进<strong>同一颗芯片</strong>里。</p>
+
+<p><strong>你能让 Android（在乎体验但可以偶尔卡一下）、QNX（绝对不能卡——刹车指令延迟 1 ms 可能就追尾了）、Linux（要处理海量摄像头数据）在一颗芯片上同时运行，而且互不干扰吗？</strong></p>
+
+<p>今天的重点：<strong>舱驾融合的软件架构</strong>——Hypervisor 虚拟化、混合关键系统、SOA 服务化——三者如何让座舱和智驾在同一个芯片上"和平共处"。</p>
+
+<hr>
+
+<h2>二、舱驾融合的软件分层</h2>
+
+<h3>图 1 — 舱驾融合软件架构全景</h3>
+
+<div class="mermaid">
+flowchart TB
+    subgraph APP["应用层"]
+        Cockpit["座舱应用 &lt;br&gt;导航/音乐/语音助手"]
+        ADAS["智驾应用 &lt;br&gt;感知/规划/控制"]
+        Service["SOA 服务网关 &lt;br&gt;跨域数据共享"]
+    end
+
+    subgraph OS["操作系统层"]
+        Android["Android（IVI）&lt;br&gt;娱乐+导航"]
+        QNX["QNX（仪表+安全）&lt;br&gt;仪表盘+车辆控制"]
+        Linux["Linux（ADAS）&lt;br&gt;感知+规划"]
+        BSW["基础软件层 &lt;br&gt;AUTOSAR BSW"]
+    end
+
+    subgraph HYPER["虚拟化层"]
+        HYPERVISOR["Hypervisor（虚拟机管理程序）&lt;br&gt;CPU/内存/外设隔离"]
+    end
+
+    subgraph HW["硬件层"]
+        SOC["舱驾融合 SoC &lt;br&gt;CPU / GPU / NPU / DSP"]
+    end
+
+    SOC --- HYPERVISOR
+    HYPERVISOR --- Android
+    HYPERVISOR --- QNX
+    HYPERVISOR --- Linux
+    HYPERVISOR --- BSW
+    Android --- Cockpit
+    QNX --- Cockpit
+    Linux --- ADAS
+    Cockpit &lt;--&gt; Service
+    ADAS &lt;--&gt; Service
+    Service &lt;--&gt; BSW
+</div>
+
+<p><strong>三句话理解这个架构：</strong></p>
+<ol>
+  <li><strong>硬件层：</strong>一颗 SoC 包含 CPU、GPU、NPU（AI 加速器）、DSP（数字信号处理器）等资源</li>
+  <li><strong>虚拟化层：</strong>Hypervisor 把硬件资源"切"成几份，每份独立运行一个操作系统——互不干扰</li>
+  <li><strong>应用层：</strong>座舱和智驾应用通过 SOA 服务网关交换数据，而不是直接共享内存</li>
+</ol>
+
+<hr>
+
+<h2>三、Hypervisor——舱驾融合的"房东"</h2>
+
+<h3>为什么需要 Hypervisor？</h3>
+
+<p>如果把一颗芯片比作一套<strong>三室一厅</strong>的房子：</p>
+<ul>
+  <li><strong>Android</strong> 是"租客 A"——喜欢开派对（高性能 GPU 渲染），偶尔吵闹可以（非安全关键）</li>
+  <li><strong>QNX</strong> 是"租客 B"——必须绝对安静，24 小时不能被打扰（安全关键——刹车、仪表）</li>
+  <li><strong>Linux/ADAS</strong> 是"租客 C"——每天要搬进搬出大量箱子（海量摄像头数据流处理）</li>
+</ul>
+
+<p>你不可能让三个租客<strong>直接共享</strong>客厅（同一操作系统），因为：</p>
+<ul>
+  <li>租客 A 开派对时可能占用所有电费（CPU）</li>
+  <li>租客 B 的水管爆了（系统崩溃）可能让全屋停水</li>
+  <li>租客 C 的箱子堆满了走道（内存占用）挡住别人</li>
+</ul>
+
+<p><strong>Hypervisor 就是"房东"</strong>——它把房子隔成三个<strong>独立套房</strong>，每个租客有自己的客厅（虚拟 CPU）、卧室（虚拟内存）、厨房（虚拟外设），互相看不见、互相不影响。</p>
+
+<h3>Hypervisor 的工作原理</h3>
+
+<table>
+<tr><th>机制</th><th>类比</th><th>技术细节</th></tr>
+<tr><td><strong>CPU 虚拟化</strong></td><td>房东排班表：9:00~10:00 租客 A 用客厅，10:00~11:00 租客 B 用</td><td>时间片轮转 / 硬件辅助虚拟化（ARM GIC、Intel VT-x）</td></tr>
+<tr><td><strong>内存虚拟化</strong></td><td>每个租客有自己的储物间，房东锁好门，别人进不去</td><td>两级地址转换（Stage-2 MMU），物理内存分区，防止跨 VM 访问</td></tr>
+<tr><td><strong>外设直通</strong></td><td>租客 A 独享厨房燃气灶，租客 B 独享洗衣机</td><td>GPU/NPU/以太网控制器直通（PCIe passthrough / SR-IOV）</td></tr>
+<tr><td><strong>IPC 通信</strong></td><td>租客之间通过"房东转交信件"沟通</td><td>共享内存 / virtio 虚拟网卡 → 跨 VM 的 RPMsg / 网络通信</td></tr>
+</table>
+
+<h3>舱驾融合中常见的 Hypervisor</h3>
+
+<table>
+<tr><th>Hypervisor</th><th>特点</th><th>应用场景</th></tr>
+<tr><td><strong>QNX Hypervisor</strong></td><td>最成熟的车规级 Type-1 Hypervisor，ASIL-D 认证</td><td>主流方案：一个 VM 跑 QNX（仪表+安全），另一个跑 Android（座舱）</td></tr>
+<tr><td><strong>Xen / KVM</strong></td><td>开源方案，成本低</td><td>Linux 主导的 ADAS 平台，配合 Android 虚拟机</td></tr>
+<tr><td><strong>Jailhouse</strong></td><td>轻量级分区 Hypervisor，几乎没有抽象层</td><td>硬隔离场景，延迟极低（微秒级），适合 ADAS 硬实时任务</td></tr>
+<tr><td><strong>ACRN</strong></td><td>专为 IoT 和汽车设计的开源 Hypervisor</td><td>中低端平台，Linux + Android 双系统</td></tr>
+</table>
+
+<hr>
+
+<h2>四、混合关键系统（Mixed-Criticality）——"高铁不可能等外卖"</h2>
+
+<h3>问题的本质</h3>
+
+<p>舱驾融合后，同一颗芯片上同时运行着<strong>安全关键（Safety-Critical）</strong>和<strong>非安全关键（Non-Safety-Critical）</strong>两类任务：</p>
+
+<table>
+<tr><th>任务类型</th><th>示例</th><th>安全等级</th><th>如果挂了？</th><th>CPU 需求</th></tr>
+<tr><td>🚨 <strong>安全关键</strong></td><td>制动指令、仪表盘、AEB 自动紧急刹车</td><td>ASIL-D</td><td>💀 可能死人</td><td>固定、可预测</td></tr>
+<tr><td>⚠️ <strong>安全相关</strong></td><td>ADAS 感知、车道保持</td><td>ASIL-B/C</td><td>☠️ 风险高</td><td>周期性</td></tr>
+<tr><td>✅ <strong>非安全</strong></td><td>导航、音乐、OTA 下载、语音助手</td><td>QM</td><td>😅 不爽而已</td><td>弹性、可降级</td></tr>
+</table>
+
+<p><strong>核心矛盾：</strong>安全关键任务需要<strong>确定性</strong>（确定的时间、确定的资源），非安全任务需要<strong>灵活性</strong>（突发带宽、动态调度）。</p>
+
+<h3>混合关键调度三原则</h3>
+
+<table>
+<tr><th>#</th><th>原则</th><th>解释</th></tr>
+<tr><td><strong>1</strong></td><td><strong>安全任务优先级永远最高</strong></td><td>无论座舱应用怎么"吃资源"，制动指令的 CPU 时间和内存带宽不能被抢占</td></tr>
+<tr><td><strong>2</strong></td><td><strong>CPU 预算隔离（CPU Budget）</strong></td><td>每个 VM 分配固定 CPU 时间片，安全 VM 有最低保障（比如至少 30% CPU），非安全 VM 用完额度后不能"借"安全 VM 的时间</td></tr>
+<tr><td><strong>3</strong></td><td><strong>关键任务上"黄金核"</strong></td><td>SoC 中通常有 1~2 个 CPU 核心专用于安全关键任务（称为"黄金核"），这些核心不跑非安全任务，确保 100% 确定性</td></tr>
+</table>
+
+<h3>图 2 — CPU 黄金核分配</h3>
+
+<div class="mermaid">
+flowchart LR
+    subgraph CORE0["CPU 核心 0 — 🥇 黄金核（Safety）"]
+        QNX_SAFE["QNX：制动指令 &lt;br&gt;仪表盘显示"]
+    end
+    subgraph CORE1["CPU 核心 1 — 🥇 黄金核（Safety）"]
+        ADAS_SAFE["ADAS：AEB感知 &lt;br&gt;车道保持"]
+    end
+    subgraph CORE2["CPU 核心 2 — 🥈 共享核"]
+        ANDROID1["Android：导航显示 &lt;br&gt;30% CPU"]
+        LINUX1["Linux：目标识别 &lt;br&gt;70% CPU"]
+    end
+    subgraph CORE3["CPU 核心 3 — 🥉 弹性核"]
+        OTA["OTA 下载（后台）&lt;br&gt;CPU 空闲时才跑"]
+    end
+</div>
+
+<p><strong>一句话：</strong>安全任务像"高铁时刻表"——必须准点、不能延误；非安全任务像"外卖取餐"——可以等、可以慢、大不了重新下单。</p>
+
+<hr>
+
+<h2>五、SOA 服务化架构——座舱和智驾怎么"说话"？</h2>
+
+<p>硬件分开了（Hypervisor 隔离了 VM），但软件还得<strong>协同工作</strong>——座舱需要路况数据做 3D 导航，智驾需要座舱的 DMS（驾驶员监控）数据判断疲劳状态。</p>
+
+<h3>❌ 不推荐的做法：直接共享内存</h3>
+<p>两个 VM 直接读写同一块物理内存：</p>
+<ul>
+  <li><strong>安全问题</strong>：Android 的内存错误可能破坏 ADAS 的数据</li>
+  <li><strong>耦合问题</strong>：必须知道对方的数据结构定义，版本升级同步复杂</li>
+  <li><strong>隔离问题</strong>：Hypervisor 的内存隔离被打破</li>
+</ul>
+
+<h3>✅ 推荐的做法：SOA 服务化</h3>
+<p>以服务（Service）为单位的通信方式：</p>
+
+<div class="mermaid">
+sequenceDiagram
+    participant Android as Android 座舱
+    participant GW as SOA 服务网关
+    participant QNX as QNX 安全域
+    participant ADAS as Linux ADAS
+
+    Note over Android,ADAS: 舱驾融合场景下的 SOA 服务调用
+
+    ADAS-&gt;&gt;GW: 注册服务：环境感知数据 (50Hz)
+    GW--&gt;&gt;ADAS: 确认注册
+    Android-&gt;&gt;GW: 订阅：环境感知数据
+    GW--&gt;&gt;Android: 确认订阅
+
+    loop 每 20ms
+        ADAS-&gt;&gt;GW: 发布感知结果（障碍物位置、车道线、限速牌）
+        GW-&gt;&gt;Android: 转发给订阅者（导航 HMI 更新）
+    end
+
+    Android-&gt;&gt;GW: 请求：驾驶员疲劳状态
+    GW-&gt;&gt;QNX: 转发请求到 DMS 服务
+    QNX-&gt;&gt;QNX: 分析驾驶员面部状态
+    QNX-&gt;&gt;GW: 返回结果：疲劳等级 3/5
+    GW-&gt;&gt;Android: 返回给请求方
+
+    Android-&gt;&gt;GW: 发送提示：建议休息
+    GW-&gt;&gt;QNX: 安全提示注入
+    QNX-&gt;&gt;QNX: 仪表盘显示"请休息"
+</div>
+
+<h3>SOA 的核心好处</h3>
+
+<table>
+<tr><th>特性</th><th>说明</th><th>类比</th></tr>
+<tr><td><strong>松耦合</strong></td><td>座舱和智驾不知道对方的具体实现，只通过接口通信</td><td>你扫二维码点餐，不需要知道后厨怎么炒菜</td></tr>
+<tr><td><strong>可发现</strong></td><td>服务动态注册/发现，新增服务不需要重启系统</td><td>餐厅新菜单上的菜，扫码就能看到</td></tr>
+<tr><td><strong>标准化</strong></td><td>使用 SOME/IP、DDS 等车载标准协议</td><td>不同国家的餐厅用同一个扫码点餐系统</td></tr>
+<tr><td><strong>安全隔离</strong></td><td>服务网关可以做权限检查（谁可以读、谁可以写）</td><td>服务员只站在吧台，不会进厨房操作灶台</td></tr>
+</table>
+
+<hr>
+
+<h2>六、三条核心规则</h2>
+
+<table>
+<tr><th>#</th><th>规则</th><th>一句话</th></tr>
+<tr><td><strong>1</strong></td><td><strong>Hypervisor 是"房东"，不是"室友"</strong></td><td>Hypervisor 负责硬隔离——CPU、内存、外设全部分区，每个 VM 感觉自己在独占一台电脑。没有 Hypervisor，舱驾融合只是"软隔离"，一个系统的崩溃可能拖死另一个</td></tr>
+<tr><td><strong>2</strong></td><td><strong>安全任务走"黄金核"，非安全任务用"弹性核"</strong></td><td>CPU 必须按关键性分配——黄金核（专用核/固定时间片）给 Safety 任务，弹性核（动态调度/可降级）给 QM 任务。不要用"平均分配"的方式调度 Safe 和 Non-Safe 任务</td></tr>
+<tr><td><strong>3</strong></td><td><strong>座舱和智驾通过"服务"说话，不通过"内存"说话</strong></td><td>SOA 服务化（SOME/IP / DDS）是跨 VM 通信的正确姿势。两个 VM 之间不要直接共享内存——那样等于拆了 Hypervisor 的墙，回到不安全时代</td></tr>
+</table>
+
+<hr>
+
+<h2>七、费曼简答题</h2>
+
+<p>请用自己的话回答以下问题，<strong>不要用专业术语堆砌</strong>，像给一个中学生讲清楚。</p>
+
+<div class="question">
+<div class="q-label">Q1</div>
+<p>你朋友听说一辆车里的导航系统和刹车系统运行在同一颗芯片上，担心地问："万一导航卡了一下，会不会导致刹车也卡住了？" 请用"<strong>三室一厅，房东隔开</strong>"的类比，解释 Hypervisor 如何确保导航（Android）的卡顿不会影响刹车（QNX）。一定要说清"租房合同"（CPU 时间片）和"独立套房"（内存隔离）这两个要点。</p>
+<textarea id="feynman1" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q2</div>
+<p>你朋友又问："那如果导航 App 下载电影，把 CPU 占满了，刹车系统是不是就没法工作了？" 请用"<strong>高铁时刻表 vs 外卖取餐</strong>"的类比，解释混合关键系统中的 CPU 预算隔离和黄金核机制——为什么安全任务不会因为非安全任务而饥饿（starvation）。</p>
+<textarea id="feynman2" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<div class="question">
+<div class="q-label">Q3</div>
+<p>你朋友说："那导航想知道前面有没有堵车，智驾芯片有摄像头看到路况了——导航怎么才能'问'到智驾的数据？它俩在不同的操作系统里，又没有直接共享内存。" 请用"<strong>点外卖：你扫码点餐，后厨按单做菜</strong>"的类比，解释 SOA 服务化的工作过程——服务注册、订阅/发布、请求/响应。为什么这种方式比"直接进后厨拿菜"（直接共享内存）更安全、更灵活？</p>
+<textarea id="feynman3" placeholder="在这里写下你的回答…"></textarea>
+</div>
+
+<hr>
+
+<h2>八、选择题</h2>
+
+<div class="mcq-group">
+<div class="q-label">1. Hypervisor 在舱驾融合中的核心作用是？</div>
+<label><input type="radio" name="mc1" value="A"> A. 提供娱乐应用的图形渲染加速</label>
+<label><input type="radio" name="mc1" value="B"> B. 在多个操作系统之间安全隔离 CPU、内存和外设资源</label>
+<label><input type="radio" name="mc1" value="C"> C. 替代 Linux 作为智驾操作系统</label>
+<label><input type="radio" name="mc1" value="D"> D. 直接执行所有安全关键任务</label>
+<div class="mcq-result" id="mc1-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">2. "黄金核"在混合关键系统中的作用是？</div>
+<label><input type="radio" name="mc2" value="A"> A. 价格最贵的 CPU 核心</label>
+<label><input type="radio" name="mc2" value="B"> B. 供 Android 系统独占使用以获得更好的娱乐体验</label>
+<label><input type="radio" name="mc2" value="C"> C. 专用核心，只运行安全关键任务，确保确定性调度</label>
+<label><input type="radio" name="mc2" value="D"> D. 用于运行 OTA 下载等后台任务</label>
+<div class="mcq-result" id="mc2-result"></div>
+</div>
+
+<div class="mcq-group">
+<div class="q-label">3. SOA 服务化架构相比直接共享内存的最大优势是什么？</div>
+<label><input type="radio" name="mc3" value="A"> A. 代码编写更简单，不需要学习新协议</label>
+<label><input type="radio" name="mc3" value="B"> B. 两个 VM 之间松耦合，通过标准化接口通信，不破坏 Hypervisor 的隔离边界</label>
+<label><input type="radio" name="mc3" value="C"> C. 数据传输速度更快（比直接读内存快 10 倍）</label>
+<label><input type="radio" name="mc3" value="D"> D. 不需要操作系统支持</label>
+<div class="mcq-result" id="mc3-result"></div>
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a class="btn btn-outline" href="答案.html">📖 标准答案</a>
+  <button class="btn btn-outline" onclick="clearAll()">🗑️ 清除答案</button>
+</div>
+
+<div class="nav-bar" style="margin-top:1.5rem;border-top:1px solid #eee;padding-top:.8rem">
+  <a href="../Lesson21-舱联知识--2026-07-12--0900/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson23-音频通信协议知识--2026-07-12--1800/课程.html">下一课 →</a>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+(function() {
+  'use strict';
+
+  const LS_KEY = 'teachme_lesson22';
+
+  // === MCQ correct answers ===
+  const CORRECT = { mc1: 'B', mc2: 'C', mc3: 'B' };
+
+  // === Save progress ===
+  function saveProgress() {
+    const data = {};
+    document.querySelectorAll('textarea').forEach(function(el) {
+      data[el.id] = el.value;
+    });
+    document.querySelectorAll('input[type="radio"]').forEach(function(el) {
+      if (el.checked) data[el.name] = el.value;
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  }
+
+  // === Load progress ===
+  function loadProgress() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(LS_KEY));
+      if (!saved) return;
+      Object.keys(saved).forEach(function(key) {
+        var el = document.getElementById(key);
+        if (el && el.tagName === 'TEXTAREA') { el.value = saved[key]; return; }
+        var radios = document.querySelectorAll('input[name="' + key + '"]');
+        if (radios.length) {
+          radios.forEach(function(r) { if (r.value === saved[key]) r.checked = true; });
+        }
+      });
+    } catch(e) {/* ignore */}
+  }
+
+  // === Auto-save on change ===
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('textarea, input[type="radio"]')) saveProgress();
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.matches('textarea')) saveProgress();
+  });
+
+  // === Submit all (inline fallback) ===
+  window.submitAll = function() {
+    var score = 0;
+    var total = Object.keys(CORRECT).length;
+
+    // Grade MCQs
+    Object.entries(CORRECT).forEach(function(entry) {
+      var q = entry[0];
+      var ans = entry[1];
+      var selected = document.querySelector('input[name="' + q + '"]:checked');
+      var resultDiv = document.getElementById(q + '-result');
+      if (!resultDiv) return;
+      if (selected && selected.value === ans) {
+        resultDiv.className = 'mcq-result correct';
+        resultDiv.textContent = '✅ 正确！';
+        score++;
+      } else {
+        resultDiv.className = 'mcq-result wrong';
+        resultDiv.textContent = selected ? '❌ 错误。正确答案是 ' + ans : '❌ 未选择。正确答案是 ' + ans;
+      }
+    });
+
+    // Show MCQ score
+    var existingScore = document.getElementById('mcq-score');
+    if (existingScore) existingScore.remove();
+    var scoreDiv = document.createElement('div');
+    scoreDiv.id = 'mcq-score';
+    scoreDiv.style.cssText = 'margin:.5rem 0;padding:.7rem 1rem;background:#f0faf0;border-radius:8px;font-size:.9rem;border-left:4px solid #2e7d32;';
+    scoreDiv.innerHTML = '<strong>📊 选择题得分：' + score + '/' + total + '</strong>';
+    var btnGroup = document.querySelector('.btn-group');
+    if (btnGroup) btnGroup.after(scoreDiv);
+
+    // Build Feynman text for copy
+    var feynmanText = '=== Lesson 22 费曼答案 ===\n\n';
+    document.querySelectorAll('textarea').forEach(function(el) {
+      var label = el.closest('.question');
+      var qLabel = label ? label.querySelector('.q-label') : null;
+      feynmanText += (qLabel ? qLabel.textContent : el.id) + '\n';
+      feynmanText += (el.value.trim() || '(未填写)') + '\n\n';
+    });
+    feynmanText += '=== 选择题 ===\n得分: ' + score + '/' + total;
+
+    var copyBlock = document.createElement('div');
+    copyBlock.id = 'copy-block';
+    copyBlock.style.cssText = 'margin:.5rem 0;padding:.7rem 1rem;background:#f4f4f8;border-radius:8px;font-size:.85rem;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto';
+    copyBlock.textContent = feynmanText;
+    var hint = document.createElement('div');
+    hint.id = 'feynman-score-hint';
+    hint.style.cssText = 'margin:.5rem 0;padding:.6rem 1rem;background:#fff8e1;border-radius:8px;font-size:.9rem;border-left:4px solid #ffc107;';
+    hint.innerHTML = '💡 <strong>想给费曼题打分？</strong>复制上方内容，回到 Hermes 对话输入「<strong>帮 Lesson 22 评分</strong>」';
+
+    if (scoreDiv) {
+      scoreDiv.after(copyBlock);
+      copyBlock.after(hint);
+    } else if (btnGroup) {
+      btnGroup.after(copyBlock);
+      copyBlock.after(hint);
+    }
+  };
+
+  window.clearAll = function() {
+    if (!confirm('确定清除所有已保存的答案？')) return;
+    localStorage.removeItem(LS_KEY);
+    document.querySelectorAll('textarea').forEach(function(el) { el.value = ''; });
+    document.querySelectorAll('input[type="radio"]').forEach(function(el) { el.checked = false; });
+    document.querySelectorAll('.mcq-result').forEach(function(el) { el.className = 'mcq-result'; el.style.display = 'none'; });
+    var scoreDiv = document.getElementById('mcq-score');
+    if (scoreDiv) scoreDiv.remove();
+    var copyBlock = document.getElementById('copy-block');
+    if (copyBlock) copyBlock.remove();
+    var hint = document.getElementById('feynman-score-hint');
+    if (hint) hint.remove();
+  };
+
+  window.addEventListener('DOMContentLoaded', loadProgress);
+})();
+</script>
+
+<script>
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson22',
+  title: 'Lesson 22（12:00）：舱驾融合的软件架构——座舱和智驾如何在同一个芯片上"和平共处"？',
+  feynman: [
+    { q: 1, ref: '用"三室一厅，房东隔开"的类比：将 SoC 比作一套三室一厅的房子。Android（导航）是租客 A——喜欢开派对（GPU 渲染）；QNX（刹车/仪表）是租客 B——必须绝对安静；Linux/ADAS 是租客 C——每天搬大量箱子。Hypervisor = 房东，做两件事：(1) "租房合同" = CPU 时间片——房东排好时间表，每个租客有固定时间用客厅（CPU），不管租客 A 多嗨，到了 B 的时间段，房东就把 A 请出去，B 准时得到 CPU；(2) "独立套房" = 内存隔离——每个租客有独立卧室（虚拟内存空间），B 的房间上 24 小时锁，A 的煤气泄漏（内存错误）不会影响 B。所以导航卡住不会影响刹车——因为 CPU 时间片到了房东会抢回来，而且内存完全隔离。' },
+    { q: 2, ref: '用"高铁时刻表 vs 外卖取餐"类比：安全任务（制动、仪表）是高铁——必须准点发车，哪怕晚 1 毫秒可能就撞车了。非安全任务（导航、OTA）是外卖取餐——可以等、可以慢、大不了重新下单。CPU 预算隔离三个机制：(1) CPU 预算 = 高铁每天 9:00~10:00 独占轨道，外卖永远不能占用这个时间段——每个 VM 分配固定 CPU 时间片，安全 VM 至少有 30% 保底；(2) 黄金核 = 高铁有专用站台（1 号和 2 号），外卖只能在 3 号站台——SoC 中特定核心只跑安全任务，不跑非安全任务；(3) 额度用完 = 外卖电动车没电了——那就等着，不能去抢高铁的电池——非安全 VM 额度用完后受限，但安全 VM 不受影响。所以不会饥饿——Hypervisor 按固定时间片调度，安全 VM 时间片是硬保证，到时间直接"抢"回 CPU。' },
+    { q: 3, ref: '用"扫码点外卖"类比：传统共享内存 = 你直接冲进后厨从厨师手里拿菜——快但不安全（可能被烫伤、影响厨师、拿错菜）。SOA 服务化 = 扫码点餐——你坐在座位上，通过 App 点菜，后厨做好菜，外卖员送到手上。(1) 服务注册 = 商家在美团注册：我能做辣子鸡（ADAS 告诉 SOA 网关：我能提供障碍物坐标数据）；(2) 服务发现 = 你在美团搜川菜馆——导航 App 问 SOA 网关有什么路况服务；(3) 订阅/发布 = 你关注餐厅公众号，每天收到新品推送（导航订阅感知数据，每 20ms 收到一次）；(4) 请求/响应 = 你在 App 下单点了辣子鸡，备注微辣（导航请求疲劳状态，QNX 处理后返回）。为什么更安全？你看不到后厨怎么运作（不破坏隔离边界）；更新后厨设备和菜单（升级数据接口）不需要重新培训你（松耦合）；换餐厅（换服务提供商）只改 App 配置就行（服务发现和切换）。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'B' }
+};
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

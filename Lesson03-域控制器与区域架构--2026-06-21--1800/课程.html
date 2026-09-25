@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 03 (18:00)：域控制器与区域架构——从"各自为政"到"中央集权"</title>
+<script src="../assets/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+h4{font-size:.95rem;font-weight:600;margin:.6rem 0 .3rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+li{margin:.2rem 0}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+tr:nth-child(even) td{background:#fafafc}
+.code-block{background:#f3f4f8;border-radius:8px;padding:.8rem 1.2rem;font-family:"SF Mono","Consolas",monospace;font-size:.85rem;line-height:1.5;margin:.6rem 0;white-space:pre-wrap;color:#333}
+.tip-box{background:#f0f4ff;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.6rem 1rem;margin:.8rem 0;font-size:.9rem;color:#333}
+.tip-box-green{background:#f0fdf4;border-left:4px solid #16a34a;border-radius:0 8px 8px 0;padding:.6rem 1rem;margin:.8rem 0;font-size:.9rem;color:#333}
+.rule-list{margin:.8rem 0}
+.rule-item{display:flex;align-items:flex-start;gap:.7rem;padding:.5rem 0;border-bottom:1px solid #f0f0f5}
+.rule-num{flex-shrink:0;width:1.4rem;height:1.4rem;border-radius:50%;background:#4f6ef7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;margin-top:.2rem}
+.mermaid-wrap{background:#fafafc;border-radius:10px;padding:1rem;margin:.8rem 0;overflow-x:auto;border:1px solid #ececf2}
+.evo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.6rem;margin:.8rem 0}
+.evo-card{background:#fafafc;border-radius:10px;padding:.8rem 1rem;border:1px solid #ececf2;text-align:center}
+.evo-card h4{margin-top:0;font-size:.95rem;color:#4f6ef7}
+.evo-card p{font-size:.82rem;color:#555;margin:.3rem 0}
+.zone-card{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:.8rem 1.2rem;margin:.8rem 0}
+.zone-card h3{margin-top:0;color:#16a34a;font-size:1rem}
+.soa-demo{background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:.8rem 1.2rem;margin:.8rem 0}
+.soa-demo h3{margin-top:0;color:#b45309;font-size:1rem}
+.quiz-section{margin-top:1.5rem}
+.q-item{margin:1.2rem 0;padding:.8rem 1.2rem;background:#fafafc;border-radius:10px;border:1px solid #ececf2}
+.q-label{font-weight:600;margin-bottom:.4rem;font-size:.95rem}
+.q-tag{display:inline-block;font-size:.75rem;font-weight:700;color:#4f6ef7;background:#eef1fe;padding:.15rem .5rem;border-radius:4px;margin-right:.4rem}
+textarea{width:100%;min-height:70px;padding:.6rem;font-size:.9rem;border:1px solid #d4d4de;border-radius:8px;resize:vertical;font-family:inherit;line-height:1.6;margin-top:.4rem;transition:border-color .15s}
+textarea:focus{outline:none;border-color:#4f6ef7;box-shadow:0 0 0 3px rgba(79,110,247,.1)}
+.options{margin-top:.4rem}
+.option{display:flex;align-items:flex-start;gap:.5rem;padding:.35rem 0;cursor:pointer}
+.option input[type="radio"]{margin-top:.3rem;flex-shrink:0;accent-color:#4f6ef7}
+.option label{cursor:pointer}
+.btn-group{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.2rem 0}
+.btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:#4f6ef7;color:#fff}
+.btn-primary:hover{background:#3d5bd9}
+.btn-secondary{background:#10b981;color:#fff}
+.btn-secondary:hover{background:#059669}
+.btn-outline{background:transparent;color:#4f6ef7;border:1.5px solid #4f6ef7}
+.btn-outline:hover{background:#f0f4ff}
+.result{margin-top:.6rem;padding:.5rem .7rem;border-radius:8px;display:none;font-size:.85rem;font-weight:500}
+.result.show{display:block}
+.result.correct{background:#f0fdf4;color:#16a34a}
+.result.wrong{background:#fef2f2;color:#dc2626}
+.footer-note{margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #e8e8ee;font-size:.85rem;color:#888;text-align:center}
+.domain-table{width:100%;margin:.8rem 0}
+.domain-table th{background:#eef1fe}
+.domain-table td{font-size:.85rem}
+.compare-table{width:100%;margin:.8rem 0}
+.compare-table th{background:#eef1fe}
+.compare-table td{font-size:.82rem}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="meta">Lesson 03 (18:00) — 2026-06-21 | 🚗 域控制器与区域架构</div>
+  <h1>域控制器与区域架构——从"各自为政"到"中央集权"</h1>
+</div>
+
+<div class="nav-bar">
+  <a href="../Lesson02-车载传感器--2026-06-21--1500/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson04-T-BOX知识--2026-06-21--2133/课程.html">下一课 →</a>
+</div>
+
+<h2>一、从"一个功能一个ECU"说起</h2>
+
+<p>你有没有想过——<strong>一辆现代汽车里有多少个电子控制单元（ECU）？</strong></p>
+<p>答案是：<strong>50～150 个</strong>。</p>
+<p>每个 ECU 负责一个单一功能——车窗有一个 ECU、门锁有一个 ECU、后视镜有一个、雨刮器有一个、座椅调节有一个……这就是<strong>传统分布式架构</strong>。</p>
+
+<div class="tip-box">好比一个公司里，每个员工只管自己桌上的一件小事，从不跟隔壁部门说话——效率低、线束重、升级难。</div>
+
+<table>
+  <tr><th>特性</th><th>传统分布式架构</th></tr>
+  <tr><td>ECU 数量</td><td>50～150 个，各管各的</td></tr>
+  <tr><td>通信方式</td><td>CAN/LIN 总线，低速、低带宽</td></tr>
+  <tr><td>线束重量</td><td>极重（可达 30～50 kg）</td></tr>
+  <tr><td>升级方式</td><td>每个 ECU 单独刷写</td></tr>
+  <tr><td>算力利用</td><td>碎片化——大量算力闲置</td></tr>
+</table>
+
+<p><strong>核心痛点：</strong> 每个新功能就加一个新 ECU → 线束越来越重 → 成本越来越高 → 软件升级越来越难。</p>
+
+<hr>
+
+<h2>二、域集中式架构——"物以类聚，人以群分"</h2>
+
+<p>为了解决上述问题，汽车工程师想到：<strong>把功能相近的 ECU 合并到一个"域控制器"里。</strong></p>
+
+<p>这就是<strong>域集中式架构</strong>——将整车划分为 5 大功能域，每个域由一个高性能域控制器统一管理。</p>
+
+<h3>五大域</h3>
+
+<table class="domain-table">
+  <tr><th>域名称</th><th>英文</th><th>管辖范围</th><th>典型功能</th></tr>
+  <tr><td><strong>动力域</strong></td><td>Powertrain Domain</td><td>发动机/电机、变速箱、电池管理</td><td>加速控制、能量回收、热管理</td></tr>
+  <tr><td><strong>底盘域</strong></td><td>Chassis Domain</td><td>转向、制动、悬架</td><td>ESP、线控制动、主动悬架</td></tr>
+  <tr><td><strong>车身域</strong></td><td>Body Domain</td><td>车门、车窗、车灯、座椅、雨刮</td><td>门锁控制、自动大灯、记忆座椅</td></tr>
+  <tr><td><strong>座舱域</strong></td><td>Cockpit Domain</td><td>中控屏、仪表、HUD、语音交互</td><td>导航、娱乐、语音助手</td></tr>
+  <tr><td><strong>智驾域</strong></td><td>AD/ADAS Domain</td><td>传感器融合、规划决策、高精定位</td><td>ACC、AEB、自动变道、自动泊车</td></tr>
+</table>
+
+<div class="tip-box">好比公司重组——把做类似工作的人放进同一个部门，部门内部高效协作，部门之间通过"部门经理"对接。</div>
+
+<h3>域集中式的优势</h3>
+<ul>
+  <li>ECU 数量从 100 个减到 30～50 个</li>
+  <li>算力集中，支持更复杂的软件算法</li>
+  <li>跨功能联动更方便（如"碰撞时自动解锁车门 + 双闪 + 呼叫救援"只需要域控内部协调）</li>
+</ul>
+
+<hr>
+
+<h2>三、区域架构（Zone Architecture）——"物理就近，以太网互联"</h2>
+
+<p>域集中式虽然好，但有一个问题：<strong>同一个域的 ECU 在物理位置上可能相隔很远。</strong></p>
+
+<p>例如，车身域要管左前门、右后门、天窗——线束仍然需要从车头拉到车尾。</p>
+
+<p><strong>于是有了更激进的方案——区域架构（Zone Architecture）。</strong></p>
+
+<h3>核心理念</h3>
+
+<p><strong>不按功能分，而是按物理位置分。</strong></p>
+
+<p>把车分成几个物理区域（左前、右前、左后、右后、中央），每个区域放一个<strong>区域控制器（Zone Controller）</strong>。区域控制器负责：</p>
+<ol>
+  <li><strong>就近采集</strong>——采集本区域内所有传感器的信号</li>
+  <li><strong>就近驱动</strong>——控制本区域内所有执行器（电机、灯、锁等）</li>
+  <li><strong>数据转发</strong>——通过高速以太网上报给中央计算平台</li>
+  <li><strong>供电管理</strong>——管理本区域的电源分配和智能供电</li>
+</ol>
+
+<h3>Mermaid：架构演进</h3>
+<div class="mermaid-wrap">
+<pre class="mermaid">
+flowchart LR
+    subgraph 传统分布式
+        ECU1["车窗ECU"] 
+        ECU2["门锁ECU"]
+        ECU3["后视镜ECU"]
+        ECU4["扬声器ECU"]
+    end
+
+    subgraph 域集中式
+        DC["车身域控制器"]
+        DC --> ECU1
+        DC --> ECU2
+        DC --> ECU3
+        DC --> ECU4
+    end
+
+    subgraph 区域架构
+        CC["中央计算平台<br/>(HPC)"]
+        ZC["左前区域控制器"]
+        ZC --> DEV1["车窗<br/>门锁<br/>后视镜<br/>扬声器"]
+        CC <== 以太网 ==> ZC
+    end
+
+    传统分布式 -->|ECU合并| 域集中式
+    域集中式 -->|物理就近| 区域架构
+</pre>
+</div>
+
+<h3>架构演进对比</h3>
+
+<table class="compare-table">
+  <tr><th>维度</th><th>分布式</th><th>域集中式</th><th>区域架构</th></tr>
+  <tr><td>组织方式</td><td>按功能（每个功能一个 ECU）</td><td>按功能域（5 大域）</td><td>按物理位置（左前/右前/左后/右后/中央）</td></tr>
+  <tr><td>控制器数量</td><td>50～150</td><td>30～50</td><td>5～10 个区域控制器 + 1～2 个中央计算平台</td></tr>
+  <tr><td>通信骨干</td><td>CAN / LIN</td><td>CAN / CAN FD / 少量以太网</td><td><strong>千兆以太网</strong></td></tr>
+  <tr><td>线束复杂度</td><td>极高（点对点）</td><td>中等</td><td><strong>极低（环形/星型以太网）</strong></td></tr>
+  <tr><td>算力分布</td><td>碎片化</td><td>域控集中</td><td><strong>中央超算集中</strong></td></tr>
+  <tr><td>OTA 升级</td><td>逐个刷写</td><td>域级升级</td><td><strong>整车级 OTA</strong></td></tr>
+</table>
+
+<hr>
+
+<h2>四、举个例子：左前区域控制器</h2>
+
+<p>让我们具体看一个场景——<strong>左前门</strong>。</p>
+
+<p>假设左前门上有：</p>
+<ul>
+  <li>车窗升降电机</li>
+  <li>门锁电机</li>
+  <li>后视镜调节电机 + 折叠电机</li>
+  <li>扬声器</li>
+  <li>车窗开关组</li>
+  <li>门灯</li>
+</ul>
+
+<h3>传统分布式做法</h3>
+<p>每个组件各自有一个 ECU 或直接走线到中央网关 → <strong>左前门里有 6+ 根独立线束</strong>，全部穿到车身线束中。</p>
+
+<h3>区域架构做法</h3>
+<div class="zone-card">
+<h3>📍 左前区域控制器（Zone Controller）</h3>
+<p>左前区域控制器就装在左前门内（或门附近），所有左前门的设备都连到它：</p>
+<ul>
+  <li><strong>车窗电机</strong> → ZC 直接驱动</li>
+  <li><strong>门锁电机</strong> → ZC 直接驱动</li>
+  <li><strong>后视镜</strong> → ZC 直接控制</li>
+  <li><strong>扬声器</strong> → ZC 采集音频数据，转发给中央计算平台</li>
+  <li><strong>开关信号</strong> → ZC 采集后判断</li>
+</ul>
+<p>ZC 只需要<strong>一根以太网线</strong>上连中央计算平台，下连所有设备。</p>
+</div>
+
+<div class="tip-box-green">💡 中央计算平台说："锁左前门"→ 以太网报文到 ZC → ZC 驱动门锁电机 → <strong>门锁上了</strong>。</div>
+
+<hr>
+
+<h2>五、SOA——面向服务架构</h2>
+
+<p>区域架构不仅改变了硬件布局，也改变了软件的设计方式——<strong>SOA（Service-Oriented Architecture，面向服务架构）</strong>。</p>
+
+<h3>传统方式</h3>
+<p>一个功能对应一段代码，代码之间紧耦合。比如"按车窗开关"的代码和"车窗电机驱动"的代码写在一起。</p>
+
+<h3>SOA 方式</h3>
+<div class="soa-demo">
+<h3>🛠️ 将每个能力抽象为"服务"</h3>
+<ul>
+  <li><code>车窗服务</code>——提供"升窗()"、"降窗()"、"停()"</li>
+  <li><code>门锁服务</code>——提供"上锁()"、"解锁()"</li>
+  <li><code>后视镜服务</code>——提供"折叠()"、"展开()"、"调节角度()"</li>
+</ul>
+<p>中央计算平台上的应用程序可以<strong>按需调用</strong>这些服务，不管它们运行在哪个区域控制器上。</p>
+</div>
+
+<div class="tip-box">好比手机上的 App 调用系统 API——你不需要知道摄像头驱动在硬件层的哪个位置，只需要调 <code>camera.takePhoto()</code> 就行了。</div>
+
+<h3>区域架构 + SOA = 软件定义汽车的基础</h3>
+<ol>
+  <li>硬件标准化（区域控制器硬件可复用）</li>
+  <li>软件服务化（功能抽象为 API）</li>
+  <li>通信 IP 化（全部走以太网 / SOME/IP）</li>
+  <li>升级灵活化（换一个服务不影响其他服务）</li>
+</ol>
+
+<hr>
+
+<h2>六、测验</h2>
+
+<div class="quiz-section">
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q1</div>
+    <p>假如你朋友问你："以前的汽车一个功能一个电脑，现在的车是怎么把这么多功能管起来的？" 请用"小公司 vs 大公司"的比喻来解释从分布式到域控再到区域架构的演进。</p>
+    <textarea id="feynman1" placeholder="用自己的话写……不用术语"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q2</div>
+    <p>用你自己的话说说：为什么不让每个车门上的零件各自拉一根线到车头，而是要在车门里放一个"小管家"（区域控制器）？</p>
+    <textarea id="feynman2" placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">费曼题</span>Q3</div>
+    <p>"面向服务架构（SOA）"听起来很抽象，用手机 App 调用系统功能的例子，解释一下什么是 SOA。</p>
+    <textarea id="feynman3" placeholder="用自己的话写……"></textarea>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>1</div>
+    <p>以下哪个是区域架构（Zone Architecture）的核心特点？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc1" value="A" id="mc1a"><label for="mc1a">A. 每个功能用一个独立的 ECU</label></div>
+      <div class="option"><input type="radio" name="mc1" value="B" id="mc1b"><label for="mc1b">B. 按物理位置划分区域，每个区域配一个区域控制器</label></div>
+      <div class="option"><input type="radio" name="mc1" value="C" id="mc1c"><label for="mc1c">C. 所有计算都在云上进行</label></div>
+      <div class="option"><input type="radio" name="mc1" value="D" id="mc1d"><label for="mc1d">D. 取消所有控制器，全部用机械连杆</label></div>
+    </div>
+    <div class="result" id="res1"></div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>2</div>
+    <p>在区域架构中，左前区域控制器的主要通信方式是什么？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc2" value="A" id="mc2a"><label for="mc2a">A. 通过 CAN 总线逐个连接每个传感器</label></div>
+      <div class="option"><input type="radio" name="mc2" value="B" id="mc2b"><label for="mc2b">B. 通过模拟信号线直连中央网关</label></div>
+      <div class="option"><input type="radio" name="mc2" value="C" id="mc2c"><label for="mc2c">C. 通过千兆以太网上报给中央计算平台</label></div>
+      <div class="option"><input type="radio" name="mc2" value="D" id="mc2d"><label for="mc2d">D. 通过蓝牙无线通信</label></div>
+    </div>
+    <div class="result" id="res2"></div>
+  </div>
+
+  <div class="q-item">
+    <div class="q-label"><span class="q-tag">选择题</span>3</div>
+    <p>以下哪个选项最准确地描述了"从分布式到域控再到区域架构"的演进动机？</p>
+    <div class="options">
+      <div class="option"><input type="radio" name="mc3" value="A" id="mc3a"><label for="mc3a">A. 让汽车更重、线束更多</label></div>
+      <div class="option"><input type="radio" name="mc3" value="B" id="mc3b"><label for="mc3b">B. 为了让每个 ECU 独立工作，互不干扰</label></div>
+      <div class="option"><input type="radio" name="mc3" value="C" id="mc3c"><label for="mc3c">C. 减少 ECU 数量和线束复杂度，实现算力集中和整车级 OTA</label></div>
+      <div class="option"><input type="radio" name="mc3" value="D" id="mc3d"><label for="mc3d">D. 为了方便用户自己更换 ECU</label></div>
+    </div>
+    <div class="result" id="res3"></div>
+  </div>
+
+</div>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="submitAll()">📝 提交评分</button>
+  <a href="答案.html" class="btn btn-outline">📖 标准答案</a>
+</div>
+
+<div class="nav-bar" style="margin-top:1.5rem">
+  <a href="../Lesson02-车载传感器--2026-06-21--1500/课程.html">← 上一课</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson04-T-BOX知识--2026-06-21--2133/课程.html">下一课 →</a>
+</div>
+
+<div class="footer-note">做完随时问我：我的理解对不对？</div>
+
+
+<div style="text-align:center;margin-top:1.5rem">
+  <a href="../Content of Lessons.html" class="btn btn-outline">☰ 返回目录</a>
+</div>
+
+</div>
+
+<script>
+// 自动保存答题进度
+const STORAGE_KEY='teachme_lesson03'
+function saveProgress(){
+  const qs=document.querySelectorAll('textarea')
+  const mc1=document.querySelector('input[name="mc1"]:checked')
+  const mc2=document.querySelector('input[name="mc2"]:checked')
+  const mc3=document.querySelector('input[name="mc3"]:checked')
+  const data={
+    q1:qs[0]?.value||'',
+    q2:qs[1]?.value||'',
+    q3:qs[2]?.value||'',
+    mc1:mc1?.value||'',
+    mc2:mc2?.value||'',
+    mc3:mc3?.value||''
+  }
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data))
+}
+// 恢复答题进度
+function restoreProgress(){
+  const raw=localStorage.getItem(STORAGE_KEY)
+  if(!raw)return
+  try{
+    const d=JSON.parse(raw)
+    const qs=document.querySelectorAll('textarea')
+    if(qs[0]&&d.q1)qs[0].value=d.q1
+    if(qs[1]&&d.q2)qs[1].value=d.q2
+    if(qs[2]&&d.q3)qs[2].value=d.q3
+    if(d.mc1){const el=document.querySelector(`input[name="mc1"][value="${d.mc1}"]`);if(el)el.checked=true}
+    if(d.mc2){const el=document.querySelector(`input[name="mc2"][value="${d.mc2}"]`);if(el)el.checked=true}
+    if(d.mc3){const el=document.querySelector(`input[name="mc3"][value="${d.mc3}"]`);if(el)el.checked=true}
+  }catch(e){}
+}
+// 绑定自动保存
+document.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',saveProgress))
+document.querySelectorAll('input[type="radio"]').forEach(r=>r.addEventListener('change',saveProgress))
+// 页面加载时恢复
+restoreProgress()
+
+// 提交评分
+function submitAll(){
+  // 检查选择题
+  const ans = window.LESSON_ANSWERS.mcq
+  const names = ['mc1','mc2','mc3']
+  names.forEach((name,i)=>{
+    const sel = document.querySelector(`input[name="${name}"]:checked`)
+    const resDiv = document.getElementById(`res${i+1}`)
+    if(!resDiv) return
+    if(!sel){
+      resDiv.textContent = '⚠️ 请选择一个选项'
+      resDiv.className = 'result show wrong'
+      return
+    }
+    if(sel.value === ans[name]){
+      resDiv.textContent = '✅ 回答正确！'
+      resDiv.className = 'result show correct'
+    } else {
+      resDiv.textContent = '❌ 回答错误，查看标准答案了解详情'
+      resDiv.className = 'result show wrong'
+    }
+  })
+  // 如果存在 AI 评分器，调用它
+  if(typeof window.gradeFeynman === 'function'){
+    window.gradeFeynman('lesson03')
+  } else {
+    // 简单反馈
+    const qs = document.querySelectorAll('textarea')
+    qs.forEach((q,i)=>{
+      if(q.value.trim()){
+        // 已有内容，显示提示
+      }
+    })
+  }
+}
+
+// === AI 评分数据 ===
+window.LESSON_ANSWERS = {
+  lessonId: 'lesson03',
+  title: '域控制器与区域架构——从"各自为政"到"中央集权"',
+  feynman: [
+    { q: 1, ref: '你可以说：最早的车就像一个小作坊——每个人（ECU）只做一件事，比如老王管关门、老李管开窗，各做各的，但人多了就乱糟糟，线也拉得到处都是。后来公司做大了，老板就把人分成几个部门——动力部、底盘部、车身部、座舱部、智驾部，每个部门有个部长（域控制器），部门内部的事部长说了算。但问题来了——车身部的人散落在各个办公室，左前门的人离右后门的人隔了半个厂，做事还是要跑很远。最后公司想了个更聪明的办法：不按职能分，按办公位置分！一楼东边设一个区域经理（区域控制器），管这一层所有的事；一楼西边也设一个。每个区域经理管好自己这一片，有大事就汇报给总经理（中央计算平台）。这样一来，线不用拉那么长了，有什么事区域经理当场就办了。' },
+    { q: 2, ref: '好比一个小区——每个门禁、每个灯、每个摄像头都单独拉一根线到物业总机房，那得挖多少沟、埋多少线！更聪明的方法是在每栋楼下面设一个弱电间（区域控制器），这栋楼所有门禁、灯、摄像头都先接到弱电间，弱电间只通过一根光纤跟总机房通信。车也是一个道理：左前门里面有车窗、门锁、后视镜、扬声器、开关——如果每个都单独拉一根线到车头的网关，左前门那根线束又粗又重，制造和维修都麻烦。放一个区域控制器在门里，所有设备就近连到它，它再通过一根以太网线上报给中央计算平台——线束减少 80%、重量减轻、装配也简单。' },
+    { q: 3, ref: '想象你用手机：你想拍照，不需要知道摄像头驱动是哪个芯片写的，也不需要管 CMOS 传感器怎么把光转成电信号，你只需要在微信里点"拍照"，系统就自动调用了 camera.takePhoto()——摄像头硬件怎么工作的你完全不用管。SOA 就是同样的道理：把汽车里每个能力都包装成"服务"——比如"锁门"是一个服务、"升窗"是一个服务、"开空调"是一个服务。中央计算平台上的应用程序（比如"离车自动锁车"功能）只需要说"调用锁门服务"就行了，它不需要知道锁门服务是运行在哪个区域控制器上，也不需要知道门锁电机是 12V 还是 24V 的。这就是"面向服务"——我不关心谁干、怎么干，我只关心"有这个能力"。' }
+  ],
+  mcq: { mc1: 'B', mc2: 'C', mc3: 'C' }
+};
+</script>
+<script>
+(function () {
+  function boot() {
+    try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); }
+    catch (e) { console.error('[mermaid] 初始化失败', e); }
+  }
+  if (window.mermaid) { boot(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload = boot;
+  s.onerror = function () {
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:.75rem 1rem;margin:.8rem 0;background:#fff4e5;border-left:4px solid #f0a020;border-radius:6px;font-size:.875rem;color:#7a4b00';
+    note.textContent = '⚠️ 图表库未加载（本地 assets/mermaid.min.js 缺失或路径不对，CDN 也不可达）——下方显示的是图表源码。';
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      el.style.cssText = 'text-align:left;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:#fafafa;padding:.75rem;border-radius:6px;overflow-x:auto';
+      if (el.parentNode) el.parentNode.insertBefore(note.cloneNode(true), el);
+    });
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../ai-grader.js"></script>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

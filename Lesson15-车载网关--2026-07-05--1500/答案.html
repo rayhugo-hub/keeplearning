@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 15：答案 — 车载网关的网络安全——网关如何守住汽车的第一道防线？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav-bar">
+  <a href="../Lesson14-舱驾融合--2026-07-05--1200/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson16-车载传感器--2026-07-05--1800/课程.html">下一课 →</a>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 15 — 答案</div>
+  <h1>车载网关的网络安全——网关如何守住汽车的第一道防线？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（为什么叫"第一道防线"？攻破后能做什么？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向：</strong></p>
+<p>车载网关是连接"外部世界"（4G/Wi-Fi/蓝牙）和"内部网络"（CAN 总线）的<strong>唯一通道</strong>。所有外部数据——导航地图更新、App 远程控车、OTA 固件下载——都必须经过网关才能进入内部网络。就像一个城堡的<strong>唯一大门</strong>：大门坚固，城堡安全；大门失守，敌人长驱直入。</p>
+<p><strong>攻破网关后能做什么：</strong></p>
+<ul>
+  <li>向 CAN 总线发送伪造的刹车/加速/转向指令——<strong>控制车辆行驶</strong></li>
+  <li>收发门锁、车窗、空调信号——<strong>控制车身功能</strong></li>
+  <li>读取或修改 ECU 固件——<strong>永久驻留攻击代码</strong></li>
+  <li>利用 4G 连接把车变成僵尸网络节点——<strong>发起 DDoS 攻击</strong></li>
+</ul>
+</div>
+
+<h3>Q2（三个层面的防御方案）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（纵深防御）：</strong></p>
+<table>
+<tr><th>层面</th><th>一句话</th><th>具体做什么</th></tr>
+<tr><td><strong>第一层：外部通信安全（入口防守）</strong></td><td>确保外部进不来</td><td>所有外部通信使用 TLS/DTLS 加密；只有经过认证的云平台才能发送数据到网关；T-BOX 和网关间建立安全通道</td></tr>
+<tr><td><strong>第二层：网关访问控制（中间防守）</strong></td><td>进来了也动不了关键系统</td><td>防火墙 ACL 规则明确禁止外部域访问动力/底盘域；部署 IDS 监控 CAN 总线上的异常行为</td></tr>
+<tr><td><strong>第三层：固件/软件安全（底层防守）</strong></td><td>想改固件也不行</td><td>Secure Boot 层层验证确保固件未被篡改；OTA 更新验证数字签名并防回滚；HSM 隔离关键密钥操作</td></tr>
+</table>
+<p><strong>三者关系：</strong>层层递进——一层破还有下一层。攻破 Wi-Fi 加密（第一层）还有防火墙阻挡（第二层），绕过防火墙还有 Secure Boot 保护固件不被篡改（第三层）。</p>
+</div>
+
+<h3>Q3（为什么家用 IT 防火墙不能直接搬到车上？）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（至少三个本质区别）：</strong></p>
+<table>
+<tr><th>区别</th><th>家用 IT 网络</th><th>汽车网关网络</th></tr>
+<tr><td><strong>协议差异</strong></td><td>纯 IP 网络（TCP/UDP），防火墙直接过滤 IP 包</td><td>"混合网络"——外部是 IP，内部是 CAN/CAN FD/LIN。防火墙需要<strong>理解多种协议并做跨协议策略</strong></td></tr>
+<tr><td><strong>实时性要求</strong></td><td>网页加载慢 100ms 用户忍一忍</td><td>刹车信号延迟 1ms 就可能出人命。IT 防火墙的深度包检测（DPI）会引入不可接受的延迟</td></tr>
+<tr><td><strong>安全后果</strong></td><td>数据泄露、勒索软件</td><td><strong>人身安全</strong>——攻击 CAN 总线可能导致车辆失控</td></tr>
+<tr><td><strong>生命周期</strong></td><td>路由器用 3~5 年就换了</td><td>汽车寿命 10~15 年，网关要有长达 15 年的安全维护能力</td></tr>
+<tr><td><strong>物理安全</strong></td><td>路由器放家里，一般没人碰</td><td>OBD-II 接口在车内，任何人都可以物理插上诊断仪绕过软件防火墙</td></tr>
+</table>
+<p><strong>一句话：</strong>IT 防火墙处理"纯 IP 包"，而汽车网关要处理"IP→CAN帧"协议转换+实时控制+人身安全，不能简单套用。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>2015 Jeep 事件的关键教训是：攻击者攻破 T-BOX/网关后，可以<strong>直接向 CAN 总线发送任意控制指令</strong>（刹车、转向、加速等），证明了网关安全对整车安全的决定性作用。A❌ 与刹车设计无关；C❌ 攻击路径是 4G（Sprint 网络），不是 Wi-Fi；D❌ 即使不用 4G，Wi-Fi/蓝牙/OBD-II 也是攻击入口。</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>B</strong></td>
+  <td>防火墙（ACL）的核心功能是根据<strong>来源网络域→目标网络域</strong>的规则决定是否允许消息通过。特别是<strong>禁止不可信域（T-BOX/Wi-Fi/蓝牙/OBD）直接访问高安全域（动力 CAN FD、底盘域）</strong>。A❌ 防火墙不是阻止"所有"消息，而是有选择性阻止；C❌ 加密不是防火墙的主要功能；D❌ 检测疲劳驾驶是 DMS 的功能。</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>B</strong></td>
+  <td>Secure Boot 的核心是<strong>信任链</strong>——从硬件 BootROM 开始，每一级启动前都验证下一级固件的数字签名。只有签名通过才能运行，确保网关运行的代码是 OEM 官方发布的、未被篡改的版本。A❌ 每次启动都从云端下载固件不现实；C❌ Secure Boot 不验证"车主"身份；D❌ 自动连 Wi-Fi 不是 Secure Boot 的功能。</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

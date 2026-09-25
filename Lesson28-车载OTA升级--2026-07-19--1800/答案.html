@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 28：答案 — 车载 OTA 升级——汽车是怎么"在线升级"的？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.nav-bar .nav-disabled{color:#bbb;cursor:default}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.q-label{font-weight:600;margin:1rem 0 .4rem;font-size:.95rem;color:#1a1a2e}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem}
+th,td{border:1px solid #e0e0e6;padding:.5rem .7rem;text-align:left}
+th{background:#f3f4f8;font-weight:600}
+ol{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+ul{margin:.6rem 0 .6rem 1.5rem;line-height:1.8}
+.code{background:#f4f4f8;font-family:"Cascadia Code","Fira Code",monospace;font-size:.8rem;padding:.2rem .4rem;border-radius:4px}
+.back-link{display:inline-block;margin-top:1.5rem;color:#4f6ef7;text-decoration:none;font-weight:500;font-size:.9rem}
+.back-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav-bar">
+  <a href="../Lesson27-功能安全ISO26262--2026-07-19--1200/课程.html">← 上一课</a>
+  <a href="../Content of Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="../Lesson29-车载激光雷达--2026-07-19--2100/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">← 返回课程</a>
+</div>
+
+<div class="header">
+  <div class="meta">Lesson 28 — 答案</div>
+  <h1>车载 OTA 升级——汽车是怎么"在线升级"的？— 参考答案</h1>
+</div>
+
+<hr>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1（用"换手机壳 vs 换手机主板"的类比解释汽车 FOTA 的复杂性）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"换手机壳 vs 换手机主板"类比）：</strong></p>
+
+<table>
+<tr><th>对比</th><th>手机系统升级</th><th>汽车 FOTA</th></tr>
+<tr><td><strong>类比</strong></td><td>换手机壳</td><td>换手机主板</td></tr>
+<tr><td><strong>影响范围</strong></td><td>改的是 UI、应用、系统功能</td><td>改的是刹车逻辑、转向力度、电池充放电策略</td></tr>
+<tr><td><strong>中断风险</strong></td><td>升级失败 → 重启再试</td><td>升级中断 → 车可能"动不了"（安全风险）</td></tr>
+<tr><td><strong>回退难度</strong></td><td>刷回旧版本就行了</td><td>必须设计 A/B 分区自动回退——否则拖车去 4S 店</td></tr>
+<tr><td><strong>监管要求</strong></td><td>无监管审核</td><td>涉及安全关键 ECU 的 FOTA 需要 ASIL 认证和监管部门批准</td></tr>
+</table>
+
+<p><strong>关键类比：</strong></p>
+<ul>
+  <li><strong>手机升级像"换手机壳"</strong>——换坏了最多手机不好看，扔掉旧的换个新的，不危及生命安全</li>
+  <li><strong>汽车 FOTA 像"换手机主板"</strong>——如果换的过程中断电了，手机就彻底不能用了（ECU 变砖）。而且"手机"在高速上跑着，里面坐着人——主板换到一半出问题，不只是手机不能用的问题，是<strong>人命关天</strong></li>
+</ul>
+
+<p><strong>所以汽车 FOTA 比手机升级多了这些"手机没有的麻烦"：</strong></p>
+<ol>
+  <li><strong>A/B 分区</strong>——必须保证任何时候都有"退路"</li>
+  <li><strong>条件检查</strong>——必须在 P 挡、熄火、电量充足的条件下才能升级</li>
+  <li><strong>签名验证 + 安全引导</strong>——防止黑客通过远程升级控制刹车</li>
+  <li><strong>整车依赖检查</strong>——升级一个 ECU 不能影响其他 100 个 ECU 的配合</li>
+  <li><strong>法规合规</strong>——涉及安全的 ECU 升级需要符合 ISO 26262 等功能安全标准</li>
+</ol>
+</div>
+
+<h3>Q2（用"备份钥匙 vs 请开锁师傅"的类比解释 A/B 分区的价值）</h3>
+
+<div class="ref-box">
+<p><strong>参考答案方向（"备份钥匙 vs 请开锁师傅"类比）：</strong></p>
+
+<table>
+<tr><th>方案</th><th>成本</th><th>风险</th><th>类比</th></tr>
+<tr><td><strong>没有 A/B 分区</strong></td><td>Flash 成本低（1 份）</td><td>升级失败 → ECU 变砖 → 拖车 + 去 4S 店刷写 → 成本几百到几千元 + 车主一天不能用车</td><td>只有一把钥匙 → 锁在门外 → 花 200 元请开锁师傅</td></tr>
+<tr><td><strong>有 A/B 分区</strong></td><td>Flash 成本高（2 份，多 ~$1~$5/芯片）</td><td>升级失败 → 自动回退 → 零额外成本</td><td>有一把备份钥匙 → 锁在门外 → 花 10 秒拿出备份钥匙开门</td></tr>
+</table>
+
+<p><strong>算一笔经济账：</strong></p>
+<ul>
+  <li>一辆车上做 OTA 的 ECU 可能有 10~30 个</li>
+  <li>每个 ECU 加 A/B 分区多花 ~$2（Flash 翻倍）</li>
+  <li>整车成本增加：10 × $2 = <strong>$20</strong></li>
+  <li>一次 OTA 失败导致拖车去 4S 店的平均成本：<strong>$150~$300</strong></li>
+  <li>假设每个车整个生命周期做 20 次 FOTA，失败概率 2%</li>
+  <li>没有 A/B 分区的期望损失：20 × 2% × $200 = <strong>$80/车</strong></li>
+  <li>有 A/B 分区后，失败几乎零成本</li>
+</ul>
+
+<p><strong>核心逻辑：</strong> $20 的一次性投入，避免了 $80 的预期维修成本——还不用考虑"车坏了、人怒了、品牌口碑坏了"这些无形成本。对于年产百万辆的车企，这就是<strong>每年省几千万</strong>的数学题。</p>
+
+<p><strong>更深一层：</strong> A/B 分区不只是省钱的问题，还是<strong>安全的前提</strong>——"刹车升级失败导致追尾"这种事，不是花钱能解决的。</p>
+</div>
+
+<hr>
+
+<h2>选择题答案</h2>
+
+<table>
+<tr><th>题号</th><th>答案</th><th>解析</th></tr>
+<tr>
+  <td><strong>1</strong></td>
+  <td><strong>B</strong></td>
+  <td>FOTA 更新的是控制车辆行驶的底层固件（刹车、转向、动力等），直接影响安全；SOTA 只更新应用层软件（地图、App 等），不直接影响车辆控制。A ❌ 两者都可以用 4G 或 Wi-Fi 升级；C ❌ 两者都可以要求用户确认；D ❌ FOTA 可以通过远程方式完成，不一定要去 4S 店</td>
+</tr>
+<tr>
+  <td><strong>2</strong></td>
+  <td><strong>C</strong></td>
+  <td>A/B 分区的核心思想是：任何时候都保证 Flash 中至少有一个可启动的完整固件版本。更新时写备用分区，当前分区正常运行；写入成功才切换，写入失败自动回退。A ❌ A/B 分区与下载速度无关；B ❌ 任何时候只有<strong>一个分区在运行</strong>，不是同时运行；D ❌ A/B 分区需要<strong>双倍 Flash 空间</strong>，不节省空间</td>
+</tr>
+<tr>
+  <td><strong>3</strong></td>
+  <td><strong>D</strong></td>
+  <td>升级前格式化所有 Flash 会导致旧固件被擦除、新固件还没写入——如果过程中断，ECU 就变砖了。这是安全的大忌。A ✅ 数字签名确保升级包来自可信源；B ✅ 版本防回滚防止被诱导降级到有漏洞的版本；C ✅ HTTPS + TLS 加密传输链路，防止中间人攻击</td>
+</tr>
+</table>
+
+<hr>
+
+<a class="back-link" href="课程.html">← 返回课程</a>
+</div>
+<script src="../teachme-tracker.js"></script>
+</body>
+</html>

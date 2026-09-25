@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 45：答案 — Classic 与 Adaptive 混合架构</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.answer-correct{color:#2e7d32;font-weight:700}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Lesson 45：参考答案</h1>
+<p class="meta">Classic 与 Adaptive 混合架构——一辆车里为什么有"两个 AUTOSAR"？</p>
+</div>
+<div class="nav-bar">
+  <a href="../Lesson44-多SoC互联与算力调度--2026-08-25--2300/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">📖 返回课程</a>
+</div>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1：为什么一辆车里要同时存在 Classic 和 Adaptive 两套平台？</h3>
+<table>
+<tr><th>平台</th><th>类比</th><th>不可替代的原因</th></tr>
+<tr><td><strong>Classic（CP）</strong></td><td>铁路调度室：时刻表提前排好，绝不临时改点</td><td>安全关键功能（制动、转向、气囊）需要<strong>确定性</strong>——"什么时候跑、跑多久、用多少资源"在编译期定死、可验证、可证明，这是 ASIL-D 认证的基本要求；静态配置 + 实时 OS 保证毫秒级可预期响应</td></tr>
+<tr><td><strong>Adaptive（AP）</strong></td><td>网约车平台：乘客随时下单、车辆动态调配</td><td>智驾/座舱负载<strong>动态变化</strong>（算法版本升级、App 增减、OTA），需要动态部署、服务发现、大算力与 POSIX 生态；强确定性会牺牲灵活性，无法承载复杂算法</td></tr>
+</table>
+<div class="ref-box"><strong>结论：</strong>一辆车既有"必须可证明的安全功能"，又有"必须灵活迭代的智能功能"——两套平台各管一摊，不是替代关系，是分工关系。统一成一套会两头不讨好：让 CP 变"活"会失去确定性，让 AP 变"死"会失去灵活性。<strong>加分：</strong>说清"信号级静态通信 vs 服务级动态通信"、"确定性/可认证 vs 算力/生态"的核心矛盾，并点出两者需要"跨域对话"（引出网关/S2S）。</div>
+
+<h3>Q2："服务型网关"在 CP 和 AP 之间做了什么？</h3>
+<ul>
+  <li><strong>为什么需要：</strong>CP 世界说"信号语"（CAN 报文 0x123 第 0 字节低 8 位是车速，分辨率 0.01 km/h），AP 世界说"服务语"（<code>Vehicle.Speed</code> 接口一调用返回浮点数）——<strong>语言不通，直接对话会鸡同鸭讲</strong>，中间必须有"翻译官"。</li>
+  <li><strong>三件事：</strong>
+    <ul>
+      <li><strong>协议转换</strong>：CAN/LIN ↔ 以太网（SOME/IP）——把"电报"换成"电话线路"；</li>
+      <li><strong>语义翻译</strong>：原始信号值 → 服务接口（单位换算、打包/解包）——把"摩尔斯电码"译成"普通话"；</li>
+      <li><strong>路由与安全</strong>：跨域转发、访问控制、限流防攻击——海关+邮局，检查包裹再放行。</li>
+    </ul>
+  </li>
+</ul>
+<div class="ref-box"><strong>加分：</strong>"翻译"不是简单转发——同样的车速，CP 侧是 16 位原始值，AP 侧是带单位的浮点数，网关要做<strong>语义级转换</strong>，还要保证实时性（低延迟转发）与安全性（不能把攻击报文放进安全域）。</div>
+
+<h3>Q3：S2S 通信解决了什么问题？</h3>
+<ul>
+  <li><strong>解决的问题</strong>：让 CP 的 SWC（软件组件）也能以"服务"身份参与 AP 的世界——CP 侧把 Port 暴露成服务（S2S 模块 + RTE 扩展），AP 侧用 ara::com <strong>像调用本地服务一样调用</strong>，CP 的 SWC 既能当服务提供者、也能当服务消费者。</li>
+  <li><strong>21-11 之前为什么麻烦</strong>：
+    <ul>
+      <li>没有统一标准，每家 OEM 自己写<strong>专有网关桥接</strong>代码——重复造轮子、不可复用、难维护；</li>
+      <li>跨供应商/跨车型集成时接口五花八门，<strong>联调成本高</strong>；</li>
+      <li>信号↔服务的转换逻辑散落在各项目里，<strong>质量参差不齐</strong>。</li>
+    </ul>
+  </li>
+  <li><strong>标准化之后</strong>：统一接口、跨 OEM/供应商复用、降低集成成本——S2S 成了 CP 与 AP 之间的"官方语言"。</li>
+</ul>
+<div class="ref-box"><strong>加分：</strong>能说出"服务型网关负责翻译、S2S 负责定标准，两者配合"的层次关系，并联系上一课（S2S 依托 SOME/IP 等服务传输协议在以太网上跑）。</div>
+
+<hr>
+
+<h2>选择题参考答案</h2>
+
+<h3>MCQ1：哪一项最准确地概括了 CP 与 AP 的核心区别？</h3>
+<p><span class="answer-correct">✅ A. CP 面向安全关键 ECU、信号级静态通信；AP 面向高性能计算、服务级动态通信</span><br>
+解析：CP 以信号（Signal）为通信粒度、编译期静态配置，追求确定性与可认证；AP 以服务（Service）为粒度、运行时动态发现与部署，追求算力与灵活性。B 太绝对（Hypervisor 下 AP 平台也能承载 CP 虚拟机，反之 CP 概念不依赖具体芯片）；C 说反了（CP 诞生于 2003 年更早）；D 完全错误。</p>
+
+<h3>MCQ2：制动冗余控制（ASIL-D）应该部署在哪个平台？</h3>
+<p><span class="answer-correct">✅ B. 部署在 CP 平台，因为静态配置、确定性好、可认证</span><br>
+解析：ASIL-D 要求执行时间与资源可用性<strong>可证明</strong>，CP 的静态配置 + 实时 OS 正是为此设计；AP 算力强但动态调度带来不确定性，不适合"救命功能"。云端延迟不可控，绝不可用于制动控制。</p>
+
+<h3>MCQ3：关于 S2S 通信，下列说法正确的是？</h3>
+<p><span class="answer-correct">✅ A. S2S 让 CP 的 SWC 也能作为服务提供者/消费者与 AP 应用通信，AUTOSAR 21-11 标准化</span><br>
+解析：S2S（Service-to-Service）是 AUTOSAR 21-11 正式标准化的 CP ↔ AP 服务通信机制，把 CP 的 SWC Port 暴露为服务，AP 用 ara::com 调用。B 错（S2S 是应用层通信机制，不是物理层总线）；C 错（S2S 恰恰是跨 CP/AP 的，不是 AP 内部）；D 错（S2S 通常承载于 SOME/IP 等传输协议之上）。</p>
+
+<hr>
+<p style="color:#888;font-size:.85rem">Lesson 45 · Classic/Adaptive 混合架构与跨域通信（服务型网关 · S2S 通信）· 2026-08-26 23:00 · 参考答案</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 44：答案 — 多 SoC 互联与算力调度</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a2e;line-height:1.8;padding:2rem 1rem}
+.container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:2.5rem 2rem}
+@media(min-width:640px){.container{padding:3rem 3rem}}
+.header{margin-bottom:1.5rem}
+.meta{font-size:.875rem;color:#888;margin-bottom:.5rem}
+h1{font-size:1.5rem;font-weight:700;color:#1a1a2e}
+h2{font-size:1.2rem;font-weight:600;margin:1.2rem 0 .6rem;color:#1a1a2e}
+h2::before{content:"";display:inline-block;width:4px;height:1.1em;background:#4f6ef7;border-radius:2px;margin-right:.5rem;vertical-align:-.1em}
+h3{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem;color:#333}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.4rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.8rem 0}
+th{text-align:left;padding:.55rem .7rem;background:#f3f4f8;font-weight:600;border-bottom:2px solid #e0e0e6}
+td{padding:.5rem .7rem;border-bottom:1px solid #ececf2;vertical-align:top}
+hr{border:none;border-top:1px solid #e8e8ee;margin:1.5rem 0}
+.nav-bar{display:flex;gap:1rem;margin:1rem 0 1.5rem;padding:.5rem 0;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap}
+.nav-bar a{text-decoration:none;color:#4f6ef7;font-size:.875rem;font-weight:500;padding:.25rem .5rem;border-radius:4px;transition:background .1s}
+.nav-bar a:hover{background:#f0f4ff}
+.nav-bar .nav-spacer{flex:1}
+.ref-box{background:#f8f9fb;border-left:4px solid #4f6ef7;border-radius:0 8px 8px 0;padding:.8rem 1.2rem;margin:.6rem 0;font-size:.9rem}
+.answer-correct{color:#2e7d32;font-weight:700}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Lesson 44：参考答案</h1>
+<p class="meta">多 SoC 互联与算力调度——中央计算的"多核大脑"怎么连、怎么分活？</p>
+</div>
+<div class="nav-bar">
+  <a href="../Lesson43-AUTOSAR-Adaptive深入--2026-08-20--2300/课程.html">← 上一课</a>
+  <a href="../Content%20of%20Lessons.html">☰ 目录</a>
+  <a href="../Lesson45-Classic与Adaptive混合架构--2026-08-26--2300/课程.html">下一课 →</a>
+  <span class="nav-spacer"></span>
+  <a href="课程.html">📖 返回课程</a>
+</div>
+
+<h2>费曼简答题参考答案</h2>
+
+<h3>Q1：为什么用"多颗 SoC 互联"，而不是"一颗超大芯片"？</h3>
+<table>
+<tr><th>理由</th><th>技术含义</th></tr>
+<tr><td><strong>制造良率与成本</strong></td><td>芯片面积越大良率越低（缺陷概率上升），成本指数级增长；多颗中等面积的芯片良率高、可复用</td></tr>
+<tr><td><strong>功耗与散热</strong></td><td>单颗超大芯片热点集中，散热是物理瓶颈；多颗芯片分散布置，热管理容易</td></tr>
+<tr><td><strong>选型灵活性</strong></td><td>座舱芯片用 A 家、智驾芯片用 B 家，单颗升级换代不用整平台重做</td></tr>
+<tr><td><strong>冗余与降级</strong></td><td>一颗 SoC 故障时可降级运行（如座舱 SoC 挂了、智驾仍可工作），支持功能安全的"可用性"要求</td></tr>
+</table>
+<div class="ref-box"><strong>代价：</strong>引入<strong>互联与调度</strong>——一致性维护、数据同步、调度器编排，软件复杂度显著上升；互联硬件本身也增加功耗与成本。"全能超人"样样能干但造不出来、不可替换、一旦倒下全车瘫；"分工团队"有沟通成本，但可换、可备份、可专精。</div>
+
+<h3>Q2："缓存一致性"是什么意思？没有它会发生什么？</h3>
+<ul>
+  <li><strong>含义：</strong>多颗芯片共享同一块内存时，任何一颗芯片写入数据，硬件自动让其他芯片缓存里的<strong>旧副本失效或更新</strong>——保证所有芯片读到的都是<strong>最新值</strong>。</li>
+  <li><strong>没有一致性：</strong>
+    <ul>
+      <li>芯片 B 读到自己缓存里的<strong>旧副本（脏数据）</strong>，基于旧数据计算 → 决策错误（智驾用旧地图/旧障碍物信息做规划）</li>
+      <li>只能退化为"消息传递"（发微信式），同步逻辑靠软件自己管 → <strong>复杂、慢、容易漏</strong></li>
+      <li>两只手同时改同一个记事本，没有同步机制就<strong>对不上账</strong>——在车上就是功能错乱甚至安全事故</li>
+    </ul>
+  </li>
+</ul>
+<div class="ref-box">加分：一致性互联（NVLink-C2C）呈现"统一内存/共享内存"模型，软件像写单颗芯片；PCIe "快递"模型需要软件显式收发、自己保证数据新鲜度。</div>
+
+<h3>Q3：AEB 为什么倾向"静态预留"算力？</h3>
+<table>
+<tr><th>模式</th><th>类比</th><th>优点</th><th>缺点</th></tr>
+<tr><td><strong>静态预留</strong></td><td>高铁<strong>固定座位</strong>：票提前锁定</td><td><strong>确定性</strong>：需要时一定有算力，可认证、可证明</td><td>利用率低：平时算力闲置</td></tr>
+<tr><td><strong>动态调度</strong></td><td>公交<strong>自由落座</strong>：上车再抢</td><td>利用率高、灵活，按需分配</td><td><strong>不可预测</strong>：高峰期可能抢不到资源</td></tr>
+</table>
+<div class="ref-box">AEB 是"救命功能"，触发时机不可预知，一旦触发必须<strong>立刻有算力可用</strong>——不能等运行时再和其他任务抢资源。静态预留把"资源可用性"变成<strong>可证明的承诺</strong>，这是功能安全（ISO 26262 / ASIL）认证的基本要求。量产平台实际用<strong>混合模式</strong>：AEB/转向/气囊静态预留，娱乐/导航/OTA 动态调度。</div>
+
+<hr>
+
+<h2>选择题参考答案</h2>
+
+<h3>MCQ1：哪种互联以"缓存一致性 + 极低延迟"著称？</h3>
+<p><span class="answer-correct">✅ B. NVLink-C2C</span><br>
+解析：NVLink-C2C 主打缓存一致性与极低延迟，软件视角是"共享内存模型"；PCIe 是"快递"式数据包传输、不共享内存；UCIe 是封装内 die-to-die 互联；CAN FD 是整车控制总线，带宽不在一个量级。</p>
+
+<h3>MCQ2：哪种任务最适合"动态调度"？</h3>
+<p><span class="answer-correct">✅ B. 座舱娱乐与导航</span><br>
+解析：娱乐/导航非安全关键、负载波动大，动态调度提高利用率；制动冗余监控、转向控制、气囊触发都是安全关键功能，必须静态预留以保证确定性与可认证性。</p>
+
+<h3>MCQ3：UCIe 与传统 PCIe 的本质区别？</h3>
+<p><span class="answer-correct">✅ A. UCIe 是封装内 die-to-die 互联，PCIe 是板级互联</span><br>
+解析：UCIe 把多个小芯片（chiplet）在<strong>封装内部</strong>互连，物理距离最短，是"拼积木"式的一颗虚拟大芯片；PCIe 是 PCB 上的<strong>板级</strong>互联；UCIe 不限于显卡；延迟高低取决于具体场景。</p>
+
+<hr>
+<p style="color:#888;font-size:.85rem">Lesson 44 · 多 SoC 互联与算力调度（PCIe / NVLink-C2C / UCIe · 缓存一致性 · 算力调度）· 2026-08-25 23:00 · 参考答案</p>
+</div>
+</body>
+</html>
