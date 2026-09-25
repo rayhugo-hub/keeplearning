@@ -45,9 +45,9 @@
 
 ![扫码下载](download-qr.png)
 
-下载地址：https://keeplearning-2026.obs.cn-south-1.myhuaweicloud.com/keeplearning.zip
+下载地址：https://keeplearning-2026.obs.cn-south-1.myhuaweicloud.com/keeplearning.apk.1
 
-> 下载后把后缀 `.zip` 改成 `.apk` 再安装。
+> 下载后把 `keeplearning.apk.1` 改名成 `keeplearning.apk` 再安装。
 > APK 为 debug 签名，安装时需在设置里允许「未知来源」。
 
 ## 目录结构
