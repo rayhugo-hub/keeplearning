@@ -15,6 +15,16 @@
 
 手机浏览器打开后点「添加到桌面」即可安装为应用。首次打开自动缓存全部课程，之后断网也能学。
 
+## 下载 App（Android APK）
+
+扫码或点链接下载安卓安装包（**仅安卓手机**；鸿蒙 NEXT / iPhone 请用上面的网页版）：
+
+![扫码下载](download-qr.png)
+
+下载地址：https://keeplearning-2026.obs.cn-south-1.myhuaweicloud.com/keeplearning.apk
+
+> APK 为 debug 签名，安装时需在设置里允许「未知来源」。
+
 ## 目录结构
 
 - `index.html` — 移动首页（搜索 + 进度 + 课程列表）
