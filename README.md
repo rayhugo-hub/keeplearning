@@ -1,6 +1,6 @@
 # 保持学习
 
-汽车电子课程自学习应用（PWA），58 节课程，手机端可安装。
+汽车电子课程自学习应用（PWA），20 节课程，手机端可安装。
 
 ## 功能
 
@@ -39,21 +39,10 @@
 - API Key 只保存在**你浏览器本机的 localStorage** 里，不上传、也不进入 GitHub 仓库；换设备或清缓存后需重新填写。
 - 配置完成后，回到费曼题点 **提交评分**，即可获得 AI 自动评分。
 
-## 下载 App（Android APK）
-
-扫码或点链接下载安卓安装包（**仅安卓手机**；鸿蒙 NEXT / iPhone 请用上面的网页版）：
-
-![扫码下载](download-qr.png)
-
-下载地址：https://keeplearning-2026.obs.cn-south-1.myhuaweicloud.com/keeplearning.apk.1
-
-> 下载后把 `keeplearning.apk.1` 改名成 `keeplearning.apk` 再安装。
-> APK 为 debug 签名，安装时需在设置里允许「未知来源」。
-
 ## 目录结构
 
 - `index.html` — 移动首页（搜索 + 进度 + 课程列表）
-- `Lesson01~58/` — 课程内容（课程.html 讲解、答案.html 参考答案）
+- `Lesson01~20/` — 课程内容（课程.html 讲解、答案.html 参考答案）
 - `ai-grader.js` — AI 评分
 - `teachme-tracker.js` — 进度记录
 - `sw.js` / `manifest.webmanifest` — 离线缓存 / PWA 清单
